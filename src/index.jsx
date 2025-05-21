@@ -3,6 +3,8 @@ import { render } from 'solid-js/web';
 import { Router, Route } from "@solidjs/router";
 import './index.css';
 import Home from './routes/Home';
+import PokemonSearchTest from './components/PokemonSearchTest';
+import SetDisplayPage from './routes/SetDisplayPage';
 
 // const root = document.getElementById('root');
 
@@ -15,5 +17,7 @@ import Home from './routes/Home';
 render(() => (
   <Router fallbackElement={<div>Loading...</div>}> 
     <Route path="/" component={Home} />
+    <Route path="/pokemon-test" component={PokemonSearchTest} />
+    <Route path="/set/:setId" component={SetDisplayPage} />
   </Router>
 ), document.getElementById('root')); // Ensure your HTML has an element with id="root"

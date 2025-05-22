@@ -1,6 +1,7 @@
 import { createSignal, For } from 'solid-js';
 import styles from './decklist.module.css';
 import DeckCard from '../components/DeckCard';
+import Pagination from '../components/Pagination'; 
 
 // Placeholder for Search Icon
 const SearchIcon = () => (
@@ -13,81 +14,32 @@ const SearchIcon = () => (
 const initialDecks = Array.from({ length: 23 }, (_, i) => ({
   id: i + 1,
   name: `My Awesome Deck ${i + 1}`,
-  imageUrl: '', // Placeholder for image
-  cardCount: Math.floor(Math.random() * 40) + 20, // Random card count
+  imageUrl: '',
+  cardCount: Math.floor(Math.random() * 40) + 20,
 }));
 
 const ITEMS_PER_PAGE = 9;
 
-function Pagination({ currentPage, totalPages, onPageChange }) {
-  const pageNumbers = [];
-  // Logic for displaying page numbers (e.g., ellipsis for many pages)
-  // For simplicity, showing first, current, and last few pages
-  const maxPagesToShow = 5;
-  let startPage = Math.max(1, currentPage() - Math.floor(maxPagesToShow / 2));
-  let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
-
-  if (endPage - startPage + 1 < maxPagesToShow) {
-    startPage = Math.max(1, endPage - maxPagesToShow + 1);
-  }
-
-  for (let i = startPage; i <= endPage; i++) {
-    pageNumbers.push(i);
-  }
-
-  return (
-    <nav class={styles.pagination}>
-      <button
-        onClick={() => onPageChange(Math.max(1, currentPage() - 1))}
-        disabled={currentPage() === 1}
-        aria-label="Previous Page"
-      >
-        Prev
-      </button>
-      {startPage > 1 && (
-        <>
-          <button onClick={() => onPageChange(1)}>1</button>
-          {startPage > 2 && <span class={styles.ellipsis}>...</span>}
-        </>
-      )}
-      <For each={pageNumbers}>
-        {(page) => (
-          <button
-            onClick={() => onPageChange(page)}
-            class={currentPage() === page ? styles.activePage : ''}
-          >
-            {page}
-          </button>
-        )}
-      </For>
-      {endPage < totalPages && (
-        <>
-          {endPage < totalPages -1 && <span class={styles.ellipsis}>...</span>}
-          <button onClick={() => onPageChange(totalPages)}>{totalPages}</button>
-        </>
-      )}
-      <button
-        onClick={() => onPageChange(Math.min(totalPages, currentPage() + 1))}
-        disabled={currentPage() === totalPages}
-        aria-label="Next Page"
-      >
-        Next
-      </button>
-    </nav>
-  );
-}
-
-
 function DeckList() {
   const [searchTerm, setSearchTerm] = createSignal('');
-  const [allDecks, setAllDecks] = createSignal(initialDecks); // TODO: Fetch
+  const [allDecks, setAllDecks] = createSignal(initialDecks);
   const [currentPage, setCurrentPage] = createSignal(1);
 
   const filteredDecks = () => {
     const lowerSearchTerm = searchTerm().toLowerCase();
-    return allDecks().filter(deck =>
+    // Reset to first page if current page becomes invalid due to filtering
+    const currentFiltered = allDecks().filter(deck =>
       deck.name.toLowerCase().includes(lowerSearchTerm)
     );
+    const newTotalPages = Math.ceil(currentFiltered.length / ITEMS_PER_PAGE);
+    if (currentPage() > newTotalPages && newTotalPages > 0) {
+      setCurrentPage(newTotalPages);
+    } else if (newTotalPages === 0 && currentFiltered.length === 0) {
+        // if no results, and current page is 1, keep it 1.
+        // if current page was > 1 and now no results, reset to 1.
+        if (currentPage() > 1) setCurrentPage(1);
+    }
+    return currentFiltered;
   };
 
   const totalPages = () => Math.ceil(filteredDecks().length / ITEMS_PER_PAGE);
@@ -100,9 +52,11 @@ function DeckList() {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    // TODO: trigger a new fetch or filter
+    // When search term changes, filterDecks will run, and it now handles
+    // resetting currentPage if it's out of bounds.
+    // We still want to explicitly set to page 1 for a new search submission
+    setCurrentPage(1);
     console.log("Searching for:", searchTerm());
-    setCurrentPage(1); // Reset to first page on new search
   };
 
   const handlePageChange = (page) => {
@@ -123,7 +77,9 @@ function DeckList() {
             class={styles.searchInput}
             placeholder="Search pokemon decks..."
             value={searchTerm()}
-            onInput={(e) => setSearchTerm(e.currentTarget.value)}
+            onInput={(e) => {
+                setSearchTerm(e.currentTarget.value);
+            }}
           />
           <button type="submit" class={styles.searchButton} aria-label="Search">
             <SearchIcon />
@@ -140,13 +96,11 @@ function DeckList() {
         </For>
       </div>
 
-      {totalPages() > 1 && (
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages()}
-          onPageChange={handlePageChange}
-        />
-      )}
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages()}
+        onPageChange={handlePageChange}
+      />
     </div>
   );
 }

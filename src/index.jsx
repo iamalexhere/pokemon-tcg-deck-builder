@@ -3,6 +3,7 @@ import { render } from 'solid-js/web';
 import { Router, Route } from "@solidjs/router";
 import './index.css';
 import Home from './routes/Home';
+import StyleGuide from './routes/StyleGuide';
 
 // const root = document.getElementById('root');
 
@@ -15,5 +16,6 @@ import Home from './routes/Home';
 render(() => (
   <Router fallbackElement={<div>Loading...</div>}> 
     <Route path="/" component={Home} />
+    <Route path="/style-guide" component={StyleGuide} />
   </Router>
 ), document.getElementById('root')); // Ensure your HTML has an element with id="root"

@@ -1,9 +1,6 @@
-
 .mainContainer{
     display: flex;
     height: 100vh;
-
-    /* padding: 5rem ; */
 }
 
 .formContainer {
@@ -35,10 +32,8 @@
 .formTable{
     color: black;
     width: 30em;
-
     border-collapse: separate;
     border-spacing: 0 2rem;
-    /* font-size: 1rem; */
     margin-top: 0;
 }
 
@@ -51,7 +46,6 @@
     background-color: #cba6f7;
     color: white;
     margin-top: 10px;
-    /* font-weight: bold; */
     cursor: pointer;
 }
 
@@ -60,7 +54,6 @@
     width: 96%;
     height: 2.1rem;
     border-radius: 3px;
-    /* border-color: grey; */
     border: 2px solid lightgray;
     padding-left: 10px;
 }
@@ -83,14 +76,9 @@
 }
 
 .showPasswordButton {
-    /* margin-left: 1rem; */
     transform: translateY(50%);
     width: 1rem;
     border: none;
     background-color: white;
     cursor: pointer;
-}
-
-.showPasswordCell {
-    /* padding-left: 2rem; */
 }

@@ -1,5 +1,5 @@
 import styles from './login.module.css';
-import testImage from '../assets/images/LoginPage/test.jpg';
+import loginImage from '../assets/images/LoginPage/test.jpg';
 import { A } from "@solidjs/router";
 import { createSignal, Switch, Match } from "solid-js";
 import { useNavigate } from "@solidjs/router";
@@ -14,6 +14,7 @@ function Login() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        
         // TODO: Replace with real auth call
         const isValid = username() === "user" && password() === "pass";
 
@@ -26,11 +27,13 @@ function Login() {
 
     return (
         <div class={styles.mainContainer}>
+
             <div class={styles.formContainer}>
 
                 <h1 class={styles.title}>Login</h1>
 
                 <form method="post" class={styles.loginForm} onsubmit={handleSubmit}>
+
                     <table class={styles.formTable}>
                         <thead>
                             <tr>
@@ -41,6 +44,7 @@ function Login() {
                                         class={styles.inputUsername}
                                         value={username()}
                                         onInput={(e) => setUsername(e.target.value)}
+                                        placeholder='Enter your username'
                                     />
                                 </td>
                             </tr>
@@ -54,6 +58,7 @@ function Login() {
                                         class={styles.inputPassword} 
                                         value={password()}
                                         onInput={(e) => setPassword(e.target.value)}
+                                        placeholder='Enter your password'
                                     />    
                                 </td>
                                 <td class={styles.showPasswordCell}>
@@ -75,25 +80,25 @@ function Login() {
                             </tr>
                             <tr>
                                 <td>
-                                    <a href="" class={styles.forgotPassword}>Forgot password?</a> 
+                                    <A href='' class={styles.forgotPassword}>Forgot password?</A> 
                                     <button class={styles.loginButton}>Login</button>
                                 </td>
                             </tr>
                         </thead>
                     </table>
 
-                    
-
                     <p>Don't have an account? <A href="/register">Register.</A></p>
 
                 </form>
             </div>
             <div class={styles.imageContainer}>
+
                 <img
-                    src={testImage}
+                    src={loginImage}
                     alt="Login illustration"
                     class={styles.image}
                 />
+
             </div>
         </div>
     );

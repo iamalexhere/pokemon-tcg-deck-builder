@@ -14,7 +14,7 @@ function Login() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
+
         // TODO: Replace with real auth call
         const isValid = username() === "user" && password() === "pass";
 

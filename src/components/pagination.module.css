@@ -1,0 +1,57 @@
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin-top: 30px;
+}
+
+.pageButton {
+  background-color: #45475a; /* Surface1 */
+  color: #cdd6f4; /* Text */
+  border: 1px solid #585b70; /* Surface2 */
+  padding: 8px 14px;
+  min-width: 40px; /* Ensure consistent button width */
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  line-height: 1; /* Ensure consistent height with padding */
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  display: inline-flex; /* Helps with consistent sizing and alignment */
+  align-items: center;
+  justify-content: center;
+}
+
+.pageButton:hover:not(:disabled) {
+  background-color: #585b70; /* Surface2 */
+  border-color: #7f849c; /* Overlay1 */
+}
+
+.pageButton:disabled {
+  color: #6c7086; /* Overlay0 */
+  background-color: #313244; /* Surface0 */
+  cursor: not-allowed;
+  border-color: #313244; /* Match background or a slightly darker shade */
+}
+
+.activePage {
+  background-color: #74c7ec; /* Sapphire */
+  color: #1e1e2e; /* Base */
+  border-color: #74c7ec;
+  font-weight: 600;
+}
+
+.activePage:hover:not(:disabled) { /* Specific hover for active page */
+  background-color: #63b6e0; /* Slightly darker Sapphire */
+  border-color: #63b6e0;
+}
+
+.ellipsis {
+  color: #a6adc8; /* Subtext0 */
+  padding: 0 5px;
+  user-select: none; /* Prevent text selection */
+  /* Vertically align with buttons if align-items on parent isn't enough */
+  /* display: inline-flex;
+  align-items: center; */
+  /* The align-items: center on .pagination should handle this */
+}

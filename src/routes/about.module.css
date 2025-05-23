@@ -1,0 +1,120 @@
+.aboutPageContainer {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.pageTitle {
+  text-align: center;
+  font-size: 2.8rem;
+  color: #f5e0dc; /* Rosewater */
+  margin-bottom: 40px;
+  font-weight: 700;
+}
+
+.teamGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 30px;
+  justify-content: center;
+}
+
+.teamCard {
+  background-color: #313244; /* Surface0 */
+  border-radius: 12px;
+  overflow: hidden; 
+  box-shadow: 0 4px 15px rgba(17, 17, 27, 0.3); /* Crust with alpha for shadow */
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 300px;
+  max-width: 320px; /* Max width for a card */
+}
+
+.teamCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(17, 17, 27, 0.4);
+}
+
+.cardImagePlaceholder {
+  width: 100%;
+  padding-top: 75%; /* Aspect ratio for image (e.g., 4:3) */
+  position: relative;
+  background-color: #45475a; /* Surface1 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6c7086; /* Overlay0 */
+  font-size: 1rem;
+  border-bottom: 2px solid #1e1e2e; /* Base - for a subtle separation */
+}
+
+.memberImage {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* Inherit border-radius from parent if card top corners are rounded */
+  /* Alternatively, be specific: */
+  /* border-top-left-radius: 12px; */ /* Match .teamCard's border-radius */
+  /* border-top-right-radius: 12px; */ /* Match .teamCard's border-radius */
+}
+
+.cardImagePlaceholder span {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.cardContent {
+  padding: 20px;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.memberName {
+  font-size: 1.5rem;
+  color: #fab387; /* Peach */
+  margin-top: 0;
+  margin-bottom: 5px;
+  font-weight: 600;
+}
+
+.memberRole {
+  font-size: 1rem;
+  color: #94e2d5; /* Teal */
+  margin-bottom: 15px;
+  font-style: italic;
+}
+
+.memberDescription {
+  font-size: 0.9rem;
+  color: #a6adc8; /* Subtext0 */
+  line-height: 1.6;
+  margin-bottom: 20px;
+  flex-grow: 1; /* Pushes the button to the bottom */
+}
+
+.contactButton {
+  display: block; 
+  background-color: #cba6f7; /* Sapphire */
+  color: #11111b; /* Crust */
+  padding: 12px 15px;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+  margin-top: auto;
+}
+
+.contactButton:hover {
+  background-color: #f5c2e7; /* Sky */
+}

@@ -29,7 +29,7 @@ a {
 }
 
 a:hover {
-  color: #89dceb; /* Sky */
+  color: #313244; /* Surface0 */
   text-decoration: none; /* Often, hover doesn't need an underline if color change is clear */
 }
 

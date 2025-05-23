@@ -1,0 +1,56 @@
+.navbar {
+  
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #ccc;
+    padding: 10px 20px;
+    font-family: sans-serif;
+    background-color: white;
+  }
+  
+  .navbar-left .logo-placeholder {
+    width: 100%;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .navbar-center {
+    display: flex;
+    gap: 20px;
+  }
+  
+  .nav-link {
+    text-decoration: none;
+    color: #000;
+    font-size: 14px;
+    margin-right: 25px;
+    margin-left: 25px;
+    font-size: medium;
+  }
+  
+  .navbar-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .login-btn {
+    background-color: whitesmoke;
+    padding: 5px 10px;
+    font-size: medium;
+    cursor: pointer;
+    border-radius: 20px;
+    width: 100px;
+    color: black;
+  }
+  
+  .user-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+  }
+  

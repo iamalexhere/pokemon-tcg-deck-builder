@@ -3,6 +3,7 @@ import { render } from 'solid-js/web';
 import { Router, Route } from "@solidjs/router";
 import './index.css';
 import Home from './routes/Home';
+import StyleGuide from './routes/StyleGuide';
 import Login from './routes/Login';
 import About from './routes/About';
 import PokemonSearchTest from './components/PokemonSearchTest';
@@ -20,6 +21,7 @@ import DeckList from './routes/Decklist';
 render(() => (
   <Router fallbackElement={<div>Loading...</div>}> 
     <Route path="/" component={Home} />
+    <Route path="/style-guide" component={StyleGuide} />
     <Route path="/login" component={Login} />
     <Route path="/about" component={About} />
     <Route path="/pokemon-test" component={PokemonSearchTest} />

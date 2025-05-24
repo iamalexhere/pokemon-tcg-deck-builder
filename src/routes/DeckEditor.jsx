@@ -1,35 +1,49 @@
-import { createSignal, createEffect } from 'solid-js';
+import { createSignal, createEffect, Switch } from 'solid-js';
+import { useNavigate } from '@solidjs/router';
+import { RiArrowsArrowGoBackLine } from 'solid-icons/ri';
+import { AiFillHeart, AiOutlineHeart, AiOutlineSearch  } from 'solid-icons/ai'
+import { FaRegularTrashCan } from 'solid-icons/fa';
+
 import styles from './deckEditor.module.css';
+import PLACEHOLDER_IMAGE from "../assets/images/placeholder.jpg";
 
 function DeckEditor() {
     // State management for the deck
     const [deckName, setDeckName] = createSignal('Untitled Deck');
+    const [deckNameInput, setDeckNameInput] = createSignal('Untitled Deck');
     const [deckCards, setDeckCards] = createSignal([]);
     const [selectedCard, setSelectedCard] = createSignal(null);
     const [searchResults, setSearchResults] = createSignal([]);
     const [searchQuery, setSearchQuery] = createSignal('');
     const [currentPage, setCurrentPage] = createSignal(1);
+    const [favoriteDeck, setFavoriteDeck] = createSignal(false);
     const cardsPerPage = 12;
+    const navigate = useNavigate();
+    // const PLACEHOLDER_IMAGE = "../assets/images/placeholder.jpg";
 
     // Maximum number of cards in a deck
     const maxCards = 60;
 
   // TODO: Fetch cards from API or database
     const fetchCards = async (query) => {
+
         // This would be replaced with actual API call
         console.log('Searching for:', query);
+
         // Mock data for demonstration
         const mockResults = Array(20).fill().map((_, i) => ({
-        id: `card-${i}`,
-        name: `Pokemon ${i}`,
-        image: '/placeholder.svg',
-        type: i % 3 === 0 ? 'Fire' : i % 3 === 1 ? 'Water' : 'Grass',
-        subType: 'Basic',
-        abilities: [
-            { name: `Ability ${i}`, description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.' },
-            { name: `Ability ${i+1}`, description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.' }
-        ]
+            id: `card-${i}`,
+            name: `Pokemon ${i}`,
+            image: PLACEHOLDER_IMAGE,
+            type: i % 3 === 0 ? 'Fire' : i % 3 === 1 ? 'Water' : 'Grass',
+            release: 2020 + i,
+            subType: 'Basic',
+            abilities: [
+                { name: `Ability ${i}`, description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.' },
+                { name: `Ability ${i+1}`, description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.' }
+            ]
         }));
+
         setSearchResults(mockResults);
     };
 
@@ -55,12 +69,20 @@ function DeckEditor() {
 
     // Save deck
     const saveDeck = () => {
+
+        if (deckNameInput().trim() === "") {
+            setError("Deck name cannot be empty.");
+            return;
+        }
+
         // TODO: Save deck to database
-        console.log('Saving deck:', {
-            name: deckName(),
-            cards: deckCards()
-        });
+        
+        setDeckName(deckNameInput());
+
+        console.log('Saving deck:', { name: deckName(), cards: deckCards() });
+        
         alert('Deck saved successfully!');
+        navigate('/decklist')
     };
 
     // Delete deck
@@ -70,12 +92,20 @@ function DeckEditor() {
             console.log('Deleting deck');
             setDeckCards([]);
             setDeckName('Untitled Deck');
+            navigate('/decklist', {replace: true})
         }
     };
 
     // Add to favorites
     const toggleFavorite = () => {
         // TODO: Add/remove from favorites in database
+
+        if (favoriteDeck()) {
+            setFavoriteDeck(false)
+        } else {
+            setFavoriteDeck(true)
+        }
+
         console.log('Deck added to favorites');
     };
 
@@ -89,31 +119,34 @@ function DeckEditor() {
 
       <div class={styles.topBar}>
 
-            <button class={styles.backButton}>
-                <i class={styles.icon}>←</i>
+            <button 
+                class={styles.backButton}
+                onClick={() => navigate('/decklist')}
+            >
+                <RiArrowsArrowGoBackLine />
             </button>
 
             {/* Deck's name input */}
             <input 
                 type="text" 
                 value={deckName()} 
-                onInput={(e) => setDeckName(e.target.value)}
+                onInput={(e) => setDeckNameInput(e.target.value)}
                 class={styles.deckNameInput}
             />
 
-            {/* Action Button */}
+            {/* Action Button */}   
             <div class={styles.actionButtons}>
 
                 <button class={styles.saveButton} onClick={saveDeck}>SAVE</button>
 
-                <button class={styles.cancelButton} onClick={() => window.history.back()}>CANCEL</button>
+                <button class={styles.cancelButton} onClick={() => navigate('/decklist')}>CANCEL</button>
 
                 <button class={styles.favoriteButton} onClick={toggleFavorite}>
-                    <i class={styles.icon}>♥</i>
+                    {favoriteDeck() ? <AiFillHeart /> : <AiOutlineHeart />}
                 </button>
 
                 <button class={styles.removeButton} onClick={deleteDeck}>
-                    <i class={styles.icon}>🗑</i>
+                    <FaRegularTrashCan />
                 </button>
 
             </div>
@@ -126,34 +159,39 @@ function DeckEditor() {
 
                 <h2>Card's Details</h2>
 
-                {/* Cards detail using ternary operator. TODO: change to <Switch> */}
-                {selectedCard() ? (
-                    <>
-                    <div class={styles.cardImageContainer}>
-                        <img src={selectedCard().image || "/placeholder.svg"} alt={selectedCard().name} />
-                    </div>
-
-                    <div class={styles.cardInfo}>
-                        <h3>{selectedCard().name}</h3>
-                        <p class={styles.releaseDate}>Release: 2023</p>
-                        <p class={styles.cardType}>Type: {selectedCard().type}</p>
-                        <p class={styles.cardSubtype}>Sub-type: {selectedCard().subType}</p>
-                        
-                        {selectedCard().abilities.map((ability, index) => (
+                <Switch>
+                    
+                    <Match when={selectedCard()}>
                         <>
-                            <p class={styles.abilityName}>Ability {index + 1}</p>
-                            <div class={styles.abilityDescription}>
-                            {ability.description}
+                            <div class={styles.cardImageContainer}>
+                                <img src={selectedCard().image || PLACEHOLDER_IMAGE} alt={selectedCard().name} />
+                            </div>
+
+                            <div class={styles.cardInfo}>
+                                <h3>{selectedCard().name}</h3>
+                                <p class={styles.releaseDate}><b>Release:</b> {selectedCard().release}</p>
+                                <p class={styles.cardType}><b>Type:</b> {selectedCard().type}</p>
+                                <p class={styles.cardSubtype}><b>Sub-type:</b> {selectedCard().subType}</p>
+
+                                {selectedCard().abilities.map((ability, index) => (
+                                    <>
+                                        <p class={styles.abilityName}>Ability {index + 1}</p>
+                                        <div class={styles.abilityDescription}>
+                                            {ability.description}
+                                        </div>
+                                    </>
+                                ))}
                             </div>
                         </>
-                        ))}
-                    </div>
-                    </>
-                ) : (
-                    <div class={styles.noCardSelected}>
-                        <p>Select a card to view details</p>
-                    </div>
-                )}
+                    </Match>
+
+                    <Match when={!selectedCard()}>
+                        <div class={styles.noCardSelected}>
+                            <p>Select a card to view details</p>
+                        </div>
+                    </Match>
+
+                </Switch>
 
             </div>
 
@@ -172,15 +210,16 @@ function DeckEditor() {
                             onClick={() => setSelectedCard(card)}
                             onDblClick={() => removeCardFromDeck(card.id)}
                         >
-                            <img src={card.image || "/placeholder.svg"} alt={card.name} />
+                            <img src={card.image || PLACEHOLDER_IMAGE} alt={card.name} />
                         </div>
                     ))}
-
-                    {Array(maxCards - deckCards().length).fill().map(() => (
+                    
+                    {/* EMPTY CARD PLACEHOLDER */}
+                    {/* {Array(maxCards - deckCards().length).fill().map(() => (
                         <div class={`${styles.deckCard} ${styles.empty}`}>
                             <div class={styles.cardPlaceholder}></div>
                         </div>
-                    ))}
+                    ))} */}
 
                 </div>
 
@@ -202,7 +241,7 @@ function DeckEditor() {
                     />
 
                     <button type="submit" class={styles.searchButton}>
-                        <i class={styles.icon}>🔍</i>
+                        <AiOutlineSearch />
                     </button>
                 </form>
                 
@@ -214,7 +253,7 @@ function DeckEditor() {
                         onClick={() => setSelectedCard(card)}
                         onDblClick={() => addCardToDeck(card)}
                     >
-                        <img src={card.image || "/placeholder.svg"} alt={card.name} />
+                        <img src={card.image || PLACEHOLDER_IMAGE} alt={card.name} />
                     </div>
                     ))}
                 </div>

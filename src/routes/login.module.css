@@ -1,6 +1,10 @@
 .mainContainer{
     display: flex;
     height: 100vh;
+    padding-top: 50px;
+    padding-left: 250px;
+    padding-right: 250px;
+    padding-bottom: 50px;
 }
 
 .formContainer {
@@ -10,7 +14,7 @@
     justify-content: center;
     align-items: center;
     background-color: white;
-    margin: 5em 0 5em 19em;
+    /* margin: 5em 0 5em 19em;   */
     border-radius: 4px 0 0px 4px;
 }
 
@@ -20,36 +24,8 @@
     justify-content: center;
     align-items: center;
     background-color: lightblue;
-    margin: 5em 19em 5em 0;
+    /* margin: 5em 19em 5em 0; */
     border-radius: 0px 4px 4px 0px;
-}
-
-.formContainer, .imageContainer {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    /* margin: 2em;  */
-    /* border-radius: 4px; */
-    max-width: 50%; /* Let it adjust */
-}
-
-@media (max-width: 768px) {
-    .mainContainer {
-        flex-direction: column; /* Stack on small screens */
-    }
-    .formContainer, .imageContainer {
-        max-width: 100%;
-        margin: 1em; /* Reduced margin */
-        border-radius: 0; /* Simplified rounding */
-    }
-    .formTable {
-        width: 90%; /* Flexible form table */
-    }
-    .image {
-        height: auto;
-    }
 }
 
 .title {

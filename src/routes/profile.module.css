@@ -1,0 +1,104 @@
+p{
+  margin: 0;
+}
+.profileFrame{
+  display: grid;
+  grid-template-columns: 1fr 3fr 5fr 1fr;
+  grid-template-rows: 1fr;
+  grid-template-areas: 
+    ". fotoProfile text .";
+}
+
+.fotoProfile{
+  grid-area: fotoProfile;
+}
+
+.textFrame{
+  grid-area: text;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+}
+
+.usernameStyle{
+  display:flex;
+  flex-direction: row;
+  font-size: 4rem;
+}
+
+.usernameStyle input{
+  width: 25rem;
+  height: 5rem;
+  font-size: 4rem;
+  border-radius: 1rem;
+}
+
+
+.pronounStyle{
+  display: flex;
+  flex-direction: row;
+  font-size: 2.5rem;
+}
+
+.pronounStyle input{
+  width: 25rem;
+  height: 2.5rem;
+  font-size: 2.5rem;
+  border-radius: 1rem;
+}
+
+
+.deskripsiStyle{
+  display: flex;
+  
+}
+
+
+.textFrame textarea{
+  height: 6rem;
+  width: 25rem;
+  resize: none;
+  border-radius: 1rem;
+}
+
+.textFrame button{
+  border: none; 
+  background: none; 
+  cursor: pointer;
+}
+
+.deck{
+ margin: 2rem;
+ height: 50%;
+ display: flex;
+ flex-direction: column;
+ justify-content: space-evenly;
+}
+
+.deck button{
+  width: 10rem;
+  height: 3rem;
+  border-radius: 1rem;
+  margin-right:1rem ; 
+}
+
+.deckGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* Exactly 3 columns */
+  gap: 25px;
+  margin-bottom: 40px;
+}
+
+.deckButton{
+  margin-bottom: 2rem;
+  display: flex;
+  width: 50rem;
+  
+}
+
+.activeButton{
+  background-color: #007bff;
+  color: rgb(108, 33, 33);
+  font-weight: bold;
+  border-radius: 6px;
+}

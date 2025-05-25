@@ -1,5 +1,8 @@
 import  styles from "./error.module.css";
+import { useNavigate } from "@solidjs/router";
+
 function error(){
+    const navigate = useNavigate()
     return(
     <>
         <div class={styles.containerErrorPage}>
@@ -7,7 +10,7 @@ function error(){
             <p class={styles.title}>Oops!</p>
             <p class={styles.subTitle}>404 - Page Not Found</p>
             <p class={styles.deskripsi}>The page that you are looking for is not exist</p>
-            <button>Go to Homepage</button>
+            <button onClick={()=> navigate("/")}>Go to Homepage</button>
         </div>
     </>);
 }

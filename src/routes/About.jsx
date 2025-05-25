@@ -1,5 +1,5 @@
 import styles from './about.module.css';
-import alexUserImage from '../assets/images/team/alex.jpg';
+//import alexUserImage from '../assets/images/team/alex.jpg';
 
 const teamMembers = [
   {
@@ -7,7 +7,7 @@ const teamMembers = [
     name: 'Imanuel Alexander Here',
     role: 'Devops',
     description: 'placeholder',
-    imageUrl: alexUserImage, 
+    imageUrl: '', 
     contactLink: 'https://github.com/iamalexhere'
   },
   {

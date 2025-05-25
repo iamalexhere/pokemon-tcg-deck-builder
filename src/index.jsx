@@ -5,6 +5,7 @@ import './index.css';
 import Home from './routes/Home';
 import StyleGuide from './routes/StyleGuide';
 import Login from './routes/Login';
+import Register from './routes/Register';
 import About from './routes/About';
 import PokemonSearchTest from './components/PokemonSearchTest';
 import SetDisplayPage from './routes/SetDisplayPage';
@@ -29,6 +30,7 @@ render(() => (
     <Route path="/profile" component={profile} />
     <Route path="/style-guide" component={StyleGuide} />
     <Route path="/login" component={Login} />
+    <Route path="/register" component={Register} />
     <Route path="/about" component={About} />
     <Route path="/pokemon-test" component={PokemonSearchTest} />
     <Route path="/set/:setId" component={SetDisplayPage} />

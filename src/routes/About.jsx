@@ -1,5 +1,6 @@
 import styles from './about.module.css';
 import alexUserImage from '../assets/images/team/alex.jpg';
+import zakkiUserImage from '../assets/images/team/zakki.png';
 
 const teamMembers = [
   {
@@ -15,8 +16,8 @@ const teamMembers = [
     name: 'Muhammad Zakki Baldani',
     role: 'placeholder',
     description: 'placeholder',
-    imageUrl: '',
-    contactLink: ''
+    imageUrl: zakkiUserImage,
+    contactLink: 'https://github.com/zakkib'
   },
   {
     id: 3,

@@ -1,7 +1,8 @@
 import { createSignal, For } from 'solid-js';
 import styles from './decklist.module.css';
 import DeckCard from '../components/DeckCard';
-import Pagination from '../components/Pagination'; 
+import Pagination from '../components/Pagination';
+import { useNavigate } from "@solidjs/router";
 
 // Placeholder for Search Icon
 const SearchIcon = () => (
@@ -24,6 +25,7 @@ function DeckList() {
   const [searchTerm, setSearchTerm] = createSignal('');
   const [allDecks, setAllDecks] = createSignal(initialDecks);
   const [currentPage, setCurrentPage] = createSignal(1);
+  const navigate = useNavigate();
 
   const filteredDecks = () => {
     const lowerSearchTerm = searchTerm().toLowerCase();
@@ -63,6 +65,10 @@ function DeckList() {
     setCurrentPage(page);
   };
 
+  const handleDeckClick = (e) => {
+    navigate('/deckeditor')
+  }
+
   return (
     <div class={styles.deckListPageContainer}>
       <h1 class={styles.pageTitle}>Deck List</h1>
@@ -92,7 +98,7 @@ function DeckList() {
 
       <div class={styles.deckGrid}>
         <For each={paginatedDecks()} fallback={<p class={styles.noDecksMessage}>No decks found.</p>}>
-          {(deck) => <DeckCard deck={deck} />}
+          {(deck) => <DeckCard deck={deck} onClick={handleDeckClick} />}
         </For>
       </div>
 

@@ -1,5 +1,5 @@
 import styles from "./home.module.css";
-import poke from "../assets/home_img.png";
+import poke from "../assets/images/home/home_img.png";
 
 function Home() {
   return (

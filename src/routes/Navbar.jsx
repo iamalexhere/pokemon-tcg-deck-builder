@@ -1,5 +1,5 @@
 import styles from "./navbar.module.css";
-import logo from "../assets/logo_pokemon.jpeg";
+import logo from "../assets/images/navbar/logo_pokemon.jpeg";
 import { A } from "@solidjs/router";
 
 const Navbar = () => {

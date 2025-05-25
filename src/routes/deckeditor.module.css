@@ -124,8 +124,10 @@
     font-size: larger;
     font-weight: bold;
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
+    text-align: center;
     height: 300px;
     border-radius: 5px;
 }
@@ -136,6 +138,10 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 15px;
+}
+
+.deckHeader p {
+    font-size: small;
 }
 
 .cardCount {
@@ -264,4 +270,115 @@
 h2 {
     margin-top: 0.5em;
     margin-bottom: 0.5em;
+}
+
+/* ... existing styles ... */
+
+.deckGrid.drag-over,
+.searchResults.drag-over { /* If you want to highlight the specific grid */
+    border: 2px dashed #74c7ec; /* Sapphire */
+    background-color: rgba(116, 199, 236, 0.1);
+}
+
+.cardDeckContainer.drag-over-zone,
+.cardSearchContainer.drag-over-zone { /* Highlight the whole container */
+    outline: 2px dashed #74c7ec; /* Sapphire */
+    outline-offset: -2px; /* Keep outline inside */
+}
+
+
+.searchCard[draggable="true"],
+.deckCard[draggable="true"] {
+    cursor: grab;
+}
+
+.searchCard:active[draggable="true"],
+.deckCard:active[draggable="true"] {
+    cursor: grabbing;
+}
+
+/* Hint for removal area */
+.dragToRemoveHint {
+    text-align: center;
+    padding: 10px;
+    margin-top: 10px;
+    font-style: italic;
+    color: #a6adc8; /* Subtext0 */
+    border: 1px dashed #6c7086; /* Overlay0 */
+    border-radius: 4px;
+    background-color: #313244; /* Surface0 */
+}
+
+/* Error message style */
+.errorMessage {
+    color: #f38ba8; /* Red */
+    background-color: rgba(243, 139, 168, 0.1);
+    padding: 10px;
+    margin: 10px 20px;
+    border-radius: 4px;
+    text-align: center;
+    border: 1px solid #f38ba8;
+}
+
+/* ... existing styles ... */
+
+.errorMessage {
+    color: #f38ba8; /* Catppuccin Red */
+    background-color: rgba(243, 139, 168, 0.1);
+    padding: 10px 15px;
+    margin: 10px 20px;
+    border-radius: 5px;
+    text-align: center;
+    border: 1px solid #f38ba8;
+}
+
+.loadingMessage {
+    text-align: center;
+    padding: 15px;
+    font-size: 1.1rem;
+    color: #cba6f7; /* Catppuccin Mauve */
+}
+
+.dragToRemoveHint {
+    text-align: center;
+    padding: 8px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    font-style: italic;
+    font-size: 0.9rem;
+    color: #a6adc8; /* Subtext0 */
+    border: 1px dashed #6c7086; /* Overlay0 */
+    border-radius: 4px;
+    background-color: #3132441f; /* Surface0 with alpha */
+}
+
+/* For better visibility of empty deck slots if you use the placeholder array */
+.emptyDeckSlot {
+    background-color: rgba(255, 255, 255, 0.03); /* very subtle */
+    border: 1px dashed #45475a; /* Surface1 */
+}
+
+.cardInfo h4 {
+    margin-top: 15px;
+    margin-bottom: 5px;
+    color: #f5e0dc; /* Rosewater */
+    border-bottom: 1px solid #45475a; /* Surface1 */
+    padding-bottom: 3px;
+}
+
+.abilityDescription {
+    background-color: #1e1e2e; /* Base */
+    padding: 8px 12px;
+    border: 1px solid #313244; /* Surface0 */
+    margin-bottom: 10px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+.abilityDescription strong {
+    color: #cba6f7; /* Mauve */
+}
+.abilityDescription p {
+    margin: 5px 0 0 0;
+    line-height: 1.5;
+    color: #bac2de; /* Subtext1 */
 }

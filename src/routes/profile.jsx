@@ -1,8 +1,8 @@
 import styles from './profile.module.css';
-import profileImage from '../img/Profile.png';
+import profileImage from '../assets/images/icon/Profile.png';
 import { createSignal, Show } from "solid-js";
-import editIcon from '../img/editIcon.png'
-import DeckCard from '../component/DeckCard';
+import editIcon from '../assets/images/icon/editIcon.png'
+import DeckCard from '../components/DeckCard';
 
 // Placeholder deck data recent
 const initialDecks = Array.from({ length: 3 }, (_, i) => ({

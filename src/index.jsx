@@ -3,6 +3,7 @@ import { render } from 'solid-js/web';
 import { Router, Route } from "@solidjs/router";
 import './index.css';
 import profile from './routes/profile'
+import NotFound from './routes/error'
 
 import './index.css';
 import App from './App';
@@ -20,5 +21,8 @@ import App from './App';
 render(() => (
   <Router fallbackElement={<div>Loading...</div>}> 
     <Route path="/profile" component={profile} />
+
+    {/* catch all weird access page */}
+    <Route path="*" component={NotFound} />
   </Router>
 ), document.getElementById('root')); // Ensure your HTML has an element with id="root"

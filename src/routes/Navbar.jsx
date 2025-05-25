@@ -1,5 +1,6 @@
 import styles from "./navbar.module.css";
 import logo from "../assets/logo_pokemon.jpeg";
+import { A } from "@solidjs/router";
 
 const Navbar = () => {
   return (
@@ -12,18 +13,20 @@ const Navbar = () => {
         />
       </div>
       <div class={styles["navbar-center"]}>
-        <a href="#" class={styles["nav-link"]}>
+        <A href="/" class={styles["nav-link"]}>
           Card List
-        </a>
-        <a href="#" class={styles["nav-link"]}>
+        </A>
+        <A href="/decklist" class={styles["nav-link"]}>
           Deck
-        </a>
-        <a href="#" class={styles["nav-link"]}>
+        </A>
+        <A href="/about" class={styles["nav-link"]}>
           About
-        </a>
+        </A>
       </div>
       <div class={styles["navbar-right"]}>
-        <button class={styles["login-btn"]}>Login</button>
+        <A href="/login">
+          <button class={styles["login-btn"]}>Login</button>
+        </A>
         <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"

@@ -11,6 +11,7 @@ import SetDisplayPage from './routes/SetDisplayPage';
 import DeckList from './routes/Decklist';
 import profile from './routes/profile'
 import NotFound from './routes/error'
+import Layout from './components/Layout'
 
 // const root = document.getElementById('root');
 
@@ -23,7 +24,7 @@ import NotFound from './routes/error'
 // render(() => <App />, root);
 
 render(() => (
-  <Router fallbackElement={<div>Loading...</div>}> 
+  <Router root={Layout} fallbackElement={<div>Loading...</div>}> 
     <Route path="/" component={Home} />
     <Route path="/profile" component={profile} />
     <Route path="/style-guide" component={StyleGuide} />

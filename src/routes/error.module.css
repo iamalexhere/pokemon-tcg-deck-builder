@@ -26,4 +26,6 @@ button{
     width: 15rem;
     border-radius: 1rem;
     margin: 2rem;
+    font-family: 'Inter';
+    font-size: 1rem;
 }

@@ -33,10 +33,6 @@ p{
   border-radius: 1rem;
 }
 
-.buttonUser{
-
-  
-}
 
 .pronounStyle{
   display: flex;
@@ -51,18 +47,12 @@ p{
   border-radius: 1rem;
 }
 
-.buttonPronoun{
-  grid-area: buttonPronoun;
-}
 
 .deskripsiStyle{
   display: flex;
   
 }
 
-.buttonDeskripsi{
-  grid-area: buttonDeskripsi;
-}
 
 .textFrame textarea{
   height: 6rem;

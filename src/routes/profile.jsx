@@ -82,7 +82,7 @@ const [activebutton,setActiveButton] = createSignal(true);
                         <p s>{username()}</p>
                     </Show>
 
-                    <button onClick={handleUsername} class= {styles.buttonUser} >
+                    <button onClick={handleUsername} >
                         <img src={editIcon} alt="Edit" style="width: 2rem; height: 2rem;" />
                     </button>
 
@@ -96,7 +96,7 @@ const [activebutton,setActiveButton] = createSignal(true);
                         <p>{pronouns()}</p>
                     </Show>
 
-                    <button onClick={handlePronouns} class={styles.buttonPronoun}>
+                    <button onClick={handlePronouns} >
                         <img src={editIcon} alt="Edit" style="width: 2rem; height: 2rem;" />
                     </button>
                 </div>    
@@ -108,7 +108,7 @@ const [activebutton,setActiveButton] = createSignal(true);
                         <p>{deskripsi()} </p>
                     </Show>
 
-                    <button onClick={handleDeskripsi} style={styles.buttonDeskripsi}>
+                    <button onClick={handleDeskripsi} >
                         <img src={editIcon} alt="Edit" style="width: 2rem; height: 2rem;" />
                     </button>
 

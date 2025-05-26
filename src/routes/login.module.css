@@ -1,6 +1,10 @@
 .mainContainer{
     display: flex;
-    height: 100vh;
+    height: 100%;
+    padding-top: 5%;
+    padding-left: 10%;
+    padding-right: 10%;
+    padding-bottom: 5%;
 }
 
 .formContainer {
@@ -10,7 +14,7 @@
     justify-content: center;
     align-items: center;
     background-color: white;
-    margin: 5rem 0 5rem 19rem;
+    /* margin: 5em 0 5em 19em;   */
     border-radius: 4px 0 0px 4px;
 }
 
@@ -20,7 +24,7 @@
     justify-content: center;
     align-items: center;
     background-color: lightblue;
-    margin: 5rem 19rem 5rem 0;
+    /* margin: 5em 19em 5em 0; */
     border-radius: 0px 4px 4px 0px;
 }
 
@@ -33,13 +37,13 @@
     color: black;
     width: 30em;
     border-collapse: separate;
-    border-spacing: 0 2rem;
+    border-spacing: 0 2em;
     margin-top: 0;
 }
 
 .loginButton {
     width: 100%;
-    height: 2.1rem;
+    height: 2.1em;
     border: none;
     font-size: 1em;
     border-radius: 3px;
@@ -51,8 +55,8 @@
 
 
 .inputUsername, .inputPassword {
-    width: 96%;
-    height: 2.1rem;
+    width: 93%;
+    height: 2.1em;
     border-radius: 3px;
     border: 2px solid lightgray;
     padding-left: 10px;
@@ -77,7 +81,7 @@
 
 .showPasswordButton {
     transform: translateY(50%);
-    width: 1rem;
+    width: 1em;
     border: none;
     background: rgba(0, 0, 0, 0.0);
     cursor: pointer;

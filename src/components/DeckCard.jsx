@@ -1,6 +1,7 @@
 import styles from '../routes/decklist.module.css';
 
 function DeckCard({ deck, onClick }) {
+
   return (
     <div class={styles.deckCard} onClick={onClick}>
       <div class={styles.deckImagePlaceholder}>

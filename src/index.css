@@ -116,7 +116,7 @@ input[type="password"],
 textarea {
   background-color: var(--ctp-surface0);
   color: var(--ctp-text);
-  border: 1px solid var(--ctp-surface1);
+  /* border: 1px solid var(--ctp-surface1); */
   padding: 10px 15px;
   border-radius: var(--border-radius-medium);
   font-family: var(--font-primary);

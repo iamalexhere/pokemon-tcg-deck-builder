@@ -1,8 +1,13 @@
 import styles from "./navbar.module.css";
 import logo from "../assets/images/navbar/logo_pokemon.jpeg";
+import { useNavigate } from "@solidjs/router";
 import { A } from "@solidjs/router";
 
+
 const Navbar = () => {
+
+  const navigate = useNavigate();
+
   return (
     <nav class={styles.navbar}>
       <div class={styles["navbar-left"]}>
@@ -10,10 +15,11 @@ const Navbar = () => {
           class={styles["logo-placeholder"]}
           src={logo}
           alt="logo"
+          onclick={() => navigate('/')}
         />
       </div>
       <div class={styles["navbar-center"]}>
-        <A href="/" class={styles["nav-link"]}>
+        <A href="/cardlist" class={styles["nav-link"]}>
           Card List
         </A>
         <A href="/decklist" class={styles["nav-link"]}>

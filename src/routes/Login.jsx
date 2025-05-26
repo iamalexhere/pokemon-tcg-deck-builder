@@ -69,10 +69,10 @@ function Login() {
                                     >
                                         <Switch>
                                             <Match when={showPassword()}>
-                                                <FiEyeOff size={20} color="grey" />
+                                                <FiEyeOff size={22} color="grey" />
                                             </Match>
                                             <Match when={!showPassword()}>
-                                                <FiEye size={20} color="grey" />
+                                                <FiEye size={22} color="grey" />
                                             </Match>
                                         </Switch>
                                     </button>

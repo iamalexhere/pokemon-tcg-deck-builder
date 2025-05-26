@@ -1,0 +1,35 @@
+.imageContainer {
+  display: inline-block;
+  position: relative; /* For placeholder positioning */
+  background-color: #f0f0f0; /* Light grey background */
+  border-radius: 8px; /* Rounded corners like a card */
+  overflow: hidden;
+  /* Default size, can be overridden by props.class or specific size classes */
+  width: 240px; /* Example small card width */
+  aspect-ratio: 63 / 88; /* Standard Pokemon card aspect ratio */
+}
+
+.image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit:contain; /* Show the whole card, might leave empty space */
+}
+
+.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: #555;
+  font-size: 0.9em;
+  text-align: center;
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+/* Optional: Specific sizes if needed via a prop or parent class */
+.imageContainer.large {
+  width: 340px; /* Example large card width */
+}

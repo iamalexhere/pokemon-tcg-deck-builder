@@ -6,20 +6,22 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 40px;
-  padding: 40px 0;
+  gap: 50px;
+  padding: 100px 0;
+  
 }
 
 .heroContent {
   flex: 1;
   max-width: 50%;
+  
 }
 
 .heroContent h1 {
   font-size: 3rem; 
   font-weight: 700;
-  margin-top: 0;
-  margin-bottom: 25px;
+  margin-top: 150px;
+  margin-bottom: 50px;
   color: #f5e0dc; 
   line-height: 1.2;
 }
@@ -27,7 +29,7 @@
 .heroContent p {
   font-size: 1.1rem;
   line-height: 1.7;
-  margin-bottom: 35px;
+  margin-bottom: 65px;
   color: #bac2de; /* Subtext 1 for a slightly softer body text in hero */
 }
 
@@ -59,73 +61,13 @@
 
 .imagePlaceholder {
   flex: 1;
-  max-width: 45%;
-  min-height: 350px;
+  height: auto;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px dashed #6c7086; /* Overlay 0 */
+  border: 2px #6c7086; /* Overlay 0 */
   border-radius: 12px; /* More rounded */
   color: #a6adc8; /* Subtext 0 */
   font-size: 1.2rem;
   background-color: #313244; /* Surface 0 */
-}
-
-/* Palette Showcase Bar */
-.paletteShowcase {
-  margin-top: 60px;
-  padding: 30px;
-  background-color: #181825; /* Mantle */
-  border-radius: 12px;
-  text-align: center;
-}
-
-.paletteShowcase h3 {
-  margin-top: 0;
-  margin-bottom: 25px;
-  color: #f5e0dc; /* Rosewater */
-  font-size: 1.5rem;
-}
-
-.colorBar {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 10px; /* Slightly reduced gap */
-  flex-wrap: wrap;
-}
-
-.colorSwatch {
-  width: 110px;
-  height: 90px; /* Taller swatches for better name display */
-  border-radius: 8px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.8rem;
-  font-weight: 500;
-  color: #1e1e2e; /* Base text color on swatches for contrast */
-  border: 1px solid #45475a; /* Surface 1 for border */
-  padding: 8px;
-  box-sizing: border-box;
-  text-align: center;
-  transition: transform 0.2s ease;
-}
-.colorSwatch:hover {
-  transform: scale(1.05);
-}
-
-.colorSwatch .swatchName {
-  font-weight: 600;
-  margin-bottom: 5px;
-}
-
-.colorSwatch .swatchHex {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
-  font-size: 0.75rem;
-  background-color: rgba(30, 30, 46, 0.4); /* Base with alpha for hex bg */
-  color: #bac2de; /* Subtext1 for hex code */
-  padding: 2px 4px;
-  border-radius: 3px;
 }

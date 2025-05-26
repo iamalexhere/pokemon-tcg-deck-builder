@@ -3,6 +3,7 @@ import { render } from 'solid-js/web';
 import { Router, Route } from "@solidjs/router";
 import './index.css';
 import Home from './routes/Home';
+import DeckEditor from './routes/DeckEditor'
 import StyleGuide from './routes/StyleGuide';
 import Login from './routes/Login';
 import About from './routes/About';
@@ -26,6 +27,7 @@ import Layout from './components/Layout'
 render(() => (
   <Router root={Layout} fallbackElement={<div>Loading...</div>}> 
     <Route path="/" component={Home} />
+    <Route path="/deckeditor" component={DeckEditor} />
     <Route path="/profile" component={profile} />
     <Route path="/style-guide" component={StyleGuide} />
     <Route path="/login" component={Login} />

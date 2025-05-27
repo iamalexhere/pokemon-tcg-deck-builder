@@ -30,34 +30,45 @@
   .searchContainer {
     display: flex;
     align-items: center;
-    gap: 10px;
+    background-color: #313244; /* Surface0 */
+    border-radius: 8px;
+    padding: 5px;
+    border: 1px solid #45475a; /* Surface1 */
+    max-width: 400px; /* Max width for search */
     margin-bottom: 20px;
   }
   
   .searchInput {
-    padding: 8px 12px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 14px;
+    flex-grow: 1;
+    background-color: transparent;
+    border: none;
+    padding: 10px 15px;
+    color: #cdd6f4; /* Text */
+    font-size: 0.95rem;
+    outline: none;
     width: 250px;
   }
   
-  .searchInput:focus {
-    outline: none;
-    border-color: #007bff;
+  .searchInput::placeholder {
+    color: #7f849c; /* Overlay1 */
   }
   
   .searchButton {
+    background-color: transparent;
+    border: none;
+    color: #74c7ec; /* Sapphire */
     padding: 8px 12px;
-    background: #f8f9fa;
-    border: 1px solid #ddd;
-    border-radius: 4px;
     cursor: pointer;
-    font-size: 14px;
+    border-radius: 6px;
+    transition: color 0.2s ease;
   }
   
   .searchButton:hover {
-    background: #e9ecef;
+    color: #89dceb; /* Sky */
+  }
+  
+  .searchButton svg {
+    display: block; /* Prevents extra space below icon */
   }
   
   .cardGrid {
@@ -67,41 +78,51 @@
     margin-bottom: 30px;
   }
   
+  .noCardsMessage {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 30px;
+    font-size: 1.2rem;
+    color: #6c757d;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    border: 1px dashed #dee2e6;
+  }
+  
   .card {
-    aspect-ratio: 1;
+    aspect-ratio: 2/3;
     border: 1px solid #ddd;
-    border-radius: 4px;
+    border-radius: 8px;
     background: white;
     position: relative;
-    min-height: 80px;
+    min-height: 120px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  
+  .card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  }
+  
+  .cardImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
   }
   
   .cardPlaceholder {
-    width: 100%;
-    height: 100%;
-    position: relative;
-    background: #f8f9fa;
+    display: none;
+  }
+  
+  .cardName {
+    display: none;
   }
   
   .crossLine1,
   .crossLine2 {
-    position: absolute;
-    background: #ddd;
-    width: 1px;
-    height: 100%;
-    top: 0;
-  }
-  
-  .crossLine1 {
-    left: 50%;
-    transform: translateX(-50%) rotate(45deg);
-    transform-origin: center;
-  }
-  
-  .crossLine2 {
-    left: 50%;
-    transform: translateX(-50%) rotate(-45deg);
-    transform-origin: center;
+    display: none;
   }
   
   .pagination {

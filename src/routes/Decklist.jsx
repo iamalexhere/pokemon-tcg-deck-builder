@@ -80,8 +80,8 @@ function DeckList() {
     setCurrentPage(page);
   };
 
-  const handleDeckClick = (e) => {
-    navigate('/deckeditor')
+  const handleDeckClick = (deck) => {
+    navigate(`/deckeditor/${deck.id}`);
   }
 
   return (
@@ -106,7 +106,10 @@ function DeckList() {
             <SearchIcon />
           </button>
         </form>
-        <button class={styles.createNewDeckButton}>
+        <button 
+          class={styles.createNewDeckButton}
+          onClick={() => navigate(`/deckeditor/${allDecks().length + 1}`)}
+        >
           Create New Deck +
         </button>
       </div>

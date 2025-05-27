@@ -31,7 +31,7 @@ import CardDetails from './routes/CardDetails';
 render(() => (
   <Router root={Layout} fallbackElement={<div>Loading...</div>}> 
     <Route path="/" component={Home} />
-    <Route path="/deckeditor" component={() => (
+    <Route path="/deckeditor/:deckId" component={() => (
       <ProtectedRoute>
         <DeckEditor />
       </ProtectedRoute>
@@ -47,12 +47,8 @@ render(() => (
     <Route path="/about" component={About} />
     <Route path="/pokemon-test" component={PokemonSearchTest} />
     <Route path="/set/:setId" component={SetDisplayPage} />
-    <Route path="/decklist" component={() => (
-      <ProtectedRoute>
-        <DeckList />
-      </ProtectedRoute>
-    )} />
-    <Route path="/card-details" component={CardDetails}/>
+    <Route path="/decklist" component={DeckList} />
+    <Route path="/card-details/:cardId" component={CardDetails}/>
     <Route path="/cardlist" component={CardLists}/>
     {/* catch all weird access page */}
     <Route path="*" component={NotFound} />

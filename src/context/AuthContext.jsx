@@ -1,26 +1,54 @@
-import { createContext, createSignal, useContext } from 'solid-js';
+import { createContext, createSignal, useContext, createEffect, onMount } from 'solid-js';
 import defaultProfileImage from '../assets/images/icon/Profile.png';
 
 const AuthContext = createContext();
 
+// Helper functions for localStorage
+const saveToLocalStorage = (key, value) => {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch (error) {
+    console.error('Error saving to localStorage:', error);
+  }
+};
+
+const getFromLocalStorage = (key, defaultValue) => {
+  try {
+    const value = localStorage.getItem(key);
+    return value ? JSON.parse(value) : defaultValue;
+  } catch (error) {
+    console.error('Error getting from localStorage:', error);
+    return defaultValue;
+  }
+};
+
 export function AuthProvider(props) {
-  const [isLoggedIn, setIsLoggedIn] = createSignal(false);
-  const [user, setUser] = createSignal(null);
-  const [profilePicture, setProfilePicture] = createSignal(defaultProfileImage);
-  const [username, setUsername] = createSignal('Username');
-  const [pronouns, setPronouns] = createSignal('Pronouns');
-  const [description, setDescription] = createSignal('Lorem Ipsum is simply dummy text of the printing and typesetting industry.');
+  // Initialize state from localStorage if available
+  const [isLoggedIn, setIsLoggedIn] = createSignal(getFromLocalStorage('isLoggedIn', false));
+  const [user, setUser] = createSignal(getFromLocalStorage('user', null));
+  const [profilePicture, setProfilePicture] = createSignal(getFromLocalStorage('profilePicture', defaultProfileImage));
+  const [username, setUsername] = createSignal(getFromLocalStorage('username', 'Username'));
+  const [pronouns, setPronouns] = createSignal(getFromLocalStorage('pronouns', 'Pronouns'));
+  const [description, setDescription] = createSignal(getFromLocalStorage('description', 'Lorem Ipsum is simply dummy text of the printing and typesetting industry.'));
+
+  // Effects to update localStorage when state changes
+  createEffect(() => saveToLocalStorage('isLoggedIn', isLoggedIn()));
+  createEffect(() => saveToLocalStorage('user', user()));
+  createEffect(() => saveToLocalStorage('profilePicture', profilePicture()));
+  createEffect(() => saveToLocalStorage('username', username()));
+  createEffect(() => saveToLocalStorage('pronouns', pronouns()));
+  createEffect(() => saveToLocalStorage('description', description()));
 
   const login = (userData) => {
     setUser(userData);
     setIsLoggedIn(true);
-    // In a real app, you might store auth token in localStorage here
+    // localStorage is now handled by createEffect
   };
 
   const logout = () => {
     setUser(null);
     setIsLoggedIn(false);
-    // In a real app, you would clear localStorage here
+    // localStorage is now handled by createEffect
   };
 
   const updateProfilePicture = (imageData) => {

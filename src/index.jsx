@@ -13,6 +13,7 @@ import DeckList from './routes/Decklist';
 import profile from './routes/profile'
 import NotFound from './routes/error'
 import Layout from './components/Layout'
+import CardLists from './routes/CardLists';
 import CardDetails from './routes/CardDetails';
 
 // const root = document.getElementById('root');
@@ -36,7 +37,8 @@ render(() => (
     <Route path="/pokemon-test" component={PokemonSearchTest} />
     <Route path="/set/:setId" component={SetDisplayPage} />
     <Route path="/decklist" component={DeckList} />
-    <Route path="card-details" component={CardDetails}/>
+    <Route path="/card-details" component={CardDetails}/>
+    <Route path="/cardlist" component={CardLists}/>
     {/* catch all weird access page */}
     <Route path="*" component={NotFound} />
   </Router>

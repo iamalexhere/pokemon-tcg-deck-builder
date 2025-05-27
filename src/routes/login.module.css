@@ -86,3 +86,31 @@
     background: rgba(0, 0, 0, 0.0);
     cursor: pointer;
 }
+
+.errorText {
+    color: #e53935;
+    font-size: 0.8em;
+    margin-top: 0.3em;
+    text-align: left;
+}
+
+.formErrorText {
+    color: #e53935;
+    font-size: 0.9em;
+    margin: 0.5em 0;
+    text-align: center;
+    background-color: rgba(229, 57, 53, 0.1);
+    padding: 0.5em;
+    border-radius: 3px;
+    border-left: 3px solid #e53935;
+}
+
+.inputUsername[aria-invalid="true"], 
+.inputPassword[aria-invalid="true"] {
+    border-color: #e53935;
+}
+
+.loginButton:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}

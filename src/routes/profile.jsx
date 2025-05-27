@@ -44,8 +44,10 @@ function Profile(){
   const [tempPronouns, setTempPronouns] = createSignal(auth.pronouns());
   const [tempDeskripsi, setTempDeskripsi] = createSignal(auth.description());
   
-  // Variable for profile picture upload
+  // Variables for profile picture upload
   const [showProfileUpload, setShowProfileUpload] = createSignal(false);
+  const [uploadError, setUploadError] = createSignal('');
+  const [isUploading, setIsUploading] = createSignal(false);
 
   // Function to handle username editing
   function handleUsername(){
@@ -97,17 +99,45 @@ function Profile(){
         setShowDeskripsi(true);
     }
 }
-// Function to handle profile picture upload
+// Function to handle profile picture upload with error handling
   function handleProfilePictureUpload(e) {
+    setUploadError('');
     const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        updateProfilePicture(e.target.result);
-        setShowProfileUpload(false); // Close overlay after upload
-      };
-      reader.readAsDataURL(file);
+    
+    if (!file) {
+      return;
     }
+    
+    // Validate file type
+    const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      setUploadError('Invalid file type. Please upload a JPEG, PNG, GIF, or WebP image.');
+      return;
+    }
+    
+    // Validate file size (max 5MB)
+    const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+    if (file.size > maxSize) {
+      setUploadError('File is too large. Maximum size is 5MB.');
+      return;
+    }
+    
+    setIsUploading(true);
+    
+    const reader = new FileReader();
+    
+    reader.onload = (e) => {
+      updateProfilePicture(e.target.result);
+      setShowProfileUpload(false); // Close overlay after upload
+      setIsUploading(false);
+    };
+    
+    reader.onerror = () => {
+      setUploadError('Failed to read the file. Please try again.');
+      setIsUploading(false);
+    };
+    
+    reader.readAsDataURL(file);
   }
 
 // func untuk mengconfirm deskripsi dengan enter
@@ -178,14 +208,18 @@ function ErrorHandlePronouns(event){
                         <div class={styles.centerDot}></div>
 
                         <div class={styles.fileInput}>
-                            <button class={styles.uploadButton}>Choose File</button>
+                            <button class={styles.uploadButton} disabled={isUploading()}>
+                                {isUploading() ? 'Uploading...' : 'Choose File'}
+                            </button>
                             <input 
                                 type="file" 
-                                accept="image/*" 
-                                onChange={handleProfilePictureUpload} 
+                                accept="image/jpeg,image/png,image/gif,image/webp" 
+                                onChange={handleProfilePictureUpload}
+                                disabled={isUploading()} 
                             />
                         </div>
                         <p>Select a new profile picture from your device</p>
+                        {uploadError() && <p class={styles.errorMessage}>{uploadError()}</p>}
                     </div>
                 )}
             </div>

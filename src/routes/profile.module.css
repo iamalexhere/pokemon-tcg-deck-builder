@@ -91,10 +91,16 @@ p{
 }
 
 .deck button{
-  width: 10rem;
-  height: 3rem;
-  border-radius: 1rem;
-  margin-right:1rem ; 
+ padding: 14px 32px; /* Slightly larger padding */
+  border: none;
+  border-radius: 8px; /* More rounded */
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out, transform 0.1s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.75px;
+  margin-right: 2rem;
 }
 
 .deckGrid {
@@ -112,8 +118,15 @@ p{
 }
 
 .activeButton{
-  background-color: #007bff;
-  color: rgb(108, 33, 33);
-  font-weight: bold;
-  border-radius: 6px;
+  background-color: #cba6f7; /* Mauve */
+  color: #1e1e2e; /* Base - for good contrast on Mauve */
+  padding: 14px 32px; /* Slightly larger padding */
+  border: none;
+  border-radius: 8px; /* More rounded */
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out, transform 0.1s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.75px;
 }

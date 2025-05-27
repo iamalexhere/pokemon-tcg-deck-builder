@@ -75,6 +75,7 @@ function profile(){
     const currentValue = event.target.value;
     const newLineCount = (currentValue.match(/\n/g) || []).length;
 
+    // chec
     if (event.key === 'Enter' && newLineCount >= maxNewLines) {
         event.preventDefault(); // Prevent adding another new line
     }

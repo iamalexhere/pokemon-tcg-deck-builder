@@ -53,12 +53,27 @@ p{
   
 }
 
+.deskripsiStyle p{
+  white-space: pre-wrap;     /* keeps line breaks and wraps long lines */
+  word-wrap: break-word;     /* breaks long unbroken words */
+  overflow-wrap: break-word; /* also breaks long words (more consistent across browsers) */
+  max-width: 30rem;
+  word-break: break-word;
+  overflow: visible; 
+}
+
 
 .textFrame textarea{
-  height: 6rem;
   width: 25rem;
+  line-height: 1.2rem;       /* each line is 1.2rem tall */
+  height: calc(1.2rem * 7);   /* max 7 lines */
+  max-height: calc(1.2rem * 7);
+  overflow-y: auto;          /* allow scrolling if needed */
   resize: none;
   border-radius: 1rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .textFrame button{

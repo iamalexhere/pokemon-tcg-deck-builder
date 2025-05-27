@@ -36,7 +36,13 @@ function profile(){
     if (showUsername()==true){
         setShowUsername(false);
     }else{
-        setShowUsername(true)
+        setShowUsername(true);
+    }
+  }
+
+  function handleUsernameEnter(event){
+    if (event.key === "enter"){
+        handleUsername();
     }
   }
 
@@ -48,12 +54,34 @@ function profile(){
         setShowPronouns(true)
     }
   }
+
+  function handlePronounsEnter(event){
+    if (event.key === "enter"){
+        handlePronouns();
+    }
+  }
+
 // function input handle deskripsi
  function handleDeskripsi(){
     if (showDeskripsi()==true){
         setShowDeskripsi(false);
     }else{
         setShowDeskripsi(true)
+    }
+  }
+
+  function handleDeskripsiEnter(event){
+    const maxNewLines = 0;
+    const currentValue = event.target.value;
+    const newLineCount = (currentValue.match(/\n/g) || []).length;
+
+    if (event.key === 'Enter' && newLineCount >= maxNewLines) {
+        event.preventDefault(); // Prevent adding another new line
+    }
+
+    // Optional: Ctrl+Enter to finish editing
+    if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
+        handleDeskripsi(); // simulate clicking the edit icon to close editing
     }
   }
 
@@ -78,7 +106,7 @@ const [activebutton,setActiveButton] = createSignal(true);
                 {/* username div */}
                 <div class={styles.usernameStyle}>
                     
-                    <Show when={showUsername()} fallback={<input type="text" value={username()} onInput={(e) => setUsername(e.target.value)}/> }>
+                    <Show when={showUsername()} fallback={<input type="text" value={username()} onInput={(e) => setUsername(e.target.value)} onKeyDown={(e) => handleUsernameEnter(e)} maxLength={15}/> }>
                         <p s>{username()}</p>
                     </Show>
 
@@ -92,19 +120,19 @@ const [activebutton,setActiveButton] = createSignal(true);
                 {/* pronouns div */}
                 <div class={styles.pronounStyle}>
                     
-                    <Show when={showPronouns()} fallback={<input type="text" value={pronouns()} onInput={(e) => setPronouns(e.target.value)}/> }>
+                    <Show when={showPronouns()} fallback={<input type="text" value={pronouns()} onInput={(e) => setPronouns(e.target.value)} onKeyDown={(e) => handlePronounsEnter(e)} maxLength={20}/> }>
                         <p>{pronouns()}</p>
                     </Show>
 
                     <button onClick={handlePronouns} >
-                        <img src={editIcon} alt="Edit" style="width: 2rem; height: 2rem;" />
+                        <img src={editIcon} alt="Edit" style="width: 2rem; height: 2rem;" maxLength={250}/>
                     </button>
                 </div>    
                 
 
                 <div class={styles.deskripsiStyle}>
                     
-                    <Show when={showDeskripsi()} fallback={<textarea type="text" textContent={deskripsi()} onInput={(e) => setDeskripsi(e.target.value)}/>}>
+                    <Show when={showDeskripsi()} fallback={<textarea type="text" textContent={deskripsi()} onInput={(e) => setDeskripsi(e.target.value)} onKeyDown={(e) => handleDeskripsiEnter(e)} maxLength={250}/>}>
                         <p>{deskripsi()} </p>
                     </Show>
 

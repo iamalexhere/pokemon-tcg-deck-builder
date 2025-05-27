@@ -10,6 +10,8 @@ function FormRegister(){
     const [username, setUsername] = createSignal("");
     const [password, setPassword] = createSignal("");
     const [confirmPassword, setConfirmPassword] = createSignal("");
+    const [showPassword, setShowPassword] = createSignal(false);
+    const [showConfirmPassword, setShowConfirmPassword] = createSignal(false);
     const navigate = useNavigate();
     
     const handleSubmit = (event) => {
@@ -29,18 +31,19 @@ function FormRegister(){
     }
 
     return (
-        <form method="post" class={styles.loginForm} onSubmit={handleSubmit}>
+        <form method="post" class={styles.loginForm} onsubmit={handleSubmit}>
+
             <table class={styles.formTable}>
                 <thead>
                     <tr>
                         <td>
                             Username
                             <input 
-                                onInput={(e) => {setUsername(e.target.value)}} 
-                                type='text' 
-                                id='username'
-                                placeholder='Enter your username'
+                                type="text" 
                                 class={styles.inputUsername}
+                                value={username()}
+                                onInput={(e) => setUsername(e.target.value)}
+                                placeholder='Enter your username'
                             />
                         </td>
                     </tr>
@@ -48,29 +51,73 @@ function FormRegister(){
                         <td>
                             Password
                             <input 
-                                onInput={(e) => {setPassword(e.target.value)}} 
-                                type='password' 
-                                id='password'
-                                placeholder='Enter your password'
+                                type={showPassword() ? "text" : "password"} 
+                                name="" 
+                                id="" 
                                 class={styles.inputPassword} 
-                            />
+                                value={password()}
+                                onInput={(e) => setPassword(e.target.value)}
+                                placeholder='Enter your password'
+                            />    
+                        </td>
+                        <td class={styles.showPasswordCell}>
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword())}
+                                class={styles.showPasswordButton}
+                            >
+                                <Switch>
+                                    <Match when={showPassword()}>
+                                        <FiEyeOff size={20} color="grey" />
+                                    </Match>
+                                    <Match when={!showPassword()}>
+                                        <FiEye size={20} color="grey" />
+                                    </Match>
+                                </Switch>
+                            </button>
                         </td>
                     </tr>
                     <tr>
                         <td>
                             Confirm Password
                             <input 
-                                onInput={(e) => {setConfirmPassword(e.target.value)}} 
-                                type='password' 
-                                id='confirmPassword'
-                                placeholder='Confirm your password'
+                                type={showConfirmPassword() ? "text" : "password"} 
+                                name="" 
+                                id="" 
                                 class={styles.inputPassword} 
-                            />
+                                value={confirmPassword()}
+                                onInput={(e) => setConfirmPassword(e.target.value)}
+                                placeholder='Re-Enter your password'
+                            />    
+                        </td>
+                        <td class={styles.showPasswordCell}>
+                            <button
+                                type="button"
+                                onClick={() => setShowConfirmPassword(!showConfirmPassword())}
+                                class={styles.showPasswordButton}
+                            >
+                                <Switch>
+                                    <Match when={showConfirmPassword()}>
+                                        <FiEyeOff size={20} color="grey" />
+                                    </Match>
+                                    <Match when={!showConfirmPassword()}>
+                                        <FiEye size={20} color="grey" />
+                                    </Match>
+                                </Switch>
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            {/* <A href='' class={styles.forgotPassword}>Forgot password?</A>  */}
+                            <button class={styles.loginButton}>Register</button>
                         </td>
                     </tr>
                 </thead>
             </table>
-            <button class={styles.loginButton}>Regist</button>
+
+            <p>Already have an account? <A href="/login">Login.</A></p>
+
         </form>
     )
 }

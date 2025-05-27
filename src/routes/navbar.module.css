@@ -1,71 +1,177 @@
 .navbar {
-  
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid #ccc;
-    padding: 10px 20px;
-    font-family: sans-serif;
-    background-color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 24px;
+  background-color: var(--ctp-mantle);
+  border-bottom: 2px solid var(--ctp-surface0);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.navbar-left {
+  display: flex;
+  align-items: center;
+}
+
+.logo-placeholder {
+  height: 40px;
+  width: 150px;
+  border-radius: var(--border-radius-medium);
+  cursor: pointer;
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.logo-placeholder:hover {
+  transform: scale(1.05);
+  filter: brightness(1.1);
+  border-color: var(--ctp-blue);
+}
+
+.navbar-center {
+  display: flex;
+  gap: 32px;
+  align-items: center;
+}
+
+.nav-link {
+  color: var(--ctp-text);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 1rem;
+  padding: 8px 16px;
+  border-radius: var(--border-radius-medium);
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.nav-link:hover {
+  color: var(--ctp-blue);
+  background-color: var(--ctp-surface0);
+  transform: translateY(-1px);
+}
+
+.nav-link:active {
+  transform: translateY(0);
+}
+
+/* Active link styling */
+.nav-link[aria-current="page"] {
+  color: var(--ctp-blue);
+  background-color: var(--ctp-surface0);
+}
+
+.navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.login-btn {
+  padding: 8px 20px;
+  background-color: var(--ctp-blue);
+  color: var(--ctp-crust);
+  border: none;
+  border-radius: var(--border-radius-medium);
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 80px;
+}
+
+.login-btn:hover {
+  background-color: var(--ctp-sapphire);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(137, 180, 250, 0.3);
+}
+
+.login-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(137, 180, 250, 0.2);
+}
+
+.profile-icon-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--border-radius-large);
+  background-color: var(--ctp-surface0);
+  border: 2px solid var(--ctp-surface1);
+  transition: all 0.2s ease;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.profile-icon-container:hover {
+  border-color: var(--ctp-mauve);
+  background-color: var(--ctp-surface1);
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(203, 166, 247, 0.2);
+}
+
+.profile-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--border-radius-medium);
+  object-fit: cover;
+  transition: transform 0.2s ease;
+}
+
+.profile-icon-container:hover .profile-icon {
+  transform: scale(1.1);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .navbar {
+    padding: 8px 16px;
   }
-  
-  .navbar-left .logo-placeholder {
-    width: 100%;
-    height: 50px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-  }
-  
+
   .navbar-center {
-    display: flex;
-    gap: 20px;
+    gap: 16px;
   }
-  
+
   .nav-link {
-    text-decoration: none;
-    color: #000;
-    font-size: 14px;
-    margin-right: 25px;
-    margin-left: 25px;
-    font-size: medium;
+    padding: 6px 12px;
+    font-size: 0.9rem;
   }
-  
-  .navbar-right {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  
+
   .login-btn {
-    background-color: whitesmoke;
-    padding: 5px 10px;
-    font-size: medium;
-    cursor: pointer;
-    border-radius: 20px;
-    width: 100px;
-    color: black;
+    padding: 6px 16px;
+    font-size: 0.85rem;
+    min-width: 70px;
   }
-  
-  .user-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    cursor: pointer;
-  }
-  
+
+  .logo-placeholder,
   .profile-icon-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    width: 36px;
+    height: 36px;
   }
-  
+
   .profile-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    cursor: pointer;
-    object-fit: cover;
+    width: 28px;
+    height: 28px;
   }
-  
+}
+
+@media (max-width: 480px) {
+  .navbar-center {
+    gap: 8px;
+  }
+
+  .nav-link {
+    padding: 4px 8px;
+    font-size: 0.8rem;
+  }
+
+  .login-btn {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    min-width: 60px;
+  }
+}

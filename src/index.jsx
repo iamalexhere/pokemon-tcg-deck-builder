@@ -47,11 +47,7 @@ render(() => (
     <Route path="/about" component={About} />
     <Route path="/pokemon-test" component={PokemonSearchTest} />
     <Route path="/set/:setId" component={SetDisplayPage} />
-    <Route path="/decklist" component={() => (
-      <ProtectedRoute>
-        <DeckList />
-      </ProtectedRoute>
-    )} />
+    <Route path="/decklist" component={DeckList} />
     <Route path="/card-details/:cardId" component={CardDetails}/>
     <Route path="/cardlist" component={CardLists}/>
     {/* catch all weird access page */}

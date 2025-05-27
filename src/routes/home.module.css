@@ -1,0 +1,75 @@
+.pageContainer {
+  padding: 20px;
+}
+
+.heroSection {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 50px;
+  padding: 100px 0;
+  
+}
+
+.heroContent {
+  flex: 1;
+  max-width: 40%;
+  padding-left: 5em;
+}
+
+.heroContent h1 {
+  font-size: 3rem; 
+  font-weight: 700;
+  margin-top: 150px;
+  margin-bottom: 10px;
+  color: #f5e0dc; 
+  line-height: 1.2;
+}
+
+.heroContent h3 {
+  font-size: 1.1rem;
+  font-weight: 400;
+  line-height: 1.7;
+  margin-bottom: 65px;
+  color: #bac2de; /* Subtext 1 for a slightly softer body text in hero */
+}
+
+.learnMoreButton {
+  background-color: #cba6f7; /* Mauve */
+  color: #1e1e2e; /* Base - for good contrast on Mauve */
+  padding: 14px 32px; /* Slightly larger padding */
+  border: none;
+  border-radius: 8px; /* More rounded */
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out, transform 0.1s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.75px;
+}
+
+.learnMoreButton:hover {
+  background-color: #f5c2e7; /* Pink */
+  color: #1e1e2e; /* Base */
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(203, 166, 247, 0.3); /* Subtle shadow with Mauve */
+}
+
+.learnMoreButton:active {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 5px rgba(203, 166, 247, 0.2);
+}
+
+.imagePlaceholder {
+  flex: 0;
+  height: auto;
+  display: flex;
+  align-items: center;
+  margin-right: 5em;
+  justify-content: center;
+  border: 2px #6c7086; /* Overlay 0 */
+  border-radius: 12px; /* More rounded */
+  color: #a6adc8; /* Subtext 0 */
+  font-size: 1.2rem;
+  background-color: #313244; /* Surface 0 */
+}

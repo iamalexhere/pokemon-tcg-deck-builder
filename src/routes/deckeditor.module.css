@@ -1,0 +1,336 @@
+/* Main layout */
+.mainContainer {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    width: 100%;
+    font-family: Arial, sans-serif;
+}
+
+.topBar {
+    display: flex;
+    align-items: center;
+    padding: 10px 20px;
+    border-bottom: 1px solid #ccc;
+    background-color: #f5f5f5;
+}
+
+.backButton {
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    margin-right: auto;
+}
+
+.deckNameInput {
+    padding: 8px 12px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    margin-right: 15px;
+}
+
+.actionButtons {
+    display: flex;
+    gap: 10px;
+}
+
+.saveButton, .cancelButton {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.saveButton {
+    background-color: #4caf50;
+    color: white;
+}
+
+.cancelButton {
+    background-color: #f44336;
+    color: white;
+}
+
+.favoriteButton, .removeButton {
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+.icon {
+    font-style: normal;
+}
+
+/* Sub container layout */
+.subContainer {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+.cardDetailContainer, .cardDeckContainer, .cardSearchContainer {
+    padding: 15px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    margin: 5px;
+    border-radius: 5px;
+}
+
+.cardDetailContainer {
+    flex: 1;
+}
+
+.cardDeckContainer {
+    flex: 2;
+}
+
+.cardSearchContainer {
+    flex: 1;
+}
+
+/* Card detail styles */
+.cardImageContainer {
+    width: 100%;
+    max-width: 250px;
+    margin: 0 auto 20px;
+    border: 1px solid #ddd;
+}
+
+.cardImageContainer img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.cardInfo h3 {
+    margin-top: 0;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+}
+
+.abilityDescription {
+    /* background-color: #f9f9f9; */
+    padding: 10px;
+    border: 1px solid #eee;
+    margin-bottom: 15px;
+    border-radius: 4px;
+}
+
+.noCardSelected {
+    font-size: larger;
+    font-weight: bold;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 300px;
+    border-radius: 5px;
+}
+
+/* Deck container styles */
+.deckHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.cardCount {
+    font-weight: bold;
+    color: #555;
+}
+
+.deckGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+    gap: 10px;
+}
+
+.deckCard {
+    width: 100%;
+    aspect-ratio: 2/3;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.deckCard:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.deckCard img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.empty .cardPlaceholder {
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient(
+        45deg,
+        #f5f5f5,
+        #f5f5f5 10px,
+        #ebebeb 10px,
+        #ebebeb 20px
+    );
+}
+
+/* Search container styles */
+.searchForm {
+    display: flex;
+    margin-bottom: 15px;
+}
+
+.searchInput {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px 0 0 4px;
+}
+
+.searchButton {
+    padding: 8px 12px;
+    background-color: rgba(0,0,0,0.1);
+    color: white;
+    border: none;
+    /* border-radius: 0 4px 4px 0; */
+    cursor: pointer;
+}
+
+.searchResults {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.searchCard {
+    width: 100%;
+    aspect-ratio: 2/3;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.searchCard:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.searchCard img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Pagination */
+.pagination {
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+    margin-top: 15px;
+}
+
+.paginationButton {
+    width: 30px;
+    height: 30px;
+    border: 1px solid #ddd;
+    background-color: white;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.paginationButton.active {
+    background-color: #2196F3;
+    color: white;
+    border-color: #2196F3;
+}
+
+.paginationButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Loading and Error States */
+.loadingContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem;
+    min-height: 300px;
+    width: 100%;
+}
+
+.loadingSpinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid rgba(0, 0, 0, 0.1);
+    border-radius: 50%;
+    border-top: 5px solid #cba6f7;
+    animation: spin 1s linear infinite;
+    margin-bottom: 1.5rem;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.errorContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem;
+    min-height: 300px;
+    width: 100%;
+    background-color: rgba(229, 57, 53, 0.05);
+    border-radius: 8px;
+    margin: 2rem;
+}
+
+.errorMessage {
+    color: #e53935;
+    font-size: 1.2rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    font-weight: bold;
+}
+
+.retryButton {
+    background-color: #cba6f7;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 0.7rem 1.5rem;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 1rem;
+    transition: background-color 0.2s;
+}
+
+.retryButton:hover {
+    background-color: #b48ef0;
+}
+
+.deckEditorContent {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+/* others */
+h2 {
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+}

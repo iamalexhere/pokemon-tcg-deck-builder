@@ -1,0 +1,31 @@
+.containerErrorPage{
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+.title{
+    font-size: 5rem;
+    font-weight: bold;
+}
+
+.subTitle{
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+.deskripsi{
+    font-size: 1rem;
+}
+
+.containerErrorPage button{
+    height: 3rem;
+    width: 15rem;
+    border-radius: 1rem;
+    margin: 2rem;
+    font-family: 'Inter';
+    font-size: 1rem;
+}

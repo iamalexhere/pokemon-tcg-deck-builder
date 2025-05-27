@@ -1,0 +1,116 @@
+.mainContainer{
+    display: flex;
+    height: 100%;
+    padding-top: 5%;
+    padding-left: 10%;
+    padding-right: 10%;
+    padding-bottom: 5%;
+}
+
+.formContainer {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: white;
+    /* margin: 5em 0 5em 19em;   */
+    border-radius: 4px 0 0px 4px;
+}
+
+.imageContainer {
+    flex: 1; 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: lightblue;
+    /* margin: 5em 19em 5em 0; */
+    border-radius: 0px 4px 4px 0px;
+}
+
+.title {
+    color: black;
+    margin-top: 0;
+}
+
+.formTable{
+    color: black;
+    width: 30em;
+    border-collapse: separate;
+    border-spacing: 0 2em;
+    margin-top: 0;
+}
+
+.loginButton {
+    width: 100%;
+    height: 2.1em;
+    border: none;
+    font-size: 1em;
+    border-radius: 3px;
+    background-color: #cba6f7;
+    color: white;
+    margin-top: 10px;
+    cursor: pointer;
+}
+
+
+.inputUsername, .inputPassword {
+    width: 93%;
+    height: 2.1em;
+    border-radius: 3px;
+    border: 2px solid lightgray;
+    padding-left: 10px;
+}
+
+.loginForm {
+    margin-top: 0;
+}
+
+.image {
+    width: 100%;
+    max-height: 100%;
+    object-fit: cover;
+    border-radius: 0px 4px 4px 0px;
+}
+
+.forgotPassword {
+    display: block;
+    width: 100%;
+    text-align: right;
+}
+
+.showPasswordButton {
+    transform: translateY(50%);
+    width: 1em;
+    border: none;
+    background: rgba(0, 0, 0, 0.0);
+    cursor: pointer;
+}
+
+.errorText {
+    color: #e53935;
+    font-size: 0.8em;
+    margin-top: 0.3em;
+    text-align: left;
+}
+
+.formErrorText {
+    color: #e53935;
+    font-size: 0.9em;
+    margin: 0.5em 0;
+    text-align: center;
+    background-color: rgba(229, 57, 53, 0.1);
+    padding: 0.5em;
+    border-radius: 3px;
+    border-left: 3px solid #e53935;
+}
+
+.inputUsername[aria-invalid="true"], 
+.inputPassword[aria-invalid="true"] {
+    border-color: #e53935;
+}
+
+.loginButton:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}

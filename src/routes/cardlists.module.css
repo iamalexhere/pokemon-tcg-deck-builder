@@ -1,0 +1,172 @@
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+  }
+  
+  .header {
+    margin-bottom: 30px;
+  }
+  
+  .header h1 {
+    font-size: 2rem;
+    margin-bottom: 10px;
+    color: #333;
+  }
+  
+  .header p {
+    color: #666;
+    line-height: 1.5;
+    font-size: 0.9rem;
+  }
+  
+  .listContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .searchContainer {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  
+  .searchInput {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    width: 250px;
+  }
+  
+  .searchInput:focus {
+    outline: none;
+    border-color: #007bff;
+  }
+  
+  .searchButton {
+    padding: 8px 12px;
+    background: #f8f9fa;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  
+  .searchButton:hover {
+    background: #e9ecef;
+  }
+  
+  .cardGrid {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    gap: 15px;
+    margin-bottom: 30px;
+  }
+  
+  .card {
+    aspect-ratio: 1;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background: white;
+    position: relative;
+    min-height: 80px;
+  }
+  
+  .cardPlaceholder {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    background: #f8f9fa;
+  }
+  
+  .crossLine1,
+  .crossLine2 {
+    position: absolute;
+    background: #ddd;
+    width: 1px;
+    height: 100%;
+    top: 0;
+  }
+  
+  .crossLine1 {
+    left: 50%;
+    transform: translateX(-50%) rotate(45deg);
+    transform-origin: center;
+  }
+  
+  .crossLine2 {
+    left: 50%;
+    transform: translateX(-50%) rotate(-45deg);
+    transform-origin: center;
+  }
+  
+  .pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+  }
+  
+  .paginationBtn {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    background: white;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 14px;
+    min-width: 35px;
+  }
+  
+  .paginationBtn:hover:not(:disabled) {
+    background: #f8f9fa;
+  }
+  
+  .paginationBtn:disabled {
+    background: #f8f9fa;
+    color: #6c757d;
+    cursor: not-allowed;
+  }
+  
+  .paginationBtn.active {
+    background: #007bff;
+    color: white;
+    border-color: #007bff;
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 1024px) {
+    .cardGrid {
+      grid-template-columns: repeat(8, 1fr);
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .cardGrid {
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+    }
+    
+    .searchInput {
+      width: 200px;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .cardGrid {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    
+    .searchInput {
+      width: 150px;
+      font-size: 12px;
+    }
+    
+    .container {
+      padding: 10px;
+    }
+  }

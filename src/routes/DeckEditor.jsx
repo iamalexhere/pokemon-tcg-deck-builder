@@ -4,7 +4,7 @@ import { RiArrowsArrowGoBackLine } from 'solid-icons/ri';
 import { AiFillHeart, AiOutlineHeart, AiOutlineSearch  } from 'solid-icons/ai'
 import { FaRegularTrashCan } from 'solid-icons/fa';
 
-import styles from './deckEditor.module.css';
+import styles from './deckeditor.module.css';
 import PLACEHOLDER_IMAGE from "../assets/images/placeholder.jpg";
 
 function DeckEditor() {

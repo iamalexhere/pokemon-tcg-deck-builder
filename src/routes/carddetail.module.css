@@ -1,0 +1,197 @@
+/* Back Button Styles */
+.backButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  margin-bottom: 20px;
+  background-color: var(--ctp-surface1);
+  color: var(--ctp-text);
+  border: 1px solid var(--ctp-overlay0);
+  border-radius: var(--border-radius-medium);
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  font-weight: 500;
+}
+
+.backButton:hover {
+  background-color: var(--ctp-surface2);
+}
+
+.backButton:active {
+  transform: scale(0.98);
+}
+
+.backIcon {
+  width: 20px;
+  height: 20px;
+}
+
+/* Card Container */
+.cardContainer {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+/* Image Container */
+.imageContainer {
+  flex: 1;
+  min-width: 200px;
+}
+
+.imagePlaceholder {
+  width: 300px;
+  height: 400px;
+  /* border: 2px solid var(--ctp-overlay0); */
+  /* border-radius: var(--border-radius-medium); */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* background-color: var(--ctp-surface1); */
+  position: relative;
+  padding-left: 20%;
+}
+
+.placeholderSvg {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  border-radius: 10px;
+}
+
+/* Info Container */
+.infoContainer {
+  flex: 1;
+  min-width: 250px;
+}
+
+/* Card Header */
+.cardHeader {
+  background-color: var(--ctp-surface2);
+  padding: 12px 16px;
+  border-radius: var(--border-radius-medium) var(--border-radius-medium) 0 0;
+  border: 1px solid var(--ctp-overlay0);
+}
+
+.headerTitle {
+  margin: 0;
+  border: none;
+  padding: 0;
+}
+
+/* Type and HP Row */
+.typeHpRow {
+  display: flex;
+  background-color: var(--ctp-surface1);
+  border-left: 1px solid var(--ctp-overlay0);
+  border-right: 1px solid var(--ctp-overlay0);
+}
+
+.typeCell {
+  flex: 1;
+  padding: 10px 16px;
+  border-right: 1px solid var(--ctp-overlay0);
+}
+
+.hpCell {
+  flex: 1;
+  padding: 10px 16px;
+}
+
+/* Abilities Section */
+.abilitiesSection {
+  background-color: var(--ctp-surface0);
+  border-left: 1px solid var(--ctp-overlay0);
+  border-right: 1px solid var(--ctp-overlay0);
+  padding: 16px;
+}
+
+.abilityItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.abilityContent {
+  flex: 1;
+}
+
+.abilityName {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.abilityDescription {
+  font-size: 0.85rem;
+}
+
+.abilityValue {
+  font-weight: 700;
+  font-size: 1.1rem;
+  margin-left: 16px;
+}
+
+/* Stats Section */
+.statsSection {
+  background-color: var(--ctp-surface2);
+  border: 1px solid var(--ctp-overlay0);
+  border-radius: 0 0 var(--border-radius-medium) var(--border-radius-medium);
+  padding: 12px 16px;
+}
+
+.statsHeader {
+  display: flex;
+  margin-bottom: 8px;
+}
+
+.statHeaderItem {
+  flex: 1;
+  text-align: center;
+}
+
+.statLabel {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.statsValues {
+  display: flex;
+}
+
+.statValueItem {
+  flex: 1;
+  text-align: center;
+}
+
+.statValue {
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+/* Illustrator Section */
+.illustratorSection {
+  margin-top: 12px;
+  padding-top: 8px;
+  border-top: 1px solid var(--ctp-overlay0);
+}
+
+.illustratorText {
+  font-size: 0.8rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .cardContainer {
+    flex-direction: column;
+  }
+  
+  .imageContainer {
+    min-width: unset;
+  }
+  
+  .infoContainer {
+    min-width: unset;
+  }
+}

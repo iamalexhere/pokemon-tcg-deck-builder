@@ -14,6 +14,8 @@ import Profile from './routes/profile'
 import NotFound from './routes/error'
 import Layout from './components/Layout'
 import ProtectedRoute from './components/ProtectedRoute';
+import CardLists from './routes/CardLists';
+import CardDetails from './routes/CardDetails';
 
 // const root = document.getElementById('root');
 
@@ -48,6 +50,8 @@ render(() => (
         <DeckList />
       </ProtectedRoute>
     )} />
+    <Route path="/card-details" component={CardDetails}/>
+    <Route path="/cardlist" component={CardLists}/>
     {/* catch all weird access page */}
     <Route path="*" component={NotFound} />
   </Router>

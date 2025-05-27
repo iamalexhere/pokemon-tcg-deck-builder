@@ -144,3 +144,41 @@
   text-align: center;
   padding: 40px 0;
 }
+
+.notLoggedInContainer {
+  max-width: 600px;
+  margin: 100px auto;
+  text-align: center;
+  padding: 40px;
+  background-color: #313244; /* Surface0 */
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(17, 17, 27, 0.3);
+}
+
+.notLoggedInContainer h2 {
+  font-size: 2rem;
+  color: #f5e0dc; /* Rosewater */
+  margin-bottom: 20px;
+}
+
+.notLoggedInContainer p {
+  color: #a6adc8; /* Subtext0 */
+  margin-bottom: 30px;
+  line-height: 1.6;
+}
+
+.loginRedirectButton {
+  background-color: #74c7ec; /* Sapphire */
+  color: #1e1e2e; /* Base */
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.loginRedirectButton:hover {
+  background-color: #89dceb; /* Sky */
+}

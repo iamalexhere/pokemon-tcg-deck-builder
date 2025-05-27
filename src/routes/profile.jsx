@@ -1,8 +1,8 @@
 import styles from './profile.module.css';
-import profileImage from '../assets/images/icon/Profile.png';
-import { createSignal, Show } from "solid-js";
+import { createSignal, Show, For } from "solid-js";
 import editIcon from '../assets/images/icon/editIcon.png'
 import DeckCard from '../components/DeckCard';
+import { useAuth } from '../context/AuthContext';
 
 // Placeholder deck data recent
 const initialDecks = Array.from({ length: 3 }, (_, i) => ({
@@ -20,40 +20,66 @@ const initialFDecks = Array.from({ length: 6 }, (_, i) => ({
   cardCount: Math.floor(Math.random() * 40) + 20,
 }));
 
-function profile(){
-//   variabel untuk setting username
-  const [username,setUsername] = createSignal("Username");
+function Profile(){
+  const auth = useAuth();
+  const { isLoggedIn, profilePicture, updateProfilePicture, updateProfile } = auth;
+  
+  // Check if user is logged in
+  if (!isLoggedIn()) {
+    return <div class={styles.notLoggedIn}>Please login to view your profile</div>;
+  }
+  
+  // Variables for editing profile
   const [showUsername, setShowUsername] = createSignal(true);
-//   variabel untuk setting pronouns
-  const [pronouns, setPronouns] = createSignal("Pronouns");
   const [showPronouns, setShowPronouns] = createSignal(true);
-//   variabel untuk setting deskripsi
-  const [deskripsi, setDeskripsi] = createSignal("Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.");
   const [showDeskripsi, setShowDeskripsi] = createSignal(true);
+  const [tempUsername, setTempUsername] = createSignal(auth.username());
+  const [tempPronouns, setTempPronouns] = createSignal(auth.pronouns());
+  const [tempDeskripsi, setTempDeskripsi] = createSignal(auth.description());
+  
+  // Variable for profile picture upload
+  const [showProfileUpload, setShowProfileUpload] = createSignal(false);
 
-//function input handle username 
+  // Function to handle username editing
   function handleUsername(){
-    if (showUsername()==true){
-        setShowUsername(false);
-    }else{
-        setShowUsername(true)
+    if (showUsername()) {
+      setShowUsername(false);
+    } else {
+      updateProfile({ username: tempUsername() });
+      setShowUsername(true);
     }
   }
 
-// function input handle pronouns
+  // Function to handle pronouns editing
   function handlePronouns(){
-    if (showPronouns()==true){
-        setShowPronouns(false);
-    }else{
-        setShowPronouns(true)
+    if (showPronouns()) {
+      setShowPronouns(false);
+    } else {
+      updateProfile({ pronouns: tempPronouns() });
+      setShowPronouns(true);
     }
   }
-// function input handle deskripsi
- function handleDeskripsi(){
-    if (showDeskripsi()==true){
-        setShowDeskripsi(false);
-    }else{
-        setShowDeskripsi(true)
+
+  // Function to handle description editing
+  function handleDeskripsi(){
+    if (showDeskripsi()) {
+      setShowDeskripsi(false);
+    } else {
+      updateProfile({ description: tempDeskripsi() });
+      setShowDeskripsi(true);
+    }
+  }
+  
+  // Function to handle profile picture upload
+  function handleProfilePictureUpload(e) {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        updateProfilePicture(e.target.result);
+        setShowProfileUpload(false); // Close overlay after upload
+      };
+      reader.readAsDataURL(file);
     }
   }
 
@@ -68,18 +94,45 @@ const [activebutton,setActiveButton] = createSignal(true);
   return (
     
     < >
+        {/* Click handler moved to fotoProfile container */}
         <div class={styles.profileFrame}>
+            <div class={styles.fotoProfile} onClick={() => setShowProfileUpload(!showProfileUpload())}>
+                {/* Conditionally render the profile image */}
+                <Show when={!showProfileUpload()}>
+                    <img 
+                        src={profilePicture()} 
+                        alt="Profile Photo" 
+                        style="width:100%; height:100%; border-radius:50%; object-fit: cover;" // Make image fill container
+                    />
+                </Show>
+                
+                {/* Profile Upload Overlay */}
+                {showProfileUpload() && (
+                    <div class={styles.uploadOverlay} onClick={(e) => e.stopPropagation()}> {/* Prevent click from bubbling to fotoProfile */}
+                        {/* New elements for concentric circles */}
+                        <div class={styles.outerCircle}></div>
+                        <div class={styles.innerCircle}></div>
+                        <div class={styles.centerDot}></div>
 
-            <div class={styles.fotoProfile}>
-                <img src={profileImage} alt="Profile Photo" style="width:20rem; height:20rem; border-radius:50%;"/>
+                        <div class={styles.fileInput}>
+                            <button class={styles.uploadButton}>Choose File</button>
+                            <input 
+                                type="file" 
+                                accept="image/*" 
+                                onChange={handleProfilePictureUpload} 
+                            />
+                        </div>
+                        <p>Select a new profile picture from your device</p>
+                    </div>
+                )}
             </div>
 
             <div class={styles.textFrame}>
                 {/* username div */}
                 <div class={styles.usernameStyle}>
                     
-                    <Show when={showUsername()} fallback={<input type="text" value={username()} onInput={(e) => setUsername(e.target.value)}/> }>
-                        <p s>{username()}</p>
+                    <Show when={showUsername()} fallback={<input type="text" value={tempUsername()} onInput={(e) => setTempUsername(e.target.value)}/> }>
+                        <p>{auth.username()}</p>
                     </Show>
 
                     <button onClick={handleUsername} >
@@ -92,8 +145,8 @@ const [activebutton,setActiveButton] = createSignal(true);
                 {/* pronouns div */}
                 <div class={styles.pronounStyle}>
                     
-                    <Show when={showPronouns()} fallback={<input type="text" value={pronouns()} onInput={(e) => setPronouns(e.target.value)}/> }>
-                        <p>{pronouns()}</p>
+                    <Show when={showPronouns()} fallback={<input type="text" value={tempPronouns()} onInput={(e) => setTempPronouns(e.target.value)}/> }>
+                        <p>{auth.pronouns()}</p>
                     </Show>
 
                     <button onClick={handlePronouns} >
@@ -104,8 +157,8 @@ const [activebutton,setActiveButton] = createSignal(true);
 
                 <div class={styles.deskripsiStyle}>
                     
-                    <Show when={showDeskripsi()} fallback={<textarea type="text" textContent={deskripsi()} onInput={(e) => setDeskripsi(e.target.value)}/>}>
-                        <p>{deskripsi()} </p>
+                    <Show when={showDeskripsi()} fallback={<textarea type="text" value={tempDeskripsi()} onInput={(e) => setTempDeskripsi(e.target.value)}/>}>
+                        <p>{auth.description()} </p>
                     </Show>
 
                     <button onClick={handleDeskripsi} >
@@ -145,8 +198,6 @@ const [activebutton,setActiveButton] = createSignal(true);
         </div>
     </>
     
-
-    
 )}
 
-export default profile;
+export default Profile;

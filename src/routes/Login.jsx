@@ -4,6 +4,7 @@ import { A } from "@solidjs/router";
 import { createSignal, Switch, Match } from "solid-js";
 import { useNavigate } from "@solidjs/router";
 import { FiEye, FiEyeOff } from "solid-icons/fi";
+import { useAuth } from '../context/AuthContext';
 
 
 function Login() {
@@ -11,6 +12,7 @@ function Login() {
     const [password, setPassword] = createSignal("");
     const [showPassword, setShowPassword] = createSignal(false);
     const navigate = useNavigate();
+    const { login } = useAuth();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -19,6 +21,8 @@ function Login() {
         const isValid = username() === "user" && password() === "pass";
 
         if (isValid) {
+            // Call login function from AuthContext
+            login({ username: username() });
             navigate("/", { replace: true });
         } else {
             alert("Invalid credentials");

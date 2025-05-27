@@ -4,6 +4,13 @@ import { createSignal, Switch, Match, For, createEffect } from "solid-js";
 import { useNavigate } from "@solidjs/router";
 import PLACEHOLDER_IMAGE from "../assets/images/placeholder.jpg";
 
+// Search Icon component
+const SearchIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+    <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+  </svg>
+);
+
 // Sample card data with static details
 const mockCards = [
   {
@@ -55,20 +62,20 @@ function Header() {
     )
 }
 
-function SearchBar() {
-    const [searchTerm, setSearchTerm] = createSignal('');
-    
+function SearchBar({ searchTerm, setSearchTerm, handleSearch }) {
     return (
-        <div class={styles.searchContainer}>
+        <form class={styles.searchContainer} onSubmit={handleSearch}>
             <input 
                 type="text" 
-                placeholder="Search pokemon cards"
+                placeholder="Search pokemon cards..."
                 class={styles.searchInput}
                 value={searchTerm()}
-                onInput={(e) => setSearchTerm(e.target.value)}
+                onInput={(e) => setSearchTerm(e.currentTarget.value)}
             />
-            <button class={styles.searchButton}>🔍</button>
-        </div>
+            <button type="submit" class={styles.searchButton} aria-label="Search">
+                <SearchIcon />
+            </button>
+        </form>
     );
 }
 
@@ -90,9 +97,61 @@ function Card({ card }) {
     );
 }
 
-function CardGrid() {
-    // Create signal for cards with pagination
-    const [cards, setCards] = createSignal([]);
+function CardGrid({ filteredCards, currentPage, itemsPerPage }) {
+    // Calculate paginated cards
+    const paginatedCards = () => {
+        const start = (currentPage() - 1) * itemsPerPage;
+        const end = start + itemsPerPage;
+        return filteredCards().slice(start, end);
+    };
+    
+    return (
+        <div class={styles.cardGrid}>
+            <For each={paginatedCards()} fallback={<p class={styles.noCardsMessage}>No cards found.</p>}>
+                {(card) => <Card card={card} />}
+            </For>
+        </div>
+    );
+}
+
+function Pagination({ currentPage, totalPages, onPageChange }) {
+    return (
+        <div class={styles.pagination}>
+            <button 
+                class={styles.paginationBtn}
+                onClick={() => onPageChange(currentPage() - 1)}
+                disabled={currentPage() === 1}
+            >
+                &lt;
+            </button>
+            
+            <For each={Array.from({ length: totalPages() }, (_, i) => i + 1)}>
+                {(page) => (
+                    <button 
+                        class={`${styles.paginationBtn} ${currentPage() === page ? styles.active : ''}`}
+                        onClick={() => onPageChange(page)}
+                    >
+                        {page}
+                    </button>
+                )}
+            </For>
+            
+            <button 
+                class={styles.paginationBtn}
+                onClick={() => onPageChange(currentPage() + 1)}
+                disabled={currentPage() === totalPages()}
+            >
+                &gt;
+            </button>
+        </div>
+    );
+}
+
+function ListCards() {
+    const [searchTerm, setSearchTerm] = createSignal('');
+    const [currentPage, setCurrentPage] = createSignal(1);
+    const [allCards, setAllCards] = createSignal([]);
+    const ITEMS_PER_PAGE = 10;
     
     // Initialize cards from mock data
     createEffect(() => {
@@ -103,66 +162,68 @@ function CardGrid() {
             // Return the original mock card without modifying the ID
             return mockCards[index];
         });
-        setCards(generatedCards);
+        setAllCards(generatedCards);
     });
     
-    return (
-        <div class={styles.cardGrid}>
-            <For each={cards()} fallback={<p>Loading cards...</p>}>
-                {(card) => <Card card={card} />}
-            </For>
-        </div>
-    );
-}
-
-function Pagination() {
-    const [currentPage, setCurrentPage] = createSignal(1);
-    const totalPages = 5;
-    
-    const goToPage = (page) => {
-        if (page >= 1 && page <= totalPages) {
-            setCurrentPage(page);
+    // Filter cards based on search term
+    const filteredCards = () => {
+        const lowerSearchTerm = searchTerm().toLowerCase();
+        
+        // If search term is empty, return all cards
+        if (!lowerSearchTerm) {
+            return allCards();
         }
+        
+        // Filter cards by name or type
+        const filtered = allCards().filter(card => 
+            card.name.toLowerCase().includes(lowerSearchTerm) || 
+            card.type.toLowerCase().includes(lowerSearchTerm)
+        );
+        
+        // Reset to first page if current page becomes invalid due to filtering
+        const newTotalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
+        if (currentPage() > newTotalPages && newTotalPages > 0) {
+            setCurrentPage(newTotalPages);
+        } else if (newTotalPages === 0 && filtered.length === 0) {
+            if (currentPage() > 1) setCurrentPage(1);
+        }
+        
+        return filtered;
+    };
+    
+    // Calculate total pages based on filtered cards
+    const totalPages = () => Math.ceil(filteredCards().length / ITEMS_PER_PAGE);
+    
+    // Handle search form submission
+    const handleSearch = (e) => {
+        e.preventDefault();
+        // Reset to page 1 when searching
+        setCurrentPage(1);
+        console.log("Searching for:", searchTerm());
+    };
+    
+    // Handle page change
+    const handlePageChange = (page) => {
+        setCurrentPage(page);
     };
     
     return (
-        <div class={styles.pagination}>
-            <button 
-                class={styles.paginationBtn}
-                onClick={() => goToPage(currentPage() - 1)}
-                disabled={currentPage() === 1}
-            >
-                &lt;
-            </button>
-            
-            <For each={Array.from({ length: totalPages }, (_, i) => i + 1)}>
-                {(page) => (
-                    <button 
-                        class={`${styles.paginationBtn} ${currentPage() === page ? styles.active : ''}`}
-                        onClick={() => goToPage(page)}
-                    >
-                        {page}
-                    </button>
-                )}
-            </For>
-            
-            <button 
-                class={styles.paginationBtn}
-                onClick={() => goToPage(currentPage() + 1)}
-                disabled={currentPage() === totalPages}
-            >
-                &gt;
-            </button>
-        </div>
-    );
-}
-
-function ListCards() {
-    return (
         <div class={styles.listContainer}>
-            <SearchBar />
-            <CardGrid />
-            <Pagination />
+            <SearchBar 
+                searchTerm={searchTerm} 
+                setSearchTerm={setSearchTerm} 
+                handleSearch={handleSearch} 
+            />
+            <CardGrid 
+                filteredCards={filteredCards} 
+                currentPage={currentPage} 
+                itemsPerPage={ITEMS_PER_PAGE} 
+            />
+            <Pagination 
+                currentPage={currentPage} 
+                totalPages={totalPages} 
+                onPageChange={handlePageChange} 
+            />
         </div>
     );
 }

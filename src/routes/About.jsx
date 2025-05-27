@@ -1,6 +1,9 @@
 import styles from './about.module.css';
 import alexUserImage from '../assets/images/team/alex.jpg';
 import zakkiUserImage from '../assets/images/team/zakki.png';
+import elvinUserImage from '../assets/images/team/elvin.jpg';
+import vinchentUserImage from '../assets/images/team/vinchent.jpg';
+import uusUserImage from '../assets/images/team/uus.jpg';
 
 const teamMembers = [
   {
@@ -24,7 +27,7 @@ const teamMembers = [
     name: 'Syalom Elvin Pasau',
     role: 'placeholder',
     description: 'placeholder',
-    imageUrl: '',
+    imageUrl: elvinUserImage,
     contactLink: ''
   },
   {
@@ -32,7 +35,7 @@ const teamMembers = [
     name: 'Alexander Vinchent',
     role: 'placeholder',
     description: 'placeholder',
-    imageUrl: '',
+    imageUrl: vinchentUserImage,
     contactLink: ''
   },
   {
@@ -40,7 +43,7 @@ const teamMembers = [
     name: 'Gregorius Denmas Bagus Pradipto',
     role: 'placeholder',
     description: 'placeholder',
-    imageUrl: '',
+    imageUrl: uusUserImage,
     contactLink: ''
   }
 ];

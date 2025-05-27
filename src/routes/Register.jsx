@@ -1,7 +1,7 @@
 import styles from './register.module.css';
 import loginImage from '../assets/images/LoginPage/test.jpg';
 import { A } from "@solidjs/router";
-import { createSignal, Switch, Match } from "solid-js";
+import { createSignal, Switch, Match, createEffect } from "solid-js";
 import { useNavigate } from "@solidjs/router";
 import { FiEye, FiEyeOff } from "solid-icons/fi";
 import { style } from 'solid-js/web';
@@ -30,12 +30,42 @@ function FormRegister(){
         navigate("/", {replace: true})
     }
 
+    const [usernameError, setUsernameError] = createSignal("");
+    createEffect(() => {
+        if(username().length>0 && username().length < 3) {
+            setUsernameError("Username must be at least 3 characters.")
+        } 
+        else {
+            setUsernameError("")
+        }
+    })
+
+    const [passwordError, setPasswordError] = createSignal("");
+    createEffect(() => {
+        if(password().length>0 && password().length < 8) {
+            setPasswordError("Password must be at least 8 characters.")
+        } 
+        else {
+            setPasswordError("")
+        }
+    })
+
+    const [confirmPasswordError, setConfirmPasswordError] = createSignal("");
+    createEffect(() => {
+        if(confirmPassword().length>0 && password() !== confirmPassword()) {
+            setConfirmPasswordError("Password does not match.")
+        } 
+        else {
+            setConfirmPasswordError("")
+        }
+    })
+
     return (
         <form method="post" class={styles.loginForm} onsubmit={handleSubmit}>
 
             <table class={styles.formTable}>
                 <thead>
-                    <tr>
+                    <tr class={styles.UsernameCell}>
                         <td>
                             Username
                             <input 
@@ -46,65 +76,78 @@ function FormRegister(){
                                 placeholder='Enter your username'
                             />
                         </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            Password
-                            <input 
-                                type={showPassword() ? "text" : "password"} 
-                                name="" 
-                                id="" 
-                                class={styles.inputPassword} 
-                                value={password()}
-                                onInput={(e) => setPassword(e.target.value)}
-                                placeholder='Enter your password'
-                            />    
-                        </td>
-                        <td class={styles.showPasswordCell}>
-                            <button
-                                type="button"
-                                onClick={() => setShowPassword(!showPassword())}
-                                class={styles.showPasswordButton}
-                            >
-                                <Switch>
-                                    <Match when={showPassword()}>
-                                        <FiEyeOff size={20} color="grey" />
-                                    </Match>
-                                    <Match when={!showPassword()}>
-                                        <FiEye size={20} color="grey" />
-                                    </Match>
-                                </Switch>
-                            </button>
+                        <td class={styles.Error}>
+                            <p>{usernameError}</p>
                         </td>
                     </tr>
-                    <tr>
+                    <tr class={styles.PasswordCell}>
                         <td>
-                            Confirm Password
-                            <input 
-                                type={showConfirmPassword() ? "text" : "password"} 
-                                name="" 
-                                id="" 
-                                class={styles.inputPassword} 
-                                value={confirmPassword()}
-                                onInput={(e) => setConfirmPassword(e.target.value)}
-                                placeholder='Re-Enter your password'
-                            />    
+                            <div>
+                                Password
+                                <div class={styles.inputPasswordCell}>
+                                    <input 
+                                        type={showPassword() ? "text" : "password"} 
+                                        name="" 
+                                        id="" 
+                                        class={styles.inputPassword} 
+                                        value={password()}
+                                        onInput={(e) => setPassword(e.target.value)}
+                                        placeholder='Enter your password'
+                                    />    
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword())}
+                                        class={styles.showPasswordButton}
+                                    >
+                                        <Switch>
+                                            <Match when={showPassword()}>
+                                                <FiEyeOff size={20} color="grey" />
+                                            </Match>
+                                            <Match when={!showPassword()}>
+                                                <FiEye size={20} color="grey" />
+                                            </Match>
+                                        </Switch>
+                                    </button>
+                                </div>
+                            </div>
                         </td>
-                        <td class={styles.showPasswordCell}>
-                            <button
-                                type="button"
-                                onClick={() => setShowConfirmPassword(!showConfirmPassword())}
-                                class={styles.showPasswordButton}
-                            >
-                                <Switch>
-                                    <Match when={showConfirmPassword()}>
-                                        <FiEyeOff size={20} color="grey" />
-                                    </Match>
-                                    <Match when={!showConfirmPassword()}>
-                                        <FiEye size={20} color="grey" />
-                                    </Match>
-                                </Switch>
-                            </button>
+                        <td class={styles.Error}>
+                            <p>{passwordError()}</p>
+                        </td>
+                    </tr>
+                    <tr class={styles.ConfirmPasswordCell}>
+                        <td>
+                            <div>
+                                Confirm Password
+                                <div class={styles.inputPasswordCell}>
+                                    <input 
+                                        type={showConfirmPassword() ? "text" : "password"} 
+                                        name="" 
+                                        id="" 
+                                        class={styles.inputPassword} 
+                                        value={confirmPassword()}
+                                        onInput={(e) => setConfirmPassword(e.target.value)}
+                                        placeholder='Confirm your password'
+                                    />    
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowConfirmPassword(!showConfirmPassword())}
+                                        class={styles.showPasswordButton}
+                                    >
+                                        <Switch>
+                                            <Match when={showConfirmPassword()}>
+                                                <FiEyeOff size={20} color="grey" />
+                                            </Match>
+                                            <Match when={!showConfirmPassword()}>
+                                                <FiEye size={20} color="grey" />
+                                            </Match>
+                                        </Switch>
+                                    </button>
+                                </div>
+                            </div>
+                        </td>
+                        <td class={styles.Error}>
+                            <p>{confirmPasswordError()}</p>
                         </td>
                     </tr>
                     <tr>

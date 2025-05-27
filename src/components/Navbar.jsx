@@ -1,22 +1,22 @@
-import styles from "./navbar.module.css";
-import logo from "../assets/images/navbar/logo_pokemon.jpeg";
-import { useNavigate } from "@solidjs/router";
-import { A } from "@solidjs/router";
-import { useAuth } from "../context/AuthContext";
 
+import styles from "./navbar.module.css"
+import logo from "../assets/images/navbar/PokeDeck (3).png"
+import { useNavigate } from "@solidjs/router"
+import { A } from "@solidjs/router"
+import { useAuth } from "../context/AuthContext"
 
 const Navbar = () => {
-  const navigate = useNavigate();
-  const { isLoggedIn, logout } = useAuth();
+  const navigate = useNavigate()
+  const { isLoggedIn, logout } = useAuth()
 
   return (
     <nav class={styles.navbar}>
       <div class={styles["navbar-left"]}>
         <img
           class={styles["logo-placeholder"]}
-          src={logo}
+          src={logo || "/placeholder.svg"}
           alt="logo"
-          onclick={() => navigate('/')}
+          onclick={() => navigate("/")}
         />
       </div>
       <div class={styles["navbar-center"]}>
@@ -32,11 +32,11 @@ const Navbar = () => {
       </div>
       <div class={styles["navbar-right"]}>
         {isLoggedIn() ? (
-          <button 
-            class={styles["login-btn"]} 
+          <button
+            class={styles["login-btn"]}
             onClick={() => {
-              logout();
-              navigate("/");
+              logout()
+              navigate("/")
             }}
           >
             Logout
@@ -48,16 +48,12 @@ const Navbar = () => {
         )}
         <A href="/profile">
           <div class={styles["profile-icon-container"]}>
-            <img 
-              src={useAuth().profilePicture()} 
-              alt="Profile" 
-              class={styles["profile-icon"]} 
-            />
+            <img src={useAuth().profilePicture() || "/placeholder.svg"} alt="Profile" class={styles["profile-icon"]} />
           </div>
-        </A> 
+        </A>
       </div>
     </nav>
-  );
-};
+  )
+}
 
-export default Navbar;
+export default Navbar

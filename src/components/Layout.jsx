@@ -1,4 +1,4 @@
-import Navbar from '../routes/Navbar';
+import Navbar from './Navbar';
 import { AuthProvider } from '../context/AuthContext';
 
 const Layout = (props) => {

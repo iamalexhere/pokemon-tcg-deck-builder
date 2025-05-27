@@ -30,18 +30,30 @@ function profile(){
 //   variabel untuk setting deskripsi
   const [deskripsi, setDeskripsi] = createSignal("Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.");
   const [showDeskripsi, setShowDeskripsi] = createSignal(true);
+// signal untuk error
+const [usernameError, setUsernameError] = createSignal("");
+const [pronounsError, setPronounsError] = createSignal("");
+// signal untuk deck
+const [deck, setDeck] = createSignal(initialDecks);
+const [favoriteDeck, setFavoriteDeck] = createSignal(initialFDecks);
+// signal for button deck click
+const [activebutton,setActiveButton] = createSignal(true);
+
 
 //function input handle username 
   function handleUsername(){
     if (showUsername()==true){
         setShowUsername(false);
     }else{
-        setShowUsername(true);
+        if(usernameError()===""){
+            setShowUsername(true);
+        }
     }
   }
 
+// func untuk mengconfirm username dengan enter
   function handleUsernameEnter(event){
-    if (event.key === "enter"){
+    if (event.key === "Enter"){
         handleUsername();
     }
   }
@@ -51,12 +63,15 @@ function profile(){
     if (showPronouns()==true){
         setShowPronouns(false);
     }else{
-        setShowPronouns(true)
+        if(pronounsError()===""){
+            setShowPronouns(true);
+        }
     }
   }
 
+// func untuk mengconfirm Pronouns dengan enter
   function handlePronounsEnter(event){
-    if (event.key === "enter"){
+    if (event.key === "Enter"){
         handlePronouns();
     }
   }
@@ -66,16 +81,20 @@ function profile(){
     if (showDeskripsi()==true){
         setShowDeskripsi(false);
     }else{
+        if(deskripsi()===""){
+            setDeskripsi("-");
+        }
         setShowDeskripsi(true)
     }
   }
 
+// func untuk mengconfirm deskripsi dengan enter
   function handleDeskripsiEnter(event){
     const maxNewLines = 0;
     const currentValue = event.target.value;
     const newLineCount = (currentValue.match(/\n/g) || []).length;
 
-    // chec
+    // mencegah user untuk bikin new line
     if (event.key === 'Enter' && newLineCount >= maxNewLines) {
         event.preventDefault(); // Prevent adding another new line
     }
@@ -86,12 +105,31 @@ function profile(){
     }
   }
 
-// signal untuk deck
-const [deck, setDeck] = createSignal(initialDecks);
-const [favoriteDeck, setFavoriteDeck] = createSignal(initialFDecks);
 
-// signal for button click
-const [activebutton,setActiveButton] = createSignal(true);
+// function handle input and error
+function ErrorHandleUser(event){
+    if(event.target.value===""){
+        setUsernameError("Warning: username cannot be empty!")
+    }else if(event.target.value.length<4){
+        setUsernameError("Warning: username cannot be below than 4!")
+    }else{
+        setUsername(event.target.value);
+        setUsernameError("");
+        
+    }
+}
+
+function ErrorHandlePronouns(event){
+    if(event.target.value===""){
+        setPronounsError("Warning: username cannot be empty!")
+    }else if(event.target.value.length<4){
+        setPronounsError("Warning: username cannot be below than 4!")
+    }else{
+        setPronouns(event.target.value);
+        setPronounsError("");
+        
+    }
+}
 
 
   return (
@@ -107,7 +145,7 @@ const [activebutton,setActiveButton] = createSignal(true);
                 {/* username div */}
                 <div class={styles.usernameStyle}>
                     
-                    <Show when={showUsername()} fallback={<input type="text" value={username()} onInput={(e) => setUsername(e.target.value)} onKeyDown={(e) => handleUsernameEnter(e)} maxLength={15}/> }>
+                    <Show when={showUsername()} fallback={<input type="text" value={username()} onInput={(e)=>ErrorHandleUser(e)} onKeyDown={(e) => handleUsernameEnter(e)} maxLength={15}/> }>
                         <p s>{username()}</p>
                     </Show>
 
@@ -117,11 +155,14 @@ const [activebutton,setActiveButton] = createSignal(true);
 
                 </div>    
                 
+                <div class={styles.errorContainer}>
+                    <p>{usernameError()}</p>
+                </div>
 
                 {/* pronouns div */}
                 <div class={styles.pronounStyle}>
                     
-                    <Show when={showPronouns()} fallback={<input type="text" value={pronouns()} onInput={(e) => setPronouns(e.target.value)} onKeyDown={(e) => handlePronounsEnter(e)} maxLength={20}/> }>
+                    <Show when={showPronouns()} fallback={<input type="text" value={pronouns()} onInput={(e) => ErrorHandlePronouns(e)} onKeyDown={(e) => handlePronounsEnter(e)} maxLength={20}/> }>
                         <p>{pronouns()}</p>
                     </Show>
 
@@ -130,6 +171,9 @@ const [activebutton,setActiveButton] = createSignal(true);
                     </button>
                 </div>    
                 
+                <div class={styles.errorContainer}>
+                    <p>{pronounsError()}</p>
+                </div>
 
                 <div class={styles.deskripsiStyle}>
                     
@@ -143,7 +187,7 @@ const [activebutton,setActiveButton] = createSignal(true);
 
                 </div>
 
-                
+
             </div>
 
         </div>

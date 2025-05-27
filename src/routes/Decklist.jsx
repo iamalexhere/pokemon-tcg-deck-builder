@@ -1,7 +1,9 @@
 import { createSignal, For } from 'solid-js';
 import styles from './decklist.module.css';
 import DeckCard from '../components/DeckCard';
-import Pagination from '../components/Pagination'; 
+import Pagination from '../components/Pagination';
+import { useNavigate } from "@solidjs/router";
+import { useAuth } from '../context/AuthContext';
 
 // Placeholder for Search Icon
 const SearchIcon = () => (
@@ -24,6 +26,21 @@ function DeckList() {
   const [searchTerm, setSearchTerm] = createSignal('');
   const [allDecks, setAllDecks] = createSignal(initialDecks);
   const [currentPage, setCurrentPage] = createSignal(1);
+  const navigate = useNavigate();
+  const { isLoggedIn } = useAuth();
+  
+  // If not logged in, redirect to login page
+  if (!isLoggedIn()) {
+    return (
+      <div class={styles.notLoggedInContainer}>
+        <h2>Please Log In</h2>
+        <p>You need to be logged in to view and manage your decks.</p>
+        <button onClick={() => navigate('/login')} class={styles.loginRedirectButton}>
+          Go to Login
+        </button>
+      </div>
+    );
+  }
 
   const filteredDecks = () => {
     const lowerSearchTerm = searchTerm().toLowerCase();
@@ -63,6 +80,10 @@ function DeckList() {
     setCurrentPage(page);
   };
 
+  const handleDeckClick = (e) => {
+    navigate('/deckeditor')
+  }
+
   return (
     <div class={styles.deckListPageContainer}>
       <h1 class={styles.pageTitle}>Deck List</h1>
@@ -92,7 +113,7 @@ function DeckList() {
 
       <div class={styles.deckGrid}>
         <For each={paginatedDecks()} fallback={<p class={styles.noDecksMessage}>No decks found.</p>}>
-          {(deck) => <DeckCard deck={deck} />}
+          {(deck) => <DeckCard deck={deck} onClick={handleDeckClick} />}
         </For>
       </div>
 

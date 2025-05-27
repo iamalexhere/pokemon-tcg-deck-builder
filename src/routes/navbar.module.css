@@ -15,6 +15,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    cursor: pointer;
   }
   
   .navbar-center {
@@ -52,5 +53,19 @@
     height: 40px;
     border-radius: 50%;
     cursor: pointer;
+  }
+  
+  .profile-icon-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .profile-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    object-fit: cover;
   }
   

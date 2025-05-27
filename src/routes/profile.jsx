@@ -22,12 +22,9 @@ const initialFDecks = Array.from({ length: 6 }, (_, i) => ({
 
 function Profile(){
   const auth = useAuth();
-  const { isLoggedIn, profilePicture, updateProfilePicture, updateProfile } = auth;
+  const { profilePicture, updateProfilePicture, updateProfile } = auth;
   
-  // Check if user is logged in
-  if (!isLoggedIn()) {
-    return <div class={styles.notLoggedIn}>Please login to view your profile</div>;
-  }
+  // The profile is already protected by ProtectedRoute in the router configuration
   
   // Variables for editing profile
   const [showUsername, setShowUsername] = createSignal(true);

@@ -37,8 +37,8 @@ render(() => (
     <Route path="/pokemon-test" component={PokemonSearchTest} />
     <Route path="/set/:setId" component={SetDisplayPage} />
     <Route path="/decklist" component={DeckList} />
-    <Route path="card-details" component={CardDetails}/>
-    <Route path="card-lists" component={CardLists}/>
+    <Route path="/card-details" component={CardDetails}/>
+    <Route path="/cardlist" component={CardLists}/>
     {/* catch all weird access page */}
     <Route path="*" component={NotFound} />
   </Router>

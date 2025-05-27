@@ -81,6 +81,29 @@
     height: 100%;
     position: relative;
     background: #f8f9fa;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  
+  .card:hover .cardPlaceholder {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  }
+  
+  .cardName {
+    position: absolute;
+    bottom: 10px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-weight: bold;
+    color: #333;
+    font-size: 0.9rem;
+    padding: 5px;
   }
   
   .crossLine1,

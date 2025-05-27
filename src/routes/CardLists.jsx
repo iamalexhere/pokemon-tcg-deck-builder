@@ -32,11 +32,22 @@ function SearchBar() {
 }
 
 function Card({ index }) {
+    const navigate = useNavigate();
+    
+    // Map card indices to card IDs for demonstration
+    const cardIds = ['charizard', 'pikachu', 'bulbasaur'];
+    const cardId = cardIds[index % cardIds.length]; // Cycle through the available cards
+    
+    const handleCardClick = () => {
+        navigate(`/card-details/${cardId}`);
+    };
+    
     return (
-        <div class={styles.card}>
+        <div class={styles.card} onClick={handleCardClick}>
             <div class={styles.cardPlaceholder}>
                 <div class={styles.crossLine1}></div>
                 <div class={styles.crossLine2}></div>
+                <div class={styles.cardName}>{cardId.charAt(0).toUpperCase() + cardId.slice(1)}</div>
             </div>
         </div>
     );

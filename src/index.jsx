@@ -31,7 +31,7 @@ import CardDetails from './routes/CardDetails';
 render(() => (
   <Router root={Layout} fallbackElement={<div>Loading...</div>}> 
     <Route path="/" component={Home} />
-    <Route path="/deckeditor" component={() => (
+    <Route path="/deckeditor/:deckId" component={() => (
       <ProtectedRoute>
         <DeckEditor />
       </ProtectedRoute>
@@ -52,7 +52,7 @@ render(() => (
         <DeckList />
       </ProtectedRoute>
     )} />
-    <Route path="/card-details" component={CardDetails}/>
+    <Route path="/card-details/:cardId" component={CardDetails}/>
     <Route path="/cardlist" component={CardLists}/>
     {/* catch all weird access page */}
     <Route path="*" component={NotFound} />

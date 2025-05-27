@@ -7,6 +7,7 @@ p{
   grid-template-rows: 1fr;
   grid-template-areas: 
     ". fotoProfile text .";
+  margin: 2rem;
 }
 
 .fotoProfile{
@@ -119,13 +120,13 @@ p{
 .usernameStyle{
   display:flex;
   flex-direction: row;
-  font-size: 4rem;
+  font-size: 3.5rem;
 }
 
 .usernameStyle input{
   width: 25rem;
-  height: 5rem;
-  font-size: 4rem;
+  height: 3.5rem;
+  font-size: 3.5rem;
   border-radius: 1rem;
 }
 
@@ -133,13 +134,13 @@ p{
 .pronounStyle{
   display: flex;
   flex-direction: row;
-  font-size: 2.5rem;
+  font-size: 2rem;
 }
 
 .pronounStyle input{
   width: 25rem;
   height: 2.5rem;
-  font-size: 2.5rem;
+  font-size: 2rem;
   border-radius: 1rem;
 }
 
@@ -149,12 +150,27 @@ p{
   
 }
 
+.deskripsiStyle p{
+  white-space: pre-wrap;     /* keeps line breaks and wraps long lines */
+  word-wrap: break-word;     /* breaks long unbroken words */
+  overflow-wrap: break-word; /* also breaks long words (more consistent across browsers) */
+  max-width: 30rem;
+  word-break: break-word;
+  overflow: visible; 
+}
+
 
 .textFrame textarea{
-  height: 6rem;
   width: 25rem;
+  line-height: 1.2rem;       /* each line is 1.2rem tall */
+  height: calc(1.2rem * 7);   /* max 7 lines */
+  max-height: calc(1.2rem * 7);
+  overflow-y: auto;          /* allow scrolling if needed */
   resize: none;
   border-radius: 1rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .textFrame button{
@@ -208,10 +224,17 @@ p{
 }
 
 .deck button{
-  width: 10rem;
-  height: 3rem;
-  border-radius: 1rem;
-  margin-right:1rem ; 
+ padding: 14px 32px; /* Slightly larger padding */
+  border: none;
+  border-radius: 8px; /* More rounded */
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out, transform 0.1s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.75px;
+  margin-right: 2rem;
+  
 }
 
 .deckGrid {
@@ -229,8 +252,23 @@ p{
 }
 
 .activeButton{
-  background-color: #007bff;
-  color: rgb(108, 33, 33);
-  font-weight: bold;
-  border-radius: 6px;
+  background-color: #cba6f7; /* Mauve */
+  color: #1e1e2e; /* Base - for good contrast on Mauve */
+  padding: 14px 32px; /* Slightly larger padding */
+  border: none;
+  border-radius: 8px; /* More rounded */
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out, transform 0.1s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.75px;
+}
+
+.errorContainer{
+  height: 1.5rem;
+  width: 25rem;
+  /* background-color: aliceblue; */
+  color: #f9e2af;
+  margin: 0.2rem;
 }

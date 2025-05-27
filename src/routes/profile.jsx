@@ -1,6 +1,6 @@
 import styles from './profile.module.css';
 import { createSignal, Show, For } from "solid-js";
-import editIcon from '../assets/images/icon/editIcon.png'
+import editIcon from '../assets/images/icon/editIcon.png';
 import DeckCard from '../components/DeckCard';
 import { useAuth } from '../context/AuthContext';
 
@@ -33,6 +33,16 @@ function Profile(){
   const [showUsername, setShowUsername] = createSignal(true);
   const [showPronouns, setShowPronouns] = createSignal(true);
   const [showDeskripsi, setShowDeskripsi] = createSignal(true);
+  // signal untuk error
+  const [usernameError, setUsernameError] = createSignal("");
+  const [pronounsError, setPronounsError] = createSignal("");
+  // signal untuk deck
+  const [deck, setDeck] = createSignal(initialDecks);
+  const [favoriteDeck, setFavoriteDeck] = createSignal(initialFDecks);
+  // signal for button deck click
+  const [activebutton, setActiveButton] = createSignal(true);
+  
+  // Create signals for temporary values during editing
   const [tempUsername, setTempUsername] = createSignal(auth.username());
   const [tempPronouns, setTempPronouns] = createSignal(auth.pronouns());
   const [tempDeskripsi, setTempDeskripsi] = createSignal(auth.description());
@@ -42,35 +52,55 @@ function Profile(){
 
   // Function to handle username editing
   function handleUsername(){
-    if (showUsername()) {
-      setShowUsername(false);
+    if (showUsername() === true){
+        setShowUsername(false);
     } else {
-      updateProfile({ username: tempUsername() });
-      setShowUsername(true);
+        if(usernameError() === ""){
+            updateProfile({ username: tempUsername() });
+            setShowUsername(true);
+        }
+    }
+  }
+
+// func untuk mengconfirm username dengan enter
+  function handleUsernameEnter(event){
+    if (event.key === "Enter"){
+        handleUsername();
     }
   }
 
   // Function to handle pronouns editing
   function handlePronouns(){
-    if (showPronouns()) {
-      setShowPronouns(false);
+    if (showPronouns() === true){
+        setShowPronouns(false);
     } else {
-      updateProfile({ pronouns: tempPronouns() });
-      setShowPronouns(true);
+        if(pronounsError() === ""){
+            updateProfile({ pronouns: tempPronouns() });
+            setShowPronouns(true);
+        }
     }
   }
 
-  // Function to handle description editing
-  function handleDeskripsi(){
-    if (showDeskripsi()) {
-      setShowDeskripsi(false);
-    } else {
-      updateProfile({ description: tempDeskripsi() });
-      setShowDeskripsi(true);
+// func untuk mengconfirm Pronouns dengan enter
+  function handlePronounsEnter(event){
+    if (event.key === "Enter"){
+        handlePronouns();
     }
   }
-  
-  // Function to handle profile picture upload
+
+// function input handle deskripsi
+ function handleDeskripsi(){
+    if (showDeskripsi() === true){
+        setShowDeskripsi(false);
+    } else {
+        updateProfile({ description: tempDeskripsi() });
+        if(tempDeskripsi() === ""){
+            setTempDeskripsi("-");
+        }
+        setShowDeskripsi(true);
+    }
+}
+// Function to handle profile picture upload
   function handleProfilePictureUpload(e) {
     const file = e.target.files[0];
     if (file) {
@@ -83,12 +113,51 @@ function Profile(){
     }
   }
 
-// signal untuk deck
-const [deck, setDeck] = createSignal(initialDecks);
-const [favoriteDeck, setFavoriteDeck] = createSignal(initialFDecks);
+// func untuk mengconfirm deskripsi dengan enter
+  function handleDeskripsiEnter(event){
+    const maxNewLines = 0;
+    const currentValue = event.target.value;
+    const newLineCount = (currentValue.match(/\n/g) || []).length;
 
-// signal for button click
-const [activebutton,setActiveButton] = createSignal(true);
+    // mencegah user untuk bikin new line
+    if (event.key === 'Enter' && newLineCount >= maxNewLines) {
+        event.preventDefault(); // Prevent adding another new line
+        handleDeskripsi(); // Submit on Enter
+    }
+
+    // Optional: Ctrl+Enter to finish editing
+    if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
+        handleDeskripsi(); // simulate clicking the edit icon to close editing
+    }
+  }
+
+
+// function handle input and error
+function ErrorHandleUser(event){
+    const input = event.target.value;
+    setTempUsername(input);
+    
+    if(input === ""){
+        setUsernameError("Warning: username cannot be empty!");
+    } else if(input.length < 4){
+        setUsernameError("Warning: username cannot be below 4 characters!");
+    } else {
+        setUsernameError("");
+    }
+}
+
+function ErrorHandlePronouns(event){
+    const input = event.target.value;
+    setTempPronouns(input);
+    
+    if(input === ""){
+        setPronounsError("Warning: pronouns cannot be empty!");
+    } else if(input.length < 2){
+        setPronounsError("Warning: pronouns must be at least 2 characters!");
+    } else {
+        setPronounsError("");
+    }
+}
 
 
   return (
@@ -96,19 +165,16 @@ const [activebutton,setActiveButton] = createSignal(true);
     < >
         {/* Click handler moved to fotoProfile container */}
         <div class={styles.profileFrame}>
-            <div class={styles.fotoProfile} onClick={() => setShowProfileUpload(!showProfileUpload())}>
-                {/* Conditionally render the profile image */}
-                <Show when={!showProfileUpload()}>
-                    <img 
-                        src={profilePicture()} 
-                        alt="Profile Photo" 
-                        style="width:100%; height:100%; border-radius:50%; object-fit: cover;" // Make image fill container
-                    />
-                </Show>
+            <div class={styles.fotoProfile}>
+                <img 
+                    src={profilePicture()} 
+                    alt="Profile" 
+                    onClick={() => setShowProfileUpload(true)} 
+                    style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" 
+                />
                 
-                {/* Profile Upload Overlay */}
                 {showProfileUpload() && (
-                    <div class={styles.uploadOverlay} onClick={(e) => e.stopPropagation()}> {/* Prevent click from bubbling to fotoProfile */}
+                    <div class={styles.uploadOverlay} onClick={(e) => e.stopPropagation()}>
                         {/* New elements for concentric circles */}
                         <div class={styles.outerCircle}></div>
                         <div class={styles.innerCircle}></div>
@@ -131,43 +197,49 @@ const [activebutton,setActiveButton] = createSignal(true);
                 {/* username div */}
                 <div class={styles.usernameStyle}>
                     
-                    <Show when={showUsername()} fallback={<input type="text" value={tempUsername()} onInput={(e) => setTempUsername(e.target.value)}/> }>
+                    <Show when={showUsername()} fallback={<input type="text" value={tempUsername()} onInput={(e) => ErrorHandleUser(e)} onKeyDown={(e) => handleUsernameEnter(e)} maxLength={15}/> }>
                         <p>{auth.username()}</p>
                     </Show>
 
-                    <button onClick={handleUsername} >
+                    <button onClick={handleUsername}>
                         <img src={editIcon} alt="Edit" style="width: 2rem; height: 2rem;" />
                     </button>
 
                 </div>    
                 
+                <div class={styles.errorContainer}>
+                    <p>{usernameError()}</p>
+                </div>
 
                 {/* pronouns div */}
                 <div class={styles.pronounStyle}>
                     
-                    <Show when={showPronouns()} fallback={<input type="text" value={tempPronouns()} onInput={(e) => setTempPronouns(e.target.value)}/> }>
+                    <Show when={showPronouns()} fallback={<input type="text" value={tempPronouns()} onInput={(e) => ErrorHandlePronouns(e)} onKeyDown={(e) => handlePronounsEnter(e)} maxLength={20}/> }>
                         <p>{auth.pronouns()}</p>
                     </Show>
 
-                    <button onClick={handlePronouns} >
+                    <button onClick={handlePronouns}>
                         <img src={editIcon} alt="Edit" style="width: 2rem; height: 2rem;" />
                     </button>
                 </div>    
                 
+                <div class={styles.errorContainer}>
+                    <p>{pronounsError()}</p>
+                </div>
 
                 <div class={styles.deskripsiStyle}>
                     
-                    <Show when={showDeskripsi()} fallback={<textarea type="text" value={tempDeskripsi()} onInput={(e) => setTempDeskripsi(e.target.value)}/>}>
-                        <p>{auth.description()} </p>
+                    <Show when={showDeskripsi()} fallback={<textarea value={tempDeskripsi()} onInput={(e) => setTempDeskripsi(e.target.value)} onKeyDown={(e) => handleDeskripsiEnter(e)} maxLength={250} style="width: 100%;"/>}>
+                        <p>{auth.description()}</p>
                     </Show>
 
-                    <button onClick={handleDeskripsi} >
+                    <button onClick={handleDeskripsi}>
                         <img src={editIcon} alt="Edit" style="width: 2rem; height: 2rem;" />
                     </button>
 
                 </div>
 
-                
+
             </div>
 
         </div>
@@ -175,8 +247,8 @@ const [activebutton,setActiveButton] = createSignal(true);
         <div class={styles.deck}>
             {/* button deck */}
             <div class={styles.deckButton}>
-                <button onClick={() => setActiveButton(true)} class={activebutton()===true?styles.activeButton:""}>Recent Deck</button>
-                <button onClick={() => setActiveButton(false)} class={activebutton()===false?styles.activeButton:""}>Favorite Deck</button>
+                <button onClick={() => setActiveButton(true)} class={activebutton() ? styles.activeButton : ""}>Recent Deck</button>
+                <button onClick={() => setActiveButton(false)} class={!activebutton() ? styles.activeButton : ""}>Favorite Deck</button>
             </div>
 
             {/* tampilan */}

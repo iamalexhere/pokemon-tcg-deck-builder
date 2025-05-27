@@ -1,7 +1,48 @@
 import styles from './cardlists.module.css';
 import { A } from "@solidjs/router";
-import { createSignal, Switch, Match, For } from "solid-js";
+import { createSignal, Switch, Match, For, createEffect } from "solid-js";
 import { useNavigate } from "@solidjs/router";
+import PLACEHOLDER_IMAGE from "../assets/images/placeholder.jpg";
+
+// Sample card data with static details
+const mockCards = [
+  {
+    id: 'card-1',
+    name: 'Pokemon 1',
+    image: PLACEHOLDER_IMAGE,
+    type: 'Fire'
+  },
+  {
+    id: 'card-2',
+    name: 'Pokemon 2',
+    image: PLACEHOLDER_IMAGE,
+    type: 'Water'
+  },
+  {
+    id: 'card-3',
+    name: 'Pokemon 3',
+    image: PLACEHOLDER_IMAGE,
+    type: 'Grass'
+  },
+  {
+    id: 'card-4',
+    name: 'Pokemon 4',
+    image: PLACEHOLDER_IMAGE,
+    type: 'Electric'
+  },
+  {
+    id: 'card-5',
+    name: 'Pokemon 5',
+    image: PLACEHOLDER_IMAGE,
+    type: 'Psychic'
+  },
+  {
+    id: 'card-6',
+    name: 'Pokemon 6',
+    image: PLACEHOLDER_IMAGE,
+    type: 'Normal'
+  }
+];
 
 function Header() {
     return (
@@ -31,36 +72,44 @@ function SearchBar() {
     );
 }
 
-function Card({ index }) {
+function Card({ card }) {
     const navigate = useNavigate();
     
-    // Map card indices to card IDs for demonstration
-    const cardIds = ['charizard', 'pikachu', 'bulbasaur'];
-    const cardId = cardIds[index % cardIds.length]; // Cycle through the available cards
-    
     const handleCardClick = () => {
-        navigate(`/card-details/${cardId}`);
+        navigate(`/card-details/${card.id}`);
     };
     
     return (
         <div class={styles.card} onClick={handleCardClick}>
-            <div class={styles.cardPlaceholder}>
-                <div class={styles.crossLine1}></div>
-                <div class={styles.crossLine2}></div>
-                <div class={styles.cardName}>{cardId.charAt(0).toUpperCase() + cardId.slice(1)}</div>
-            </div>
+            <img 
+                src={card.image || PLACEHOLDER_IMAGE} 
+                alt={card.name} 
+                class={styles.cardImage} 
+            />
         </div>
     );
 }
 
 function CardGrid() {
-    // Generate 30 cards for 3 rows of 10 cards each
-    const cards = Array.from({ length: 30 }, (_, i) => i);
+    // Create signal for cards with pagination
+    const [cards, setCards] = createSignal([]);
+    
+    // Initialize cards from mock data
+    createEffect(() => {
+        // Generate 30 cards by repeating the mock cards but keeping original IDs
+        const generatedCards = Array.from({ length: 30 }, (_, i) => {
+            // Use modulo to cycle through the 6 mock cards
+            const index = i % mockCards.length;
+            // Return the original mock card without modifying the ID
+            return mockCards[index];
+        });
+        setCards(generatedCards);
+    });
     
     return (
         <div class={styles.cardGrid}>
-            <For each={cards}>
-                {(cardIndex) => <Card index={cardIndex} />}
+            <For each={cards()} fallback={<p>Loading cards...</p>}>
+                {(card) => <Card card={card} />}
             </For>
         </div>
     );

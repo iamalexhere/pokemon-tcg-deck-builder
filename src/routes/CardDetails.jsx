@@ -14,65 +14,133 @@ function CardDetails() {
   const [isLoading, setIsLoading] = createSignal(true);
   const [error, setError] = createSignal(null);
   
-  // Mock card database - in a real app, this would be fetched from an API
+  // Static card database with generic details
   const cardDatabase = {
-    'charizard': {
-      name: "Charizard",
+    'card-1': {
+      name: "Pokemon 1",
       type: "Fire",
       hp: "120",
       abilities: [
         {
-          name: "Energy Burn",
-          description: "All Energy attached to Charizard are Fire Energy instead of their usual type.",
+          name: "Ability A",
+          description: "This is the first ability description. It explains what happens when this ability is used.",
           value: "Passive",
         },
         {
-          name: "Fire Spin",
-          description: "Discard 2 Energy from Charizard in order to use this attack.",
+          name: "Ability B",
+          description: "This is the second ability description. It has a different effect than the first ability.",
           value: "100",
         },
       ],
       weakness: "Water ×2",
       resistance: "Fighting -30",
       retreatCost: "3",
-      illustrator: "Mitsuhiro Arita",
+      illustrator: "Artist Name",
     },
-    'pikachu': {
-      name: "Pikachu",
-      type: "Electric",
-      hp: "60",
+    'card-2': {
+      name: "Pokemon 2",
+      type: "Water",
+      hp: "90",
       abilities: [
         {
-          name: "Static",
-          description: "When Pikachu is hit by an attack, the attacking Pokémon might become Paralyzed.",
+          name: "Ability C",
+          description: "This water-type ability has a unique effect that can change the battle dynamics.",
           value: "Passive",
         },
         {
-          name: "Thunder Shock",
-          description: "Flip a coin. If heads, the Defending Pokémon is now Paralyzed.",
-          value: "30",
+          name: "Ability D",
+          description: "A powerful attack that requires specific energy to use effectively.",
+          value: "70",
         },
       ],
-      weakness: "Fighting ×2",
+      weakness: "Electric ×2",
       resistance: "None",
-      retreatCost: "1",
-      illustrator: "Ken Sugimori",
+      retreatCost: "2",
+      illustrator: "Artist Name",
     },
-    'bulbasaur': {
-      name: "Bulbasaur",
+    'card-3': {
+      name: "Pokemon 3",
       type: "Grass",
-      hp: "40",
+      hp: "80",
       abilities: [
         {
-          name: "Leech Seed",
-          description: "Remove 1 damage counter from Bulbasaur.",
-          value: "20",
+          name: "Ability E",
+          description: "A grass-type ability that affects the battlefield in a strategic way.",
+          value: "40",
+        },
+        {
+          name: "Ability F",
+          description: "This ability can be combined with other cards for increased effectiveness.",
+          value: "60",
         }
       ],
       weakness: "Fire ×2",
       resistance: "Water -30",
       retreatCost: "1",
-      illustrator: "Mitsuhiro Arita",
+      illustrator: "Artist Name",
+    },
+    'card-4': {
+      name: "Pokemon 4",
+      type: "Electric",
+      hp: "70",
+      abilities: [
+        {
+          name: "Ability G",
+          description: "An electric-type ability that can paralyze opponents.",
+          value: "30",
+        },
+        {
+          name: "Ability H",
+          description: "A high-damage attack with a potential drawback effect.",
+          value: "90",
+        }
+      ],
+      weakness: "Ground ×2",
+      resistance: "Flying -20",
+      retreatCost: "1",
+      illustrator: "Artist Name",
+    },
+    'card-5': {
+      name: "Pokemon 5",
+      type: "Psychic",
+      hp: "100",
+      abilities: [
+        {
+          name: "Ability I",
+          description: "A psychic ability that can confuse the opponent.",
+          value: "Passive",
+        },
+        {
+          name: "Ability J",
+          description: "This attack deals damage based on specific conditions in the game.",
+          value: "50+",
+        }
+      ],
+      weakness: "Dark ×2",
+      resistance: "Fighting -30",
+      retreatCost: "2",
+      illustrator: "Artist Name",
+    },
+    'card-6': {
+      name: "Pokemon 6",
+      type: "Normal",
+      hp: "110",
+      abilities: [
+        {
+          name: "Ability K",
+          description: "A versatile ability that works well in many different situations.",
+          value: "40",
+        },
+        {
+          name: "Ability L",
+          description: "A powerful finishing move that can quickly end battles.",
+          value: "120",
+        }
+      ],
+      weakness: "Fighting ×2",
+      resistance: "Ghost -0",
+      retreatCost: "3",
+      illustrator: "Artist Name",
     }
   };
   
@@ -113,8 +181,8 @@ function CardDetails() {
   };
 
   const handleBackClick = () => {
-    console.log("Ke halaman cardlist");
-    // navigate('/deckeditor');
+    // Navigate back to the card list page
+    navigate('/cardlist');
   };
 
   return (

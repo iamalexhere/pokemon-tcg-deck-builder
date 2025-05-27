@@ -68,63 +68,39 @@
   }
   
   .card {
-    aspect-ratio: 1;
+    aspect-ratio: 2/3;
     border: 1px solid #ddd;
-    border-radius: 4px;
+    border-radius: 8px;
     background: white;
     position: relative;
-    min-height: 80px;
-  }
-  
-  .cardPlaceholder {
-    width: 100%;
-    height: 100%;
-    position: relative;
-    background: #f8f9fa;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
+    min-height: 120px;
+    overflow: hidden;
     cursor: pointer;
     transition: transform 0.2s, box-shadow 0.2s;
   }
   
-  .card:hover .cardPlaceholder {
+  .card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  }
+  
+  .cardImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+  .cardPlaceholder {
+    display: none;
   }
   
   .cardName {
-    position: absolute;
-    bottom: 10px;
-    left: 0;
-    right: 0;
-    text-align: center;
-    font-weight: bold;
-    color: #333;
-    font-size: 0.9rem;
-    padding: 5px;
+    display: none;
   }
   
   .crossLine1,
   .crossLine2 {
-    position: absolute;
-    background: #ddd;
-    width: 1px;
-    height: 100%;
-    top: 0;
-  }
-  
-  .crossLine1 {
-    left: 50%;
-    transform: translateX(-50%) rotate(45deg);
-    transform-origin: center;
-  }
-  
-  .crossLine2 {
-    left: 50%;
-    transform: translateX(-50%) rotate(-45deg);
-    transform-origin: center;
+    display: none;
   }
   
   .pagination {

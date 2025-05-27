@@ -116,7 +116,7 @@ function Login() {
                                         class={styles.inputUsername}
                                         value={username()}
                                         onInput={handleUsernameChange}
-                                        placeholder='Enter your username'
+                                        placeholder='Enter your username (Mock Data: user)'
                                         aria-invalid={!!usernameError()}
                                     />
                                     {usernameError() && <div class={styles.errorText}>{usernameError()}</div>}
@@ -130,7 +130,7 @@ function Login() {
                                         class={styles.inputPassword} 
                                         value={password()}
                                         onInput={handlePasswordChange}
-                                        placeholder='Enter your password'
+                                        placeholder='Enter your password (Mock Data: pass)'
                                         aria-invalid={!!passwordError()}
                                     />    
                                     {passwordError() && <div class={styles.errorText}>{passwordError()}</div>}

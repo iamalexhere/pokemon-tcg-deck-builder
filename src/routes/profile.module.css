@@ -12,6 +12,102 @@ p{
 
 .fotoProfile{
   grid-area: fotoProfile;
+  position: relative;
+  cursor: pointer;
+  /* Added styles for fixed dimensions and white border */
+  width: 20rem; 
+  height: 20rem;
+  border-radius: 50%;
+  border: 2px solid white; /* White outer ring */
+  box-sizing: border-box; /* Include border in size */
+  display: flex; /* To center inner content if needed */
+  justify-content: center;
+  align-items: center;
+  overflow: hidden; /* Ensure nothing spills out of the circular bounds */
+}
+
+.uploadOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
+  color: white;
+  text-align: center;
+  padding: 20px;
+  z-index: 10;
+  /* Changed to relative to correctly position children */
+  position: relative; 
+}
+
+.uploadOverlay p {
+  margin-top: 10px;
+  font-size: 1rem;
+  max-width: 80%;
+  z-index: 2; /* Ensure text is above circles */
+}
+
+.fileInput {
+  position: relative;
+  overflow: hidden;
+  display: inline-block;
+  cursor: pointer;
+  z-index: 2; /* Ensure file input is above circles */
+}
+
+.fileInput input[type="file"] {
+  font-size: 100px;
+  position: absolute;
+  left: 0;
+  top: 0;
+  opacity: 0;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+}
+
+.uploadButton {
+  background-color: #4CAF50;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  margin-top: 10px;
+  transition: background-color 0.3s;
+}
+
+.uploadButton:hover {
+  background-color: #45a049;
+}
+
+/* Removed the pseudo-element hover effect as it conflicts with the new overlay behavior */
+.fotoProfile:hover::after {
+  content: "Click to change profile picture";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  padding: 10px;
+  text-align: center;
+  border-bottom-left-radius: 50%;
+  border-bottom-right-radius: 50%;
+}
+
+.notLoggedIn {
+  text-align: center;
+  font-size: 1.5rem;
+  margin-top: 2rem;
+  color: #666;
 }
 
 .textFrame{
@@ -81,6 +177,42 @@ p{
   border: none; 
   background: none; 
   cursor: pointer;
+}
+
+/* New styles for concentric circles */
+.outerCircle, .innerCircle, .centerDot {
+  position: absolute;
+  border-radius: 50%;
+  box-sizing: border-box;
+  z-index: 1; /* Place behind text and button */
+  opacity: 0.5; /* To match the transparency seen in the image */
+}
+
+.outerCircle {
+  width: 95%; /* Adjust size relative to parent (uploadOverlay) */
+  height: 95%;
+  border: 15px solid rgb(220, 220, 220); /* Light grey, thick ring */
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%); /* Center element */
+}
+
+.innerCircle {
+  width: 50%; /* Smaller ring */
+  height: 50%;
+  border: 8px solid rgb(220, 220, 220); /* Light grey, thinner ring */
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%); /* Center element */
+}
+
+.centerDot {
+  width: 20px; /* Small dot */
+  height: 20px;
+  background-color: rgb(220, 220, 220); /* Light grey solid dot */
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%); /* Center element */
 }
 
 .deck{

@@ -3,6 +3,7 @@ import styles from './decklist.module.css';
 import DeckCard from '../components/DeckCard';
 import Pagination from '../components/Pagination';
 import { useNavigate } from "@solidjs/router";
+import { useAuth } from '../context/AuthContext';
 
 // Placeholder for Search Icon
 const SearchIcon = () => (
@@ -26,6 +27,20 @@ function DeckList() {
   const [allDecks, setAllDecks] = createSignal(initialDecks);
   const [currentPage, setCurrentPage] = createSignal(1);
   const navigate = useNavigate();
+  const { isLoggedIn } = useAuth();
+  
+  // If not logged in, redirect to login page
+  if (!isLoggedIn()) {
+    return (
+      <div class={styles.notLoggedInContainer}>
+        <h2>Please Log In</h2>
+        <p>You need to be logged in to view and manage your decks.</p>
+        <button onClick={() => navigate('/login')} class={styles.loginRedirectButton}>
+          Go to Login
+        </button>
+      </div>
+    );
+  }
 
   const filteredDecks = () => {
     const lowerSearchTerm = searchTerm().toLowerCase();

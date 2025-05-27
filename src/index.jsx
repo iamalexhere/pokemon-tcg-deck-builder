@@ -6,13 +6,16 @@ import Home from './routes/Home';
 import DeckEditor from './routes/DeckEditor'
 import StyleGuide from './routes/StyleGuide';
 import Login from './routes/Login';
+import Register from './routes/Register';
 import About from './routes/About';
 import PokemonSearchTest from './components/PokemonSearchTest';
 import SetDisplayPage from './routes/SetDisplayPage';
 import DeckList from './routes/Decklist';
-import profile from './routes/profile'
+import Profile from './routes/profile'
 import NotFound from './routes/error'
 import Layout from './components/Layout'
+import ProtectedRoute from './components/ProtectedRoute';
+import CardLists from './routes/CardLists';
 import CardDetails from './routes/CardDetails';
 
 // const root = document.getElementById('root');
@@ -28,15 +31,29 @@ import CardDetails from './routes/CardDetails';
 render(() => (
   <Router root={Layout} fallbackElement={<div>Loading...</div>}> 
     <Route path="/" component={Home} />
-    <Route path="/deckeditor" component={DeckEditor} />
-    <Route path="/profile" component={profile} />
+    <Route path="/deckeditor" component={() => (
+      <ProtectedRoute>
+        <DeckEditor />
+      </ProtectedRoute>
+    )} />
+    <Route path="/profile" component={() => (
+      <ProtectedRoute>
+        <Profile />
+      </ProtectedRoute>
+    )} />
     <Route path="/style-guide" component={StyleGuide} />
     <Route path="/login" component={Login} />
+    <Route path="/register" component={Register} />
     <Route path="/about" component={About} />
     <Route path="/pokemon-test" component={PokemonSearchTest} />
     <Route path="/set/:setId" component={SetDisplayPage} />
-    <Route path="/decklist" component={DeckList} />
-    <Route path="card-details" component={CardDetails}/>
+    <Route path="/decklist" component={() => (
+      <ProtectedRoute>
+        <DeckList />
+      </ProtectedRoute>
+    )} />
+    <Route path="/card-details" component={CardDetails}/>
+    <Route path="/cardlist" component={CardLists}/>
     {/* catch all weird access page */}
     <Route path="*" component={NotFound} />
   </Router>

@@ -1,31 +1,328 @@
-p{
-  margin: 0;
-}
-.profileFrame{
-  display: grid;
-  grid-template-columns: 1fr 3fr 5fr 1fr;
-  grid-template-rows: 1fr;
-  grid-template-areas: 
-    ". fotoProfile text .";
-  margin: 2rem;
+/* Main container */
+.profileContainer {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  color: #f5f5f5;
+  background-color: var(--ctp-base);
+  border-radius: 8px;
 }
 
-.fotoProfile{
-  grid-area: fotoProfile;
+/* Profile section */
+.profileFrame {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 2rem;
+  margin-bottom: 3rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid var(--ctp-surface0);
+}
+
+/* Profile picture */
+.fotoProfile {
   position: relative;
   cursor: pointer;
-  /* Added styles for fixed dimensions and white border */
-  width: 20rem; 
-  height: 20rem;
+  width: 200px;
+  height: 200px;
   border-radius: 50%;
-  border: 2px solid white; /* White outer ring */
-  box-sizing: border-box; /* Include border in size */
-  display: flex; /* To center inner content if needed */
-  justify-content: center;
-  align-items: center;
-  overflow: hidden; /* Ensure nothing spills out of the circular bounds */
+  border: 3px solid var(--ctp-mauve); /* Purple border */
+  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  flex-shrink: 0;
 }
 
+/* Profile information */
+.profileInfo {
+  flex: 1;
+}
+
+/* Profile details (view mode) */
+.profileDetails {
+  padding: 1rem;
+}
+
+.profileDetails h2 {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+  color: var(--ctp-mauve);
+}
+
+.pronouns {
+  font-size: 1.2rem;
+  color: var(--ctp-subtext0);
+  margin-bottom: 1rem;
+}
+
+.description {
+  font-size: 1rem;
+  line-height: 1.5;
+  margin-bottom: 2rem;
+  max-width: 600px;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+/* Profile actions */
+.profileActions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.editProfileButton, .changePasswordButton {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.editProfileButton {
+  background-color: var(--ctp-mauve);
+  color: var(--ctp-base);
+}
+
+.changePasswordButton {
+  background-color: var(--ctp-surface0);
+  color: var(--ctp-text);
+}
+
+.editProfileButton:hover, .changePasswordButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.editProfileButton:disabled, .changePasswordButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Profile edit form */
+.profileEditForm {
+  background-color: var(--ctp-surface0);
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.profileEditForm h2 {
+  color: var(--ctp-mauve);
+  margin-bottom: 1.5rem;
+  font-size: 1.8rem;
+}
+
+.formGroup {
+  margin-bottom: 1.25rem;
+}
+
+.formGroup label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--ctp-text);
+  font-weight: 500;
+}
+
+.formGroup input,
+.formGroup textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--ctp-surface1);
+  border-radius: 6px;
+  background-color: var(--ctp-base);
+  color: var(--ctp-text);
+  font-size: 1rem;
+  transition: border-color 0.2s ease;
+}
+
+.formGroup input:focus,
+.formGroup textarea:focus {
+  border-color: var(--ctp-mauve);
+  outline: none;
+}
+
+.formGroup textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.profileEditActions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.saveProfileButton,
+.cancelButton {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.saveProfileButton {
+  background-color: var(--ctp-green); /* Green */
+  color: var(--ctp-base);
+}
+
+.cancelButton {
+  background-color: var(--ctp-surface1);
+  color: var(--ctp-text);
+}
+
+.saveProfileButton:hover,
+.cancelButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.saveProfileButton:disabled,
+.cancelButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Password Change Modal */
+.passwordChangeModal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(30, 30, 46, 0.9);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modalContent {
+  background-color: var(--ctp-surface0);
+  border-radius: 8px;
+  padding: 2rem;
+  width: 100%;
+  max-width: 500px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.modalContent h2 {
+  color: var(--ctp-mauve);
+  margin-bottom: 1.5rem;
+  font-size: 1.8rem;
+  text-align: center;
+}
+
+.passwordChangeActions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+  justify-content: center;
+}
+
+.savePasswordButton {
+  background-color: var(--ctp-green); /* Green */
+  color: var(--ctp-base);
+}
+
+/* Deck Section */
+.deckSection {
+  margin-top: 2rem;
+}
+
+.deckButtonFrame {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Deck buttons */
+.deckButton {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background-color: var(--ctp-surface1);
+  color: var(--ctp-text);
+}
+
+.activeButton {
+  background-color: var(--ctp-mauve);
+  color: var(--ctp-base);
+}
+
+.inactiveButton {
+  background-color: var(--ctp-surface1);
+  color: var(--ctp-text);
+}
+
+.deckButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Deck list */
+.deckList {
+  margin-top: 1.5rem;
+}
+
+.recentDeck, .favoriteDeck {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.noDeckMessage {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 2rem;
+  background-color: var(--ctp-surface0);
+  border-radius: 8px;
+  color: var(--ctp-subtext0);
+  font-size: 1.1rem;
+}
+
+/* Success and error messages */
+.successMessage, .errorMessage {
+  padding: 1rem;
+  border-radius: 6px;
+  margin-top: 1.5rem;
+  text-align: center;
+  font-weight: 500;
+}
+
+.successMessage {
+  background-color: rgba(166, 227, 161, 0.2); /* Light green */
+  color: var(--ctp-green);
+  border: 1px solid var(--ctp-green);
+}
+
+.errorMessage {
+  background-color: rgba(243, 139, 168, 0.2); /* Light red */
+  color: var(--ctp-red);
+  border: 1px solid var(--ctp-red);
+}
+
+/* Hover effect for profile picture */
+.fotoProfile:hover::after {
+  content: "Click to edit profile";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  color: var(--ctp-text);
+  padding: 10px;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+/* Profile picture upload overlay */
 .uploadOverlay {
   position: absolute;
   top: 0;
@@ -38,19 +335,18 @@ p{
   justify-content: center;
   align-items: center;
   border-radius: 50%;
-  color: white;
+  color: var(--ctp-text);
   text-align: center;
   padding: 20px;
   z-index: 10;
-  /* Changed to relative to correctly position children */
-  position: relative; 
+  position: relative;
 }
 
 .uploadOverlay p {
   margin-top: 10px;
   font-size: 1rem;
   max-width: 80%;
-  z-index: 2; /* Ensure text is above circles */
+  z-index: 2;
 }
 
 .fileInput {
@@ -58,7 +354,7 @@ p{
   overflow: hidden;
   display: inline-block;
   cursor: pointer;
-  z-index: 2; /* Ensure file input is above circles */
+  z-index: 2;
 }
 
 .fileInput input[type="file"] {
@@ -72,203 +368,10 @@ p{
   height: 100%;
 }
 
-.uploadButton {
-  background-color: #4CAF50;
-  color: white;
-  padding: 10px 20px;
-  border-radius: 5px;
-  border: none;
-  cursor: pointer;
-  font-size: 1rem;
-  margin-top: 10px;
-  transition: background-color 0.3s;
-}
-
-.uploadButton:hover {
-  background-color: #45a049;
-}
-
-/* Removed the pseudo-element hover effect as it conflicts with the new overlay behavior */
-.fotoProfile:hover::after {
-  content: "Click to change profile picture";
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  color: white;
-  padding: 10px;
-  text-align: center;
-  border-bottom-left-radius: 50%;
-  border-bottom-right-radius: 50%;
-}
-
+/* Not logged in message */
 .notLoggedIn {
   text-align: center;
   font-size: 1.5rem;
   margin-top: 2rem;
-  color: #666;
-}
-
-.textFrame{
-  grid-area: text;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-evenly;
-}
-
-.usernameStyle{
-  display:flex;
-  flex-direction: row;
-  font-size: 3.5rem;
-}
-
-.usernameStyle input{
-  width: 25rem;
-  height: 3.5rem;
-  font-size: 3.5rem;
-  border-radius: 1rem;
-}
-
-
-.pronounStyle{
-  display: flex;
-  flex-direction: row;
-  font-size: 2rem;
-}
-
-.pronounStyle input{
-  width: 25rem;
-  height: 2.5rem;
-  font-size: 2rem;
-  border-radius: 1rem;
-}
-
-
-.deskripsiStyle{
-  display: flex;
-  
-}
-
-.deskripsiStyle p{
-  white-space: pre-wrap;     /* keeps line breaks and wraps long lines */
-  word-wrap: break-word;     /* breaks long unbroken words */
-  overflow-wrap: break-word; /* also breaks long words (more consistent across browsers) */
-  max-width: 30rem;
-  word-break: break-word;
-  overflow: visible; 
-}
-
-
-.textFrame textarea{
-  width: 25rem;
-  line-height: 1.2rem;       /* each line is 1.2rem tall */
-  height: calc(1.2rem * 7);   /* max 7 lines */
-  max-height: calc(1.2rem * 7);
-  overflow-y: auto;          /* allow scrolling if needed */
-  resize: none;
-  border-radius: 1rem;
-  white-space: pre-wrap;
-  word-break: break-word;
-  overflow-wrap: break-word;
-}
-
-.textFrame button{
-  border: none; 
-  background: none; 
-  cursor: pointer;
-}
-
-/* New styles for concentric circles */
-.outerCircle, .innerCircle, .centerDot {
-  position: absolute;
-  border-radius: 50%;
-  box-sizing: border-box;
-  z-index: 1; /* Place behind text and button */
-  opacity: 0.5; /* To match the transparency seen in the image */
-}
-
-.outerCircle {
-  width: 95%; /* Adjust size relative to parent (uploadOverlay) */
-  height: 95%;
-  border: 15px solid rgb(220, 220, 220); /* Light grey, thick ring */
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%); /* Center element */
-}
-
-.innerCircle {
-  width: 50%; /* Smaller ring */
-  height: 50%;
-  border: 8px solid rgb(220, 220, 220); /* Light grey, thinner ring */
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%); /* Center element */
-}
-
-.centerDot {
-  width: 20px; /* Small dot */
-  height: 20px;
-  background-color: rgb(220, 220, 220); /* Light grey solid dot */
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%); /* Center element */
-}
-
-.deck{
- margin: 2rem;
- height: 50%;
- display: flex;
- flex-direction: column;
- justify-content: space-evenly;
-}
-
-.deck button{
- padding: 14px 32px; /* Slightly larger padding */
-  border: none;
-  border-radius: 8px; /* More rounded */
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.2s ease-in-out, transform 0.1s ease;
-  text-transform: uppercase;
-  letter-spacing: 0.75px;
-  margin-right: 2rem;
-  
-}
-
-.deckGrid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr); /* Exactly 3 columns */
-  gap: 25px;
-  margin-bottom: 40px;
-}
-
-.deckButton{
-  margin-bottom: 2rem;
-  display: flex;
-  width: 50rem;
-  
-}
-
-.activeButton{
-  background-color: #cba6f7; /* Mauve */
-  color: #1e1e2e; /* Base - for good contrast on Mauve */
-  padding: 14px 32px; /* Slightly larger padding */
-  border: none;
-  border-radius: 8px; /* More rounded */
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.2s ease-in-out, transform 0.1s ease;
-  text-transform: uppercase;
-  letter-spacing: 0.75px;
-}
-
-.errorContainer{
-  height: 1.5rem;
-  width: 25rem;
-  /* background-color: aliceblue; */
-  color: #f9e2af;
-  margin: 0.2rem;
+  color: var(--ctp-subtext0);
 }

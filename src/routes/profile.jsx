@@ -321,6 +321,19 @@ function Profile() {
   return (
     <>
       <div class={styles.profileContainer}>
+        {/* Success and Error Messages */}
+        {successMessage() && (
+          <div class={styles.successMessage}>
+            {successMessage()}
+          </div>
+        )}
+        
+        {errorMessage() && (
+          <div class={styles.errorMessage}>
+            {errorMessage()}
+          </div>
+        )}
+
         {/* Profile Section */}
         <div class={styles.profileFrame}>
           {/* Profile Picture */}
@@ -539,19 +552,7 @@ function Profile() {
             </Show>
           </div>
         </div>
-        
-        {/* Success and Error Messages */}
-        {successMessage() && (
-          <div class={styles.successMessage}>
-            {successMessage()}
-          </div>
-        )}
-        
-        {errorMessage() && (
-          <div class={styles.errorMessage}>
-            {errorMessage()}
-          </div>
-        )}
+        {/* End of deck section */}
       </div>
     </>
   );}

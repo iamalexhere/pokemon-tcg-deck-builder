@@ -19,7 +19,7 @@ export const useAuthService = () => {
     };
 
     if (token) {
-      headers['Authorization'] = token;
+      headers['Authorization'] = `Bearer ${token}`;
     }
 
     const config = {

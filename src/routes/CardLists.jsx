@@ -1,8 +1,9 @@
 import styles from './cardlists.module.css';
 import { A } from "@solidjs/router";
-import { createSignal, Switch, Match, For, createEffect } from "solid-js";
+import { createSignal, Switch, Match, For, createEffect, createResource, Show } from "solid-js";
 import { useNavigate } from "@solidjs/router";
 import PLACEHOLDER_IMAGE from "../assets/images/placeholder.jpg";
+import { getCards, searchCards } from '../services/cardService';
 
 // Search Icon component
 const SearchIcon = () => (
@@ -11,45 +12,26 @@ const SearchIcon = () => (
   </svg>
 );
 
-// Sample card data with static details
-const mockCards = [
-  {
-    id: 'card-1',
-    name: 'Pokemon 1',
-    image: PLACEHOLDER_IMAGE,
-    type: 'Fire'
-  },
-  {
-    id: 'card-2',
-    name: 'Pokemon 2',
-    image: PLACEHOLDER_IMAGE,
-    type: 'Water'
-  },
-  {
-    id: 'card-3',
-    name: 'Pokemon 3',
-    image: PLACEHOLDER_IMAGE,
-    type: 'Grass'
-  },
-  {
-    id: 'card-4',
-    name: 'Pokemon 4',
-    image: PLACEHOLDER_IMAGE,
-    type: 'Electric'
-  },
-  {
-    id: 'card-5',
-    name: 'Pokemon 5',
-    image: PLACEHOLDER_IMAGE,
-    type: 'Psychic'
-  },
-  {
-    id: 'card-6',
-    name: 'Pokemon 6',
-    image: PLACEHOLDER_IMAGE,
-    type: 'Normal'
-  }
-];
+// Error component for displaying API errors
+function ErrorDisplay({ error }) {
+  return (
+    <div class={styles.errorContainer}>
+      <h3>Error Loading Cards</h3>
+      <p>{error?.message || 'An unknown error occurred'}</p>
+      <p>Please try again later or contact support if the problem persists.</p>
+    </div>
+  );
+}
+
+// Loading component for displaying loading state
+function LoadingDisplay() {
+  return (
+    <div class={styles.loadingContainer}>
+      <div class={styles.spinner}></div>
+      <p>Loading Pokémon cards...</p>
+    </div>
+  );
+}
 
 function Header() {
     return (
@@ -89,25 +71,25 @@ function Card({ card }) {
     return (
         <div class={styles.card} onClick={handleCardClick}>
             <img 
-                src={card.image || PLACEHOLDER_IMAGE} 
+                src={card.images?.small || PLACEHOLDER_IMAGE} 
                 alt={card.name} 
                 class={styles.cardImage} 
             />
+            <div class={styles.cardInfo}>
+                <h3 class={styles.cardName}>{card.name}</h3>
+                <div class={styles.cardMeta}>
+                    {card.types && <span class={styles.cardType}>{card.types.join(', ')}</span>}
+                    {card.rarity && <span class={styles.cardRarity}>{card.rarity}</span>}
+                </div>
+            </div>
         </div>
     );
 }
 
-function CardGrid({ filteredCards, currentPage, itemsPerPage }) {
-    // Calculate paginated cards
-    const paginatedCards = () => {
-        const start = (currentPage() - 1) * itemsPerPage;
-        const end = start + itemsPerPage;
-        return filteredCards().slice(start, end);
-    };
-    
+function CardGrid({ cards }) {
     return (
         <div class={styles.cardGrid}>
-            <For each={paginatedCards()} fallback={<p class={styles.noCardsMessage}>No cards found.</p>}>
+            <For each={cards()} fallback={<p class={styles.noCardsMessage}>No cards found.</p>}>
                 {(card) => <Card card={card} />}
             </For>
         </div>
@@ -115,17 +97,53 @@ function CardGrid({ filteredCards, currentPage, itemsPerPage }) {
 }
 
 function Pagination({ currentPage, totalPages, onPageChange }) {
+    // Function to generate the page numbers to display (only 5 at a time)
+    const getPageNumbers = () => {
+        const current = currentPage();
+        const total = totalPages();
+        const pages = [];
+        
+        // Always show 5 pages or less if totalPages < 5
+        let startPage = Math.max(1, current - 2);
+        let endPage = Math.min(total, startPage + 4);
+        
+        // Adjust if we're near the end
+        if (endPage - startPage < 4 && total > 5) {
+            startPage = Math.max(1, endPage - 4);
+        }
+        
+        // Generate the array of page numbers
+        for (let i = startPage; i <= endPage; i++) {
+            pages.push(i);
+        }
+        
+        return pages;
+    };
+    
     return (
         <div class={styles.pagination}>
+            {/* First page button */}
+            <button 
+                class={styles.paginationBtn}
+                onClick={() => onPageChange(1)}
+                disabled={currentPage() === 1}
+                title="First Page"
+            >
+                &lt;&lt;
+            </button>
+            
+            {/* Previous page button */}
             <button 
                 class={styles.paginationBtn}
                 onClick={() => onPageChange(currentPage() - 1)}
                 disabled={currentPage() === 1}
+                title="Previous Page"
             >
                 &lt;
             </button>
             
-            <For each={Array.from({ length: totalPages() }, (_, i) => i + 1)}>
+            {/* Page number buttons - only show 5 at a time */}
+            <For each={getPageNumbers()}>
                 {(page) => (
                     <button 
                         class={`${styles.paginationBtn} ${currentPage() === page ? styles.active : ''}`}
@@ -136,12 +154,24 @@ function Pagination({ currentPage, totalPages, onPageChange }) {
                 )}
             </For>
             
+            {/* Next page button */}
             <button 
                 class={styles.paginationBtn}
                 onClick={() => onPageChange(currentPage() + 1)}
                 disabled={currentPage() === totalPages()}
+                title="Next Page"
             >
                 &gt;
+            </button>
+            
+            {/* Last page button */}
+            <button 
+                class={styles.paginationBtn}
+                onClick={() => onPageChange(totalPages())}
+                disabled={currentPage() === totalPages()}
+                title="Last Page"
+            >
+                &gt;&gt;
             </button>
         </div>
     );
@@ -150,80 +180,126 @@ function Pagination({ currentPage, totalPages, onPageChange }) {
 function ListCards() {
     const [searchTerm, setSearchTerm] = createSignal('');
     const [currentPage, setCurrentPage] = createSignal(1);
-    const [allCards, setAllCards] = createSignal([]);
-    const ITEMS_PER_PAGE = 10;
+    const [isSearching, setIsSearching] = createSignal(false);
+    const [searchParams, setSearchParams] = createSignal({});
+    const ITEMS_PER_PAGE = 50;
     
-    // Initialize cards from mock data
-    createEffect(() => {
-        // Generate 30 cards by repeating the mock cards but keeping original IDs
-        const generatedCards = Array.from({ length: 30 }, (_, i) => {
-            // Use modulo to cycle through the 6 mock cards
-            const index = i % mockCards.length;
-            // Return the original mock card without modifying the ID
-            return mockCards[index];
-        });
-        setAllCards(generatedCards);
-    });
-    
-    // Filter cards based on search term
-    const filteredCards = () => {
-        const lowerSearchTerm = searchTerm().toLowerCase();
-        
-        // If search term is empty, return all cards
-        if (!lowerSearchTerm) {
-            return allCards();
+    // Fetch cards from API based on current page
+    const fetchCards = async ([page, isSearch, params]) => {
+        try {
+            let result;
+            if (isSearch) {
+                // If searching, use search endpoint
+                result = await searchCards({
+                    ...params,
+                    page,
+                    pageSize: ITEMS_PER_PAGE
+                });
+            } else {
+                // Otherwise get all cards with pagination
+                result = await getCards(page, ITEMS_PER_PAGE);
+            }
+            
+            // Debug server response structure
+            console.log('Server response:', result);
+            console.log('Page:', page);
+            console.log('Total pages:', result.totalPages);
+            console.log('Card count:', result.count);
+            
+            return result;
+        } catch (error) {
+            console.error('Error fetching cards:', error);
+            throw error;
         }
-        
-        // Filter cards by name or type
-        const filtered = allCards().filter(card => 
-            card.name.toLowerCase().includes(lowerSearchTerm) || 
-            card.type.toLowerCase().includes(lowerSearchTerm)
-        );
-        
-        // Reset to first page if current page becomes invalid due to filtering
-        const newTotalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
-        if (currentPage() > newTotalPages && newTotalPages > 0) {
-            setCurrentPage(newTotalPages);
-        } else if (newTotalPages === 0 && filtered.length === 0) {
-            if (currentPage() > 1) setCurrentPage(1);
-        }
-        
-        return filtered;
     };
     
-    // Calculate total pages based on filtered cards
-    const totalPages = () => Math.ceil(filteredCards().length / ITEMS_PER_PAGE);
+    // Create a resource for fetching cards
+    const [cardsData, { refetch, mutate }] = createResource(
+        () => [currentPage(), isSearching(), searchParams()],
+        fetchCards
+    );
     
     // Handle search form submission
     const handleSearch = (e) => {
         e.preventDefault();
+        const term = searchTerm().trim();
+        
         // Reset to page 1 when searching
         setCurrentPage(1);
-        console.log("Searching for:", searchTerm());
+        
+        if (term) {
+            // Set search parameters based on the search term
+            setSearchParams({ name: term });
+            setIsSearching(true);
+        } else {
+            // If search term is empty, show all cards
+            setIsSearching(false);
+            setSearchParams({});
+        }
+        
+        console.log("Searching for:", term);
     };
     
     // Handle page change
     const handlePageChange = (page) => {
+        console.log('Page changed to:', page);
         setCurrentPage(page);
+    };
+    
+    // Calculate total pages based on API response
+    const totalPages = () => {
+        if (!cardsData()) {
+            return 1;
+        }
+        // Server returns totalPages directly in the response
+        return cardsData().totalPages || 1;
+    };
+    
+    // Get cards from the API response
+    const cards = () => {
+        if (!cardsData() || !cardsData().data) {
+            return [];
+        }
+        return cardsData().data;
     };
     
     return (
         <div class={styles.listContainer}>
+            {/* Display error at the top if present */}
+            <Show when={cardsData.error}>
+                <ErrorDisplay error={cardsData.error} />
+            </Show>
+            
             <SearchBar 
                 searchTerm={searchTerm} 
                 setSearchTerm={setSearchTerm} 
                 handleSearch={handleSearch} 
             />
-            <CardGrid 
-                filteredCards={filteredCards} 
-                currentPage={currentPage} 
-                itemsPerPage={ITEMS_PER_PAGE} 
-            />
-            <Pagination 
-                currentPage={currentPage} 
-                totalPages={totalPages} 
-                onPageChange={handlePageChange} 
-            />
+            
+            <Show when={!cardsData.loading} fallback={<LoadingDisplay />}>
+                <Show when={!cardsData.error}>
+                    <div class={styles.resultsInfo}>
+                        {isSearching() && searchTerm() 
+                            ? `Search results for "${searchTerm()}"` 
+                            : 'All Pokémon Cards'}
+                        {cardsData() && cardsData().count && (
+                            <span class={styles.cardCount}>
+                                {cardsData().count} cards found
+                            </span>
+                        )}
+                    </div>
+                    
+                    <CardGrid 
+                        cards={cards}
+                    />
+                    
+                    <Pagination 
+                        currentPage={currentPage} 
+                        totalPages={totalPages} 
+                        onPageChange={handlePageChange} 
+                    />
+                </Show>
+            </Show>
         </div>
     );
 }

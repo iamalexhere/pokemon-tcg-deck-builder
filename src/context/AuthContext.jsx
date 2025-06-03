@@ -146,6 +146,12 @@ export function AuthProvider(props) {
       
       const updatedProfile = await authService.updateProfile(profileData, currentToken);
       
+      // If the server returned a new token (happens after username change), update it
+      if (updatedProfile.token) {
+        setToken(updatedProfile.token);
+        console.log('Token updated after username change');
+      }
+      
       if (profileData.username) setUsername(profileData.username);
       if (profileData.profilePicture) setProfilePicture(profileData.profilePicture);
       if (profileData.pronouns) setPronouns(profileData.pronouns);

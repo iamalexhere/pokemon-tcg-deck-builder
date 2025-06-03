@@ -113,21 +113,6 @@ function FormRegister(){
                             />
                         </td>
                     </tr>
-                    <tr class={styles.UsernameCell}>
-                        <td>
-                            Full Name
-                            <input 
-                                type="text" 
-                                class={styles.inputUsername}
-                                value={name()}
-                                onInput={(e) => setName(e.target.value)}
-                                placeholder='Enter your full name'
-                            />
-                        </td>
-                        <td class={styles.Error}>
-                            <p></p>
-                        </td>
-                    </tr>
                     <tr class={styles.PasswordCell}>
                         <td>
                             <div>

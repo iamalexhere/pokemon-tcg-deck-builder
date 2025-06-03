@@ -103,7 +103,17 @@ function Login() {
 
                 <Show when={formError()}>
                     <div class={styles.formErrorOverlay}>
-                        <div class={styles.formErrorMessage}>{formError()}</div>
+                        <div style={{
+                            color: '#e53935',
+                            fontWeight: 'bold',
+                            padding: '10px',
+                            marginBottom: '15px',
+                            backgroundColor: 'rgba(229, 57, 53, 0.1)',
+                            borderRadius: '4px',
+                            borderLeft: '4px solid #e53935'
+                        }}>
+                            {formError()}
+                        </div>
                     </div>
                 </Show>
 
@@ -119,7 +129,7 @@ function Login() {
                                         class={styles.inputUsername}
                                         value={username()}
                                         onInput={handleUsernameChange}
-                                        placeholder='Enter your username (Mock Data: user)'
+                                        placeholder='Enter your username (jdoe42)'
                                         aria-invalid={!!usernameError()}
                                     />
                                     {usernameError() && <div class={styles.errorText}>{usernameError()}</div>}
@@ -133,7 +143,7 @@ function Login() {
                                         class={styles.inputPassword} 
                                         value={password()}
                                         onInput={handlePasswordChange}
-                                        placeholder='Enter your password (Mock Data: pass)'
+                                        placeholder='Enter your password (12345)'
                                         aria-invalid={!!passwordError()}
                                     />    
                                     {passwordError() && <div class={styles.errorText}>{passwordError()}</div>}

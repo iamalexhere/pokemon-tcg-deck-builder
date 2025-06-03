@@ -103,7 +103,17 @@ function Login() {
 
                 <Show when={formError()}>
                     <div class={styles.formErrorOverlay}>
-                        <div class={styles.formErrorMessage}>{formError()}</div>
+                        <div style={{
+                            color: '#e53935',
+                            fontWeight: 'bold',
+                            padding: '10px',
+                            marginBottom: '15px',
+                            backgroundColor: 'rgba(229, 57, 53, 0.1)',
+                            borderRadius: '4px',
+                            borderLeft: '4px solid #e53935'
+                        }}>
+                            {formError()}
+                        </div>
                     </div>
                 </Show>
 

@@ -1,33 +1,66 @@
 import styles from './register.module.css';
 import loginImage from '../assets/images/LoginPage/test.jpg';
 import { A } from "@solidjs/router";
-import { createSignal, Switch, Match, createEffect } from "solid-js";
+import { createSignal, Switch, Match, createEffect, Show } from "solid-js";
 import { useNavigate } from "@solidjs/router";
 import { FiEye, FiEyeOff } from "solid-icons/fi";
-import { style } from 'solid-js/web';
+import { useAuth } from '../context/AuthContext';
 
 function FormRegister(){
     const [username, setUsername] = createSignal("");
+    const [name, setName] = createSignal("");
     const [password, setPassword] = createSignal("");
     const [confirmPassword, setConfirmPassword] = createSignal("");
     const [showPassword, setShowPassword] = createSignal(false);
     const [showConfirmPassword, setShowConfirmPassword] = createSignal(false);
+    const [formError, setFormError] = createSignal("");
+    const [isSubmitting, setIsSubmitting] = createSignal(false);
     const navigate = useNavigate();
+    const auth = useAuth();
     
-    const handleSubmit = (event) => {
+    const handleSubmit = async (event) => {
         event.preventDefault();
+        setFormError("");
 
-        if(password().length < 8){
-            alert('Password must be at least 8 characters.');
+        // Validate all fields
+        if(username().length < 3){
+            setFormError('Username must be at least 3 characters.');
             return;
         }
 
-        if(password() !== confirmPassword()) {
-            alert('Password does not match.');
+        if(!name()){
+            setFormError('Name is required.');
             return;
         }
 
-        navigate("/", {replace: true})
+        if(password().length < 5){
+            setFormError('Password must be at least 5 characters.');
+            return;
+        }
+
+        if(password() !== confirmPassword()){
+            setFormError('Passwords do not match.');
+            return;
+        }
+
+        setIsSubmitting(true);
+
+        try {
+            // Register the user
+            await auth.register({
+                username: username(),
+                name: name(),
+                password: password()
+            });
+
+            // If registration is successful, navigate to login
+            navigate("/login", {replace: true});
+        } catch (error) {
+            setFormError(error.message || 'Registration failed. Please try again.');
+            console.error("Registration error:", error);
+        } finally {
+            setIsSubmitting(false);
+        }
     }
 
     const [usernameError, setUsernameError] = createSignal("");
@@ -42,8 +75,8 @@ function FormRegister(){
 
     const [passwordError, setPasswordError] = createSignal("");
     createEffect(() => {
-        if(password().length>0 && password().length < 8) {
-            setPasswordError("Password must be at least 8 characters.")
+        if(password().length>0 && password().length < 5) {
+            setPasswordError("Password must be at least 5 characters.")
         } 
         else {
             setPasswordError("")
@@ -66,6 +99,9 @@ function FormRegister(){
             <table class={styles.formTable}>
                 <thead>
                     <tr class={styles.UsernameCell}>
+                        <td class={styles.Error}>
+                            <p>{usernameError()}</p>
+                        </td>
                         <td>
                             Username
                             <input 
@@ -75,9 +111,6 @@ function FormRegister(){
                                 onInput={(e) => setUsername(e.target.value)}
                                 placeholder='Enter your username'
                             />
-                        </td>
-                        <td class={styles.Error}>
-                            <p>{usernameError}</p>
                         </td>
                     </tr>
                     <tr class={styles.PasswordCell}>
@@ -152,8 +185,9 @@ function FormRegister(){
                     </tr>
                     <tr>
                         <td>
-                            {/* <A href='' class={styles.forgotPassword}>Forgot password?</A>  */}
-                            <button class={styles.loginButton}>Register</button>
+                            <button class={styles.loginButton} disabled={isSubmitting()}>
+                                {isSubmitting() ? 'Registering...' : 'Register'}
+                            </button>
                         </td>
                     </tr>
                 </thead>

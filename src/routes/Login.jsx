@@ -1,11 +1,10 @@
 import styles from './login.module.css';
 import loginImage from '../assets/images/LoginPage/test.jpg';
 import { A } from "@solidjs/router";
-import { createSignal, Switch, Match } from "solid-js";
+import { createSignal, Switch, Match, Show } from "solid-js";
 import { useNavigate } from "@solidjs/router";
 import { FiEye, FiEyeOff } from "solid-icons/fi";
 import { useAuth } from '../context/AuthContext';
-
 
 function Login() {
     const [username, setUsername] = createSignal("");
@@ -16,7 +15,7 @@ function Login() {
     const [formError, setFormError] = createSignal("");
     const [isSubmitting, setIsSubmitting] = createSignal(false);
     const navigate = useNavigate();
-    const { login } = useAuth();
+    const auth = useAuth();
 
     // Validate username input
     const validateUsername = (value) => {
@@ -62,35 +61,33 @@ function Login() {
         validatePassword(value);
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        
-        // Reset form error
+    const handleSubmit = async (event) => {
+        event.preventDefault();
         setFormError("");
         
         // Validate all fields
-        const isUsernameValid = validateUsername(username());
-        const isPasswordValid = validatePassword(password());
+        if (!validateUsername(username())) {
+            return;
+        }
         
-        if (!isUsernameValid || !isPasswordValid) {
+        if (!validatePassword(password())) {
             return;
         }
         
         setIsSubmitting(true);
         
         try {
-            // TODO: Replace with real auth call
-            const isValid = username() === "user" && password() === "pass";
-
-            if (isValid) {
-                // Call login function from AuthContext
-                login({ username: username() });
-                navigate("/", { replace: true });
-            } else {
-                setFormError("Invalid username or password");
-            }
+            // Call login function from AuthContext with credentials
+            await auth.login({
+                username: username(),
+                password: password()
+            });
+            
+            // If login is successful, navigate to home
+            navigate("/", { replace: true });
         } catch (error) {
-            setFormError("An error occurred during login. Please try again.");
+            // Display error message
+            setFormError(error.message || "Invalid username or password");
             console.error("Login error:", error);
         } finally {
             setIsSubmitting(false);
@@ -104,6 +101,22 @@ function Login() {
 
                 <h1 class={styles.title}>Login</h1>
 
+                <Show when={formError()}>
+                    <div class={styles.formErrorOverlay}>
+                        <div style={{
+                            color: '#e53935',
+                            fontWeight: 'bold',
+                            padding: '10px',
+                            marginBottom: '15px',
+                            backgroundColor: 'rgba(229, 57, 53, 0.1)',
+                            borderRadius: '4px',
+                            borderLeft: '4px solid #e53935'
+                        }}>
+                            {formError()}
+                        </div>
+                    </div>
+                </Show>
+
                 <form method="post" class={styles.loginForm} onsubmit={handleSubmit}>
 
                     <table class={styles.formTable}>
@@ -116,7 +129,7 @@ function Login() {
                                         class={styles.inputUsername}
                                         value={username()}
                                         onInput={handleUsernameChange}
-                                        placeholder='Enter your username (Mock Data: user)'
+                                        placeholder='Enter your username (jdoe42)'
                                         aria-invalid={!!usernameError()}
                                     />
                                     {usernameError() && <div class={styles.errorText}>{usernameError()}</div>}
@@ -130,7 +143,7 @@ function Login() {
                                         class={styles.inputPassword} 
                                         value={password()}
                                         onInput={handlePasswordChange}
-                                        placeholder='Enter your password (Mock Data: pass)'
+                                        placeholder='Enter your password (12345)'
                                         aria-invalid={!!passwordError()}
                                     />    
                                     {passwordError() && <div class={styles.errorText}>{passwordError()}</div>}
@@ -152,18 +165,16 @@ function Login() {
                                     </button>
                                 </td>
                             </tr>
-                            {formError() && (
-                            <tr>
-                                <td colspan="2">
-                                    <div class={styles.formErrorText}>{formError()}</div>
-                                </td>
-                            </tr>
-                            )}
                             <tr>
                                 <td>
                                     <A href="/register" class={styles.forgotPassword}>Forgot password?</A> 
                                     <button class={styles.loginButton} disabled={isSubmitting()}>
-                                        {isSubmitting() ? 'Logging in...' : 'Login'}
+                                        {isSubmitting() ? 
+                                            <div class={styles.loadingState}>
+                                                <div class={styles.loadingSpinner}></div>
+                                                Logging in...
+                                            </div> 
+                                            : 'Login'}
                                     </button>
                                 </td>
                             </tr>

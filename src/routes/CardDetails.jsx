@@ -1,188 +1,67 @@
 import { createSignal, createEffect, onMount } from "solid-js";
 import styles from "./styleGuide.module.css";
 import cardStyles from "./carddetail.module.css";
-import poke from "../assets/images/placeholder.jpg";
+import poke from "../assets/images/placeholder.jpg"; // Fallback placeholder
 import { useNavigate, useParams } from "@solidjs/router";
+import { getCardById } from "../services/cardService";
 
 function CardDetails() {
   const navigate = useNavigate();
   const params = useParams();
   const cardId = params.cardId;
-  
-  // State for card data and loading state
-  const [cardData, setCardData] = createSignal(null);
+
+  const [cardData, setCardData] = createSignal(null); // Will hold the { data: { ... } } structure
   const [isLoading, setIsLoading] = createSignal(true);
   const [error, setError] = createSignal(null);
-  
-  // Static card database with generic details
-  const cardDatabase = {
-    'card-1': {
-      name: "Pokemon 1",
-      type: "Fire",
-      hp: "120",
-      abilities: [
-        {
-          name: "Ability A",
-          description: "This is the first ability description. It explains what happens when this ability is used.",
-          value: "Passive",
-        },
-        {
-          name: "Ability B",
-          description: "This is the second ability description. It has a different effect than the first ability.",
-          value: "100",
-        },
-      ],
-      weakness: "Water ×2",
-      resistance: "Fighting -30",
-      retreatCost: "3",
-      illustrator: "Artist Name",
-    },
-    'card-2': {
-      name: "Pokemon 2",
-      type: "Water",
-      hp: "90",
-      abilities: [
-        {
-          name: "Ability C",
-          description: "This water-type ability has a unique effect that can change the battle dynamics.",
-          value: "Passive",
-        },
-        {
-          name: "Ability D",
-          description: "A powerful attack that requires specific energy to use effectively.",
-          value: "70",
-        },
-      ],
-      weakness: "Electric ×2",
-      resistance: "None",
-      retreatCost: "2",
-      illustrator: "Artist Name",
-    },
-    'card-3': {
-      name: "Pokemon 3",
-      type: "Grass",
-      hp: "80",
-      abilities: [
-        {
-          name: "Ability E",
-          description: "A grass-type ability that affects the battlefield in a strategic way.",
-          value: "40",
-        },
-        {
-          name: "Ability F",
-          description: "This ability can be combined with other cards for increased effectiveness.",
-          value: "60",
-        }
-      ],
-      weakness: "Fire ×2",
-      resistance: "Water -30",
-      retreatCost: "1",
-      illustrator: "Artist Name",
-    },
-    'card-4': {
-      name: "Pokemon 4",
-      type: "Electric",
-      hp: "70",
-      abilities: [
-        {
-          name: "Ability G",
-          description: "An electric-type ability that can paralyze opponents.",
-          value: "30",
-        },
-        {
-          name: "Ability H",
-          description: "A high-damage attack with a potential drawback effect.",
-          value: "90",
-        }
-      ],
-      weakness: "Ground ×2",
-      resistance: "Flying -20",
-      retreatCost: "1",
-      illustrator: "Artist Name",
-    },
-    'card-5': {
-      name: "Pokemon 5",
-      type: "Psychic",
-      hp: "100",
-      abilities: [
-        {
-          name: "Ability I",
-          description: "A psychic ability that can confuse the opponent.",
-          value: "Passive",
-        },
-        {
-          name: "Ability J",
-          description: "This attack deals damage based on specific conditions in the game.",
-          value: "50+",
-        }
-      ],
-      weakness: "Dark ×2",
-      resistance: "Fighting -30",
-      retreatCost: "2",
-      illustrator: "Artist Name",
-    },
-    'card-6': {
-      name: "Pokemon 6",
-      type: "Normal",
-      hp: "110",
-      abilities: [
-        {
-          name: "Ability K",
-          description: "A versatile ability that works well in many different situations.",
-          value: "40",
-        },
-        {
-          name: "Ability L",
-          description: "A powerful finishing move that can quickly end battles.",
-          value: "120",
-        }
-      ],
-      weakness: "Fighting ×2",
-      resistance: "Ghost -0",
-      retreatCost: "3",
-      illustrator: "Artist Name",
-    }
-  };
-  
-  // Fetch card data when component mounts or cardId changes
-  onMount(() => {
-    fetchCardData();
-  });
-  
+
+  onMount(fetchCardData);
+
   createEffect(() => {
-    // This will re-run when cardId changes
-    if (params.cardId) {
+    if (params.cardId && params.cardId !== (cardData() && cardData().data ? cardData().data.id : null)) {
       fetchCardData();
     }
   });
-  
-  // Function to fetch card data based on cardId
-  const fetchCardData = () => {
+
+  async function fetchCardData() {
+    if (!cardId) {
+      setError("Card ID is missing.");
+      setIsLoading(false);
+      return;
+    }
     setIsLoading(true);
     setError(null);
-    
     try {
-      // Simulate API call delay
-      setTimeout(() => {
-        const card = cardDatabase[cardId.toLowerCase()];
-        
-        if (card) {
-          setCardData(card);
-        } else {
-          setError(`Card with ID '${cardId}' not found`);
-        }
-        
-        setIsLoading(false);
-      }, 500);
+      const response = await getCardById(cardId); // Assuming this returns { data: { ... } }
+      console.log("Fetched card details:", response);
+
+      if (response && response.data) {
+        setCardData(response); // Store the whole response { data: { ... } }
+      } else if (response && !response.data) { // Case where response is an object but no 'data' field
+        setCardData(null);
+        setError(`Card data format is incorrect for ID '${cardId}'.`);
+      }
+      else {
+        setCardData(null);
+        setError(`Card with ID '${cardId}' not found or invalid response.`);
+      }
     } catch (err) {
-      setError('Failed to load card data');
+      console.error("Error fetching card data:", err);
+      setCardData(null);
+      setError("Failed to load card data. Please check the console for more details.");
+    } finally {
       setIsLoading(false);
     }
-  };
+  }
 
-  const handleBackClick = () => {
-    // Navigate back to the card list page
-    navigate('/cardlist');
+  const handleBackClick = () => navigate("/cardlist");
+
+  // Helper to format weaknesses/resistances
+  const formatStatEntry = (entryArray) => {
+    if (!entryArray || entryArray.length === 0) {
+      return "None";
+    }
+    const entry = entryArray[0]; // Assuming we only display the first one
+    return `${entry.type} ${entry.value}`;
   };
 
   return (
@@ -220,7 +99,7 @@ function CardDetails() {
         {error() && !isLoading() && (
           <div class={cardStyles.errorContainer}>
             <p class={cardStyles.errorMessage}>{error()}</p>
-            <button 
+            <button
               class={cardStyles.retryButton}
               onClick={fetchCardData}
             >
@@ -230,13 +109,20 @@ function CardDetails() {
         )}
 
         {/* Card Data */}
-        {!isLoading() && !error() && cardData() && (
+        {/* Ensure cardData() and cardData().data exist before trying to access properties */}
+        {!isLoading() && !error() && cardData() && cardData().data && (
           <div class={styles.card}>
             <div class={cardStyles.cardContainer}>
-              {/* Card Image Placeholder */}
+              {/* Card Image */}
               <div class={cardStyles.imageContainer}>
                 <div class={cardStyles.imagePlaceholder}>
-                  <img class={cardStyles.placeholderSvg} src={poke} alt={cardData().name} />
+                  <img
+                    class={cardStyles.placeholderSvg} /* You might want a different class for actual images */
+                    // MODIFIED LINE BELOW:
+                    src={cardData().data.images?.large || cardData().data.images?.small || poke}
+                    alt={cardData().data.name || "Card image"}
+                    onError={(e) => { e.target.src = poke; }} // Fallback to placeholder if image fails to load
+                  />
                 </div>
               </div>
 
@@ -245,47 +131,69 @@ function CardDetails() {
                 {/* Header */}
                 <div class={cardStyles.cardHeader}>
                   <h3 class={`${styles.cardHeader} ${cardStyles.headerTitle}`}>
-                    {cardData().name}
+                    {cardData().data.name || "Unknown Card"}
                   </h3>
+                  {cardData().data.supertype && (
+                     <span class={`${styles.subtext0} ${cardStyles.supertypeText}`}>
+                        {cardData().data.supertype}
+                     </span>
+                  )}
                 </div>
 
                 {/* Type and HP Row */}
                 <div class={cardStyles.typeHpRow}>
                   <div class={cardStyles.typeCell}>
-                    <span class={styles.subtext1}>{cardData().type}</span>
+                    <span class={styles.subtext1}>
+                      {cardData().data.types?.join(", ") || "N/A"}
+                    </span>
                   </div>
                   <div class={cardStyles.hpCell}>
-                    <span class={styles.subtext1}>{cardData().hp}</span>
+                    <span class={styles.subtext1}>
+                      {cardData().data.hp ? `HP ${cardData().data.hp}` : "N/A"}
+                    </span>
                   </div>
                 </div>
 
-                {/* Abilities */}
-                <div class={cardStyles.abilitiesSection}>
-                  {cardData().abilities.map((ability, index) => (
-                    <div class={cardStyles.abilityItem}>
-                      <div class={cardStyles.abilityContent}>
-                        <div
-                          class={`${styles.textDefault} ${cardStyles.abilityName}`}
-                        >
-                          {ability.name}
+                {/* Attacks (replaces Abilities) */}
+                <div class={cardStyles.abilitiesSection}> {/* Keeping class name for now, but semantically it's 'attacks' */}
+                  <h4 class={cardStyles.sectionTitle}>Attacks</h4>
+                  {cardData().data.attacks && cardData().data.attacks.length > 0 ? (
+                    cardData().data.attacks.map((attack, index) => (
+                      <div class={cardStyles.abilityItem} key={index}>
+                        <div class={cardStyles.abilityContent}>
+                          <div
+                            class={`${styles.textDefault} ${cardStyles.abilityName}`}
+                          >
+                            {attack.name}
+                            {attack.cost && attack.cost.length > 0 && (
+                              <span class={cardStyles.attackCost}>
+                                {" (" + attack.cost.join(", ") + ")"}
+                              </span>
+                            )}
+                          </div>
+                          <div
+                            class={`${styles.subtext0} ${cardStyles.abilityDescription}`}
+                          >
+                            {attack.text || "No description."}
+                          </div>
                         </div>
-                        <div
-                          class={`${styles.subtext0} ${cardStyles.abilityDescription}`}
-                        >
-                          {ability.description}
-                        </div>
+                        {attack.damage && (
+                          <div
+                            class={`${styles.textMauve} ${cardStyles.abilityValue}`}
+                          >
+                            {attack.damage}
+                          </div>
+                        )}
                       </div>
-                      <div
-                        class={`${styles.textMauve} ${cardStyles.abilityValue}`}
-                      >
-                        {ability.value}
-                      </div>
-                    </div>
-                  ))}
+                    ))
+                  ) : (
+                    <p class={`${styles.subtext0} ${cardStyles.noItemsText}`}>No attacks listed.</p>
+                  )}
                 </div>
 
                 {/* Stats Section */}
                 <div class={cardStyles.statsSection}>
+                  <h4 class={cardStyles.sectionTitle}>Details</h4>
                   {/* Stats Header */}
                   <div class={cardStyles.statsHeader}>
                     <div class={cardStyles.statHeaderItem}>
@@ -311,37 +219,70 @@ function CardDetails() {
                       <span
                         class={`${styles.textDefault} ${cardStyles.statValue}`}
                       >
-                        {cardData().weakness}
+                        {formatStatEntry(cardData().data.weaknesses)}
                       </span>
                     </div>
                     <div class={cardStyles.statValueItem}>
                       <span
                         class={`${styles.textDefault} ${cardStyles.statValue}`}
                       >
-                        {cardData().resistance}
+                        {formatStatEntry(cardData().data.resistances)}
                       </span>
                     </div>
                     <div class={cardStyles.statValueItem}>
                       <span
                         class={`${styles.textDefault} ${cardStyles.statValue}`}
                       >
-                        {cardData().retreatCost}
+                        {cardData().data.retreatCost?.join(", ") || "None"}
                       </span>
                     </div>
                   </div>
 
-                  {/* Illustrator */}
-                  <div class={cardStyles.illustratorSection}>
-                    <span
-                      class={`${styles.subtext0} ${cardStyles.illustratorText}`}
-                    >
-                      Illustrator: {cardData().illustrator}
-                    </span>
+                  {/* Other Details: Rarity, Set */}
+                  <div class={cardStyles.otherDetailsSection}>
+                     {cardData().data.rarity && (
+                        <div class={cardStyles.detailItem}>
+                           <span class={`${styles.subtext0} ${cardStyles.detailLabel}`}>Rarity:</span>
+                           <span class={`${styles.textDefault} ${cardStyles.detailValue}`}>{cardData().data.rarity}</span>
+                        </div>
+                     )}
+                     {cardData().data.set && cardData().data.set.name && (
+                        <div class={cardStyles.detailItem}>
+                           <span class={`${styles.subtext0} ${cardStyles.detailLabel}`}>Set:</span>
+                           <span class={`${styles.textDefault} ${cardStyles.detailValue}`}>{cardData().data.set.name}</span>
+                        </div>
+                     )}
+                    {/* The original 'Illustrator' field is not in the provided JSON sample under 'data'.
+                        If it can sometimes be present, you would access it via cardData().data.illustrator
+                        Example:
+                        {cardData().data.illustrator && (
+                          <div class={cardStyles.detailItem}>
+                            <span class={`${styles.subtext0} ${cardStyles.detailLabel}`}>Illustrator:</span>
+                            <span class={`${styles.textDefault} ${cardStyles.detailValue}`}>{cardData().data.illustrator}</span>
+                          </div>
+                        )}
+                    */}
+                    {/* Displaying description from JSON if available */}
+                    {cardData().data.description && cardData().data.description.trim() !== "" && (
+                         <div class={cardStyles.descriptionSection}>
+                            <h5 class={`${styles.subtext1} ${cardStyles.detailLabel}`}>Description:</h5>
+                            <p class={`${styles.subtext0} ${cardStyles.illustratorText}`}> {/* Reusing illustratorText style for now */}
+                                {cardData().data.description}
+                            </p>
+                         </div>
+                    )}
                   </div>
                 </div>
               </div>
             </div>
           </div>
+        )}
+
+        {/* No Data but no error and not loading (e.g., card not found or malformed data) */}
+        {!isLoading() && !error() && (!cardData() || !cardData().data) && (
+             <div class={cardStyles.errorContainer}>
+                <p class={cardStyles.errorMessage}>Card data could not be displayed. The card might not exist or the data is incomplete.</p>
+             </div>
         )}
       </div>
     </div>

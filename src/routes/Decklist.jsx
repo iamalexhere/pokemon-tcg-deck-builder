@@ -1,9 +1,10 @@
-import { createSignal, For } from 'solid-js';
+import { createSignal, For, createResource, Show, createEffect } from 'solid-js';
 import styles from './decklist.module.css';
 import DeckCard from '../components/DeckCard';
 import Pagination from '../components/Pagination';
 import { useNavigate } from "@solidjs/router";
 import { useAuth } from '../context/AuthContext';
+import { getDecks, createDeck } from '../services/deckService'; // Import deck service functions
 
 // Placeholder for Search Icon
 const SearchIcon = () => (
@@ -12,24 +13,41 @@ const SearchIcon = () => (
   </svg>
 );
 
-// Placeholder deck data
-const initialDecks = Array.from({ length: 23 }, (_, i) => ({
-  id: i + 1,
-  name: `My Awesome Deck ${i + 1}`,
-  imageUrl: '',
-  cardCount: Math.floor(Math.random() * 40) + 20,
-}));
-
-const ITEMS_PER_PAGE = 9;
+const ITEMS_PER_PAGE = 9; // Number of decks to display per page
 
 function DeckList() {
   const [searchTerm, setSearchTerm] = createSignal('');
-  const [allDecks, setAllDecks] = createSignal(initialDecks);
   const [currentPage, setCurrentPage] = createSignal(1);
+  const [searchTrigger, setSearchTrigger] = createSignal(0); // Used to re-trigger resource
   const navigate = useNavigate();
-  const { isLoggedIn } = useAuth();
-  
+  const { isLoggedIn, token } = useAuth(); // Get token from auth context
+
+  // Resource to fetch decks based on current page and search term
+  const [decksData] = createResource(() => {
+    // Depend on currentPage and searchTrigger to re-fetch
+    const page = currentPage();
+    const search = searchTerm();
+    return { page, search };
+  }, async ({ page, search }) => {
+    try {
+      const response = await getDecks(page, ITEMS_PER_PAGE, search);
+      // The API should return { decks: [...], totalPages: N }
+      return response;
+    } catch (error) {
+      console.error('Error fetching decks:', error);
+      // Re-throw to be caught by Solid's error handling for resource
+      throw new Error(error.message || 'Failed to load decks.');
+    }
+  });
+
+  // Handle pagination and filtering logic
+  const totalPages = () => decksData()?.totalPages || 1;
+
+  // Derive paginated decks from the resource data
+  const paginatedDecks = () => decksData()?.decks || [];
+
   // If not logged in, redirect to login page
+  // This check should happen before any authenticated API calls are attempted.
   if (!isLoggedIn()) {
     return (
       <div class={styles.notLoggedInContainer}>
@@ -42,38 +60,20 @@ function DeckList() {
     );
   }
 
-  const filteredDecks = () => {
-    const lowerSearchTerm = searchTerm().toLowerCase();
-    // Reset to first page if current page becomes invalid due to filtering
-    const currentFiltered = allDecks().filter(deck =>
-      deck.name.toLowerCase().includes(lowerSearchTerm)
-    );
-    const newTotalPages = Math.ceil(currentFiltered.length / ITEMS_PER_PAGE);
-    if (currentPage() > newTotalPages && newTotalPages > 0) {
-      setCurrentPage(newTotalPages);
-    } else if (newTotalPages === 0 && currentFiltered.length === 0) {
-        // if no results, and current page is 1, keep it 1.
-        // if current page was > 1 and now no results, reset to 1.
-        if (currentPage() > 1) setCurrentPage(1);
+  // Effect to reset current page to 1 whenever the search term changes significantly
+  createEffect(() => {
+    // Only reset if decksData has loaded and the search term isn't empty on initial load
+    // This prevents resetting page when component first mounts and search term is empty
+    if (searchTrigger() > 0 && currentPage() !== 1) {
+      setCurrentPage(1);
     }
-    return currentFiltered;
-  };
-
-  const totalPages = () => Math.ceil(filteredDecks().length / ITEMS_PER_PAGE);
-
-  const paginatedDecks = () => {
-    const start = (currentPage() - 1) * ITEMS_PER_PAGE;
-    const end = start + ITEMS_PER_PAGE;
-    return filteredDecks().slice(start, end);
-  };
+  });
 
   const handleSearch = (e) => {
     e.preventDefault();
-    // When search term changes, filterDecks will run, and it now handles
-    // resetting currentPage if it's out of bounds.
-    // We still want to explicitly set to page 1 for a new search submission
-    setCurrentPage(1);
-    console.log("Searching for:", searchTerm());
+    // Trigger a re-fetch of the resource with the new search term
+    setCurrentPage(1); // Always reset to page 1 on new search
+    setSearchTrigger(prev => prev + 1); // Increment to trigger resource re-fetch
   };
 
   const handlePageChange = (page) => {
@@ -82,7 +82,25 @@ function DeckList() {
 
   const handleDeckClick = (deck) => {
     navigate(`/deckeditor/${deck.id}`);
-  }
+  };
+
+  const handleCreateNewDeck = async () => {
+    try {
+      // Create a new deck with a default name.
+      // The server will assign an ID and other defaults.
+      const newDeckResponse = await createDeck("New Deck", "");
+      if (newDeckResponse && newDeckResponse.deck && newDeckResponse.deck.id) {
+        // Navigate to the editor for the newly created deck
+        navigate(`/deckeditor/${newDeckResponse.deck.id}`);
+      } else {
+        alert('Failed to create new deck: Invalid response from server.');
+      }
+    } catch (error) {
+      console.error('Error creating new deck:', error);
+      alert(`Failed to create new deck: ${error.message || 'An unknown error occurred.'}`);
+    }
+  };
+
 
   return (
     <div class={styles.deckListPageContainer}>
@@ -98,33 +116,47 @@ function DeckList() {
             class={styles.searchInput}
             placeholder="Search pokemon decks..."
             value={searchTerm()}
-            onInput={(e) => {
-                setSearchTerm(e.currentTarget.value);
-            }}
+            onInput={(e) => setSearchTerm(e.currentTarget.value)}
           />
           <button type="submit" class={styles.searchButton} aria-label="Search">
             <SearchIcon />
           </button>
         </form>
-        <button 
+        <button
           class={styles.createNewDeckButton}
-          onClick={() => navigate(`/deckeditor/${allDecks().length + 1}`)}
+          onClick={handleCreateNewDeck}
         >
           Create New Deck +
         </button>
       </div>
 
-      <div class={styles.deckGrid}>
-        <For each={paginatedDecks()} fallback={<p class={styles.noDecksMessage}>No decks found.</p>}>
-          {(deck) => <DeckCard deck={deck} onClick={handleDeckClick} />}
-        </For>
-      </div>
+      <Show when={!decksData.loading} fallback={
+        <div class={styles.loadingContainer}>
+          <div class={styles.spinner}></div>
+          <p>Loading decks...</p>
+        </div>
+      }>
+        <Show when={!decksData.error} fallback={
+          <div class={styles.errorContainer}>
+            <p>{decksData.error.message}</p>
+            <button onClick={() => decksData.refetch()} class={styles.retryButton}>
+              Retry Loading Decks
+            </button>
+          </div>
+        }>
+          <div class={styles.deckGrid}>
+            <For each={paginatedDecks()} fallback={<p class={styles.noDecksMessage}>No decks found.</p>}>
+              {(deck) => <DeckCard deck={deck} onClick={() => handleDeckClick(deck)} />}
+            </For>
+          </div>
 
-      <Pagination
-        currentPage={currentPage}
-        totalPages={totalPages()}
-        onPageChange={handlePageChange}
-      />
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages()}
+            onPageChange={handlePageChange}
+          />
+        </Show>
+      </Show>
     </div>
   );
 }

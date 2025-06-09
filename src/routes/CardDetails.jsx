@@ -1,8 +1,9 @@
-import { createSignal, createEffect, onMount } from "solid-js";
+import { createSignal, createEffect, onMount, Show } from "solid-js";
 import styles from "./styleGuide.module.css";
 import cardStyles from "./carddetail.module.css";
-import poke from "../assets/images/placeholder.jpg";
+import PLACEHOLDER_IMAGE from "../assets/images/placeholder.jpg"; // Renamed from poke for clarity
 import { useNavigate, useParams } from "@solidjs/router";
+import { getCardById } from '../services/cardService'; // Import the actual card service
 
 function CardDetails() {
   const navigate = useNavigate();
@@ -14,136 +15,6 @@ function CardDetails() {
   const [isLoading, setIsLoading] = createSignal(true);
   const [error, setError] = createSignal(null);
   
-  // Static card database with generic details
-  const cardDatabase = {
-    'card-1': {
-      name: "Pokemon 1",
-      type: "Fire",
-      hp: "120",
-      abilities: [
-        {
-          name: "Ability A",
-          description: "This is the first ability description. It explains what happens when this ability is used.",
-          value: "Passive",
-        },
-        {
-          name: "Ability B",
-          description: "This is the second ability description. It has a different effect than the first ability.",
-          value: "100",
-        },
-      ],
-      weakness: "Water ×2",
-      resistance: "Fighting -30",
-      retreatCost: "3",
-      illustrator: "Artist Name",
-    },
-    'card-2': {
-      name: "Pokemon 2",
-      type: "Water",
-      hp: "90",
-      abilities: [
-        {
-          name: "Ability C",
-          description: "This water-type ability has a unique effect that can change the battle dynamics.",
-          value: "Passive",
-        },
-        {
-          name: "Ability D",
-          description: "A powerful attack that requires specific energy to use effectively.",
-          value: "70",
-        },
-      ],
-      weakness: "Electric ×2",
-      resistance: "None",
-      retreatCost: "2",
-      illustrator: "Artist Name",
-    },
-    'card-3': {
-      name: "Pokemon 3",
-      type: "Grass",
-      hp: "80",
-      abilities: [
-        {
-          name: "Ability E",
-          description: "A grass-type ability that affects the battlefield in a strategic way.",
-          value: "40",
-        },
-        {
-          name: "Ability F",
-          description: "This ability can be combined with other cards for increased effectiveness.",
-          value: "60",
-        }
-      ],
-      weakness: "Fire ×2",
-      resistance: "Water -30",
-      retreatCost: "1",
-      illustrator: "Artist Name",
-    },
-    'card-4': {
-      name: "Pokemon 4",
-      type: "Electric",
-      hp: "70",
-      abilities: [
-        {
-          name: "Ability G",
-          description: "An electric-type ability that can paralyze opponents.",
-          value: "30",
-        },
-        {
-          name: "Ability H",
-          description: "A high-damage attack with a potential drawback effect.",
-          value: "90",
-        }
-      ],
-      weakness: "Ground ×2",
-      resistance: "Flying -20",
-      retreatCost: "1",
-      illustrator: "Artist Name",
-    },
-    'card-5': {
-      name: "Pokemon 5",
-      type: "Psychic",
-      hp: "100",
-      abilities: [
-        {
-          name: "Ability I",
-          description: "A psychic ability that can confuse the opponent.",
-          value: "Passive",
-        },
-        {
-          name: "Ability J",
-          description: "This attack deals damage based on specific conditions in the game.",
-          value: "50+",
-        }
-      ],
-      weakness: "Dark ×2",
-      resistance: "Fighting -30",
-      retreatCost: "2",
-      illustrator: "Artist Name",
-    },
-    'card-6': {
-      name: "Pokemon 6",
-      type: "Normal",
-      hp: "110",
-      abilities: [
-        {
-          name: "Ability K",
-          description: "A versatile ability that works well in many different situations.",
-          value: "40",
-        },
-        {
-          name: "Ability L",
-          description: "A powerful finishing move that can quickly end battles.",
-          value: "120",
-        }
-      ],
-      weakness: "Fighting ×2",
-      resistance: "Ghost -0",
-      retreatCost: "3",
-      illustrator: "Artist Name",
-    }
-  };
-  
   // Fetch card data when component mounts or cardId changes
   onMount(() => {
     fetchCardData();
@@ -151,31 +22,28 @@ function CardDetails() {
   
   createEffect(() => {
     // This will re-run when cardId changes
-    if (params.cardId) {
+    if (params.cardId && params.cardId !== cardData()?.id) { // Only re-fetch if ID actually changed
       fetchCardData();
     }
   });
   
   // Function to fetch card data based on cardId
-  const fetchCardData = () => {
+  const fetchCardData = async () => {
     setIsLoading(true);
     setError(null);
+    setCardData(null); // Clear previous data
     
     try {
-      // Simulate API call delay
-      setTimeout(() => {
-        const card = cardDatabase[cardId.toLowerCase()];
-        
-        if (card) {
-          setCardData(card);
-        } else {
-          setError(`Card with ID '${cardId}' not found`);
-        }
-        
-        setIsLoading(false);
-      }, 500);
+      const response = await getCardById(cardId);
+      if (response && response.data) {
+        setCardData(response.data);
+      } else {
+        setError(`Card with ID '${cardId}' not found or invalid data received.`);
+      }
     } catch (err) {
-      setError('Failed to load card data');
+      console.error('Error fetching card data:', err);
+      setError(err.message || 'Failed to load card data. Please check your network connection.');
+    } finally {
       setIsLoading(false);
     }
   };
@@ -206,143 +74,180 @@ function CardDetails() {
       </button>
 
       <div class={styles.showcaseSection}>
-        <h2>Card Details: {cardId}</h2>
+        <h2>Card Details: {cardData()?.name || cardId}</h2>
 
         {/* Loading State */}
-        {isLoading() && (
+        <Show when={isLoading()} fallback={
+          // Error State
+          <Show when={error()} fallback={
+            // Card Data
+            <Show when={cardData()}>
+              <div class={styles.card}>
+                <div class={cardStyles.cardContainer}>
+                  {/* Card Image Placeholder */}
+                  <div class={cardStyles.imageContainer}>
+                    <div class={cardStyles.imagePlaceholder}>
+                      <img 
+                        class={cardStyles.placeholderSvg} 
+                        src={cardData().images?.large || cardData().images?.small || PLACEHOLDER_IMAGE} 
+                        alt={cardData().name} 
+                      />
+                    </div>
+                  </div>
+
+                  {/* Card Info Panel */}
+                  <div class={cardStyles.infoContainer}>
+                    {/* Header */}
+                    <div class={cardStyles.cardHeader}>
+                      <h3 class={`${styles.cardHeader} ${cardStyles.headerTitle}`}>
+                        {cardData().name}
+                      </h3>
+                    </div>
+
+                    {/* Type and HP Row */}
+                    <div class={cardStyles.typeHpRow}>
+                      <div class={cardStyles.typeCell}>
+                        <span class={styles.subtext1}>Type: {cardData().types?.join(', ') || 'N/A'}</span>
+                      </div>
+                      <div class={cardStyles.hpCell}>
+                        <span class={styles.subtext1}>HP: {cardData().hp || 'N/A'}</span>
+                      </div>
+                    </div>
+
+                    {/* Abilities */}
+                    {cardData().abilities && cardData().abilities.length > 0 && (
+                      <div class={cardStyles.abilitiesSection}>
+                        {cardData().abilities.map((ability, index) => (
+                          <div class={cardStyles.abilityItem}>
+                            <div class={cardStyles.abilityContent}>
+                              <div
+                                class={`${styles.textDefault} ${cardStyles.abilityName}`}
+                              >
+                                {ability.name}
+                              </div>
+                              <div
+                                class={`${styles.subtext0} ${cardStyles.abilityDescription}`}
+                              >
+                                {ability.text}
+                              </div>
+                            </div>
+                            {/* Assuming value is not always present or has different meaning */}
+                            {/* <div
+                              class={`${styles.textMauve} ${cardStyles.abilityValue}`}
+                            >
+                              {ability.value}
+                            </div> */}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Attacks */}
+                    {cardData().attacks && cardData().attacks.length > 0 && (
+                      <div class={cardStyles.abilitiesSection}> {/* Reusing ability section styles for attacks */}
+                        {cardData().attacks.map((attack, index) => (
+                          <div class={cardStyles.abilityItem}>
+                            <div class={cardStyles.abilityContent}>
+                              <div
+                                class={`${styles.textDefault} ${cardStyles.abilityName}`}
+                              >
+                                {attack.name} ({attack.cost?.join(', ') || 'None'})
+                              </div>
+                              <div
+                                class={`${styles.subtext0} ${cardStyles.abilityDescription}`}
+                              >
+                                {attack.text}
+                              </div>
+                            </div>
+                            <Show when={attack.damage}>
+                              <div
+                                class={`${styles.textMauve} ${cardStyles.abilityValue}`}
+                              >
+                                {attack.damage}
+                              </div>
+                            </Show>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+
+                    {/* Stats Section */}
+                    <div class={cardStyles.statsSection}>
+                      {/* Stats Header */}
+                      <div class={cardStyles.statsHeader}>
+                        <div class={cardStyles.statHeaderItem}>
+                          <span class={`${styles.subtext1} ${cardStyles.statLabel}`}>
+                            Weakness
+                          </span>
+                        </div>
+                        <div class={cardStyles.statHeaderItem}>
+                          <span class={`${styles.subtext1} ${cardStyles.statLabel}`}>
+                            Resistance
+                          </span>
+                        </div>
+                        <div class={cardStyles.statHeaderItem}>
+                          <span class={`${styles.subtext1} ${cardStyles.statLabel}`}>
+                            Retreat Cost
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Stats Values */}
+                      <div class={cardStyles.statsValues}>
+                        <div class={cardStyles.statValueItem}>
+                          <span
+                            class={`${styles.textDefault} ${cardStyles.statValue}`}
+                          >
+                            {cardData().weaknesses?.map(w => `${w.type} ${w.value}`).join(', ') || 'N/A'}
+                          </span>
+                        </div>
+                        <div class={cardStyles.statValueItem}>
+                          <span
+                            class={`${styles.textDefault} ${cardStyles.statValue}`}
+                          >
+                            {cardData().resistances?.map(r => `${r.type} ${r.value}`).join(', ') || 'N/A'}
+                          </span>
+                        </div>
+                        <div class={cardStyles.statValueItem}>
+                          <span
+                            class={`${styles.textDefault} ${cardStyles.statValue}`}
+                          >
+                            {cardData().retreatCost?.length || 0}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Illustrator */}
+                      <div class={cardStyles.illustratorSection}>
+                        <span
+                          class={`${styles.subtext0} ${cardStyles.illustratorText}`}
+                        >
+                          Illustrator: {cardData().artist || 'N/A'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </Show>
+          }>
+            <div class={cardStyles.errorContainer}>
+              <p class={cardStyles.errorMessage}>{error()}</p>
+              <button 
+                class={cardStyles.retryButton}
+                onClick={fetchCardData}
+              >
+                Retry
+              </button>
+            </div>
+          </Show>
+        }>
           <div class={cardStyles.loadingContainer}>
             <div class={cardStyles.loadingSpinner}></div>
             <p>Loading card data...</p>
           </div>
-        )}
-
-        {/* Error State */}
-        {error() && !isLoading() && (
-          <div class={cardStyles.errorContainer}>
-            <p class={cardStyles.errorMessage}>{error()}</p>
-            <button 
-              class={cardStyles.retryButton}
-              onClick={fetchCardData}
-            >
-              Retry
-            </button>
-          </div>
-        )}
-
-        {/* Card Data */}
-        {!isLoading() && !error() && cardData() && (
-          <div class={styles.card}>
-            <div class={cardStyles.cardContainer}>
-              {/* Card Image Placeholder */}
-              <div class={cardStyles.imageContainer}>
-                <div class={cardStyles.imagePlaceholder}>
-                  <img class={cardStyles.placeholderSvg} src={poke} alt={cardData().name} />
-                </div>
-              </div>
-
-              {/* Card Info Panel */}
-              <div class={cardStyles.infoContainer}>
-                {/* Header */}
-                <div class={cardStyles.cardHeader}>
-                  <h3 class={`${styles.cardHeader} ${cardStyles.headerTitle}`}>
-                    {cardData().name}
-                  </h3>
-                </div>
-
-                {/* Type and HP Row */}
-                <div class={cardStyles.typeHpRow}>
-                  <div class={cardStyles.typeCell}>
-                    <span class={styles.subtext1}>{cardData().type}</span>
-                  </div>
-                  <div class={cardStyles.hpCell}>
-                    <span class={styles.subtext1}>{cardData().hp}</span>
-                  </div>
-                </div>
-
-                {/* Abilities */}
-                <div class={cardStyles.abilitiesSection}>
-                  {cardData().abilities.map((ability, index) => (
-                    <div class={cardStyles.abilityItem}>
-                      <div class={cardStyles.abilityContent}>
-                        <div
-                          class={`${styles.textDefault} ${cardStyles.abilityName}`}
-                        >
-                          {ability.name}
-                        </div>
-                        <div
-                          class={`${styles.subtext0} ${cardStyles.abilityDescription}`}
-                        >
-                          {ability.description}
-                        </div>
-                      </div>
-                      <div
-                        class={`${styles.textMauve} ${cardStyles.abilityValue}`}
-                      >
-                        {ability.value}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Stats Section */}
-                <div class={cardStyles.statsSection}>
-                  {/* Stats Header */}
-                  <div class={cardStyles.statsHeader}>
-                    <div class={cardStyles.statHeaderItem}>
-                      <span class={`${styles.subtext1} ${cardStyles.statLabel}`}>
-                        Weakness
-                      </span>
-                    </div>
-                    <div class={cardStyles.statHeaderItem}>
-                      <span class={`${styles.subtext1} ${cardStyles.statLabel}`}>
-                        Resistance
-                      </span>
-                    </div>
-                    <div class={cardStyles.statHeaderItem}>
-                      <span class={`${styles.subtext1} ${cardStyles.statLabel}`}>
-                        Retreat Cost
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Stats Values */}
-                  <div class={cardStyles.statsValues}>
-                    <div class={cardStyles.statValueItem}>
-                      <span
-                        class={`${styles.textDefault} ${cardStyles.statValue}`}
-                      >
-                        {cardData().weakness}
-                      </span>
-                    </div>
-                    <div class={cardStyles.statValueItem}>
-                      <span
-                        class={`${styles.textDefault} ${cardStyles.statValue}`}
-                      >
-                        {cardData().resistance}
-                      </span>
-                    </div>
-                    <div class={cardStyles.statValueItem}>
-                      <span
-                        class={`${styles.textDefault} ${cardStyles.statValue}`}
-                      >
-                        {cardData().retreatCost}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Illustrator */}
-                  <div class={cardStyles.illustratorSection}>
-                    <span
-                      class={`${styles.subtext0} ${cardStyles.illustratorText}`}
-                    >
-                      Illustrator: {cardData().illustrator}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+        </Show>
       </div>
     </div>
   );

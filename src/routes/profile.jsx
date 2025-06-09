@@ -1,33 +1,9 @@
 import styles from './profile.module.css';
 import { createSignal, createEffect, onMount, Show, For } from 'solid-js';
 import { useAuth } from '../context/AuthContext';
-import { FiEdit } from 'solid-icons/fi';
 import DeckCard from '../components/DeckCard';
 import defaultProfileImage from '../assets/images/icon/Profile.png';
-import editIcon from '../assets/images/icon/editIcon.png';
-
-// Helper function to get deck data from localStorage or use defaults
-const getStoredDecks = (key, defaultLength) => {
-  try {
-    const storedDecks = localStorage.getItem(key);
-    if (storedDecks) {
-      return JSON.parse(storedDecks);
-    }
-  } catch (error) {
-    console.error(`Error retrieving ${key} from localStorage:`, error);
-  }
-  
-  // Return default decks if none in localStorage
-  return Array(defaultLength).fill().map((_, index) => ({
-    id: index + 1,
-    name: `Deck ${index + 1}`,
-    image: `https://images.pokemontcg.io/base1/${(index * 5) % 16 + 1}.png`
-  }));
-};
-
-// Initialize decks from localStorage or defaults
-const initialDecks = getStoredDecks('recentDecks', 3);
-const initialFDecks = getStoredDecks('favoriteDecks', 2);
+import { getRecentDecks, getFavoriteDecks } from '../services/deckService'; // Import deck service functions
 
 function Profile() {
   const auth = useAuth();
@@ -73,20 +49,23 @@ function Profile() {
         
         // Fetch decks from API
         try {
-          const decksResponse = await auth.apiCall('/decks', 'GET');
-          
-          if (decksResponse && decksResponse.decks) {
-            const allDecks = decksResponse.decks;
-            setRecentDecks(allDecks.slice(0, 5)); // Get most recent 5 decks
-            setFavoriteDecks(allDecks.filter(deck => deck.favorite)); // Get favorite decks
+          const recentDecksResponse = await getRecentDecks();
+          const favoriteDecksResponse = await getFavoriteDecks();
+
+          if (recentDecksResponse && recentDecksResponse.decks) {
+            setRecentDecks(recentDecksResponse.decks);
+          } else {
+            console.warn('Recent decks response is missing "decks" array:', recentDecksResponse);
+          }
+
+          if (favoriteDecksResponse && favoriteDecksResponse.decks) {
+            setFavoriteDecks(favoriteDecksResponse.decks);
+          } else {
+            console.warn('Favorite decks response is missing "decks" array:', favoriteDecksResponse);
           }
         } catch (error) {
           console.error('Error fetching decks:', error);
           setErrorMessage('Failed to load decks. Please try again later.');
-          
-          // Fallback to mock data if API fails
-          setRecentDecks(initialDecks);
-          setFavoriteDecks(initialFDecks);
         }
       } catch (error) {
         console.error('Error loading profile:', error);
@@ -215,6 +194,7 @@ function Profile() {
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
+      setPasswordError('');
       setSuccessMessage('Password changed successfully!');
       
       // Clear success message after 3 seconds
@@ -233,90 +213,6 @@ function Profile() {
   const toggleDecks = (buttonType) => {
     setActiveButton(buttonType);
   };
-
-  // Function to handle username editing
-  function handleUsername(){
-    if (showUsername() === true){
-        setShowUsername(false);
-    } else {
-        if(usernameError() === ""){
-            auth.updateProfile({ username: tempUsername() });
-            setShowUsername(true);
-        }
-    }
-  }
-
-  // Function to handle pronouns editing
-  function handlePronouns(){
-    if (showPronouns() === true){
-        setShowPronouns(false);
-    } else {
-        if(pronounsError() === ""){
-            auth.updateProfile({ pronouns: tempPronouns() });
-            setShowPronouns(true);
-        }
-    }
-  }
-
-  // Function to handle input and error
-  function ErrorHandleUser(event){
-    const input = event.target.value;
-    setTempUsername(input);
-    
-    if(input === ""){
-        setUsernameError("Warning: username cannot be empty!");
-    } else if(input.length < 4){
-        setUsernameError("Warning: username cannot be below 4 characters!");
-    } else {
-        setUsernameError("");
-    }
-  }
-
-  function ErrorHandlePronouns(event){
-    const input = event.target.value;
-    setTempPronouns(input);
-    
-    if(input === ""){
-        setPronounsError("Warning: pronouns cannot be empty!");
-    } else if(input.length < 2){
-        setPronounsError("Warning: pronouns must be at least 2 characters!");
-    } else {
-        setPronounsError("");
-    }
-  }
-
-  onMount(async () => {
-    if (auth.isLoggedIn()) {
-      try {
-        setIsLoading(true);
-        // Fetch decks from API
-        const decksResponse = await auth.apiCall('/decks', 'GET');
-        
-        // Process decks data
-        if (decksResponse && decksResponse.decks) {
-          const allDecks = decksResponse.decks;
-          setRecentDecks(allDecks.slice(0, 5)); // Get most recent 5 decks
-          setFavoriteDecks(allDecks.filter(deck => deck.favorite)); // Get favorite decks
-        }
-      } catch (error) {
-        console.error('Error fetching decks:', error);
-        setErrorMessage('Failed to load decks. Please try again later.');
-        
-        // Fallback to mock data if API fails
-        setRecentDecks([
-          { id: 1, name: 'Fire Deck', image: 'https://images.pokemontcg.io/base1/4.png' },
-          { id: 2, name: 'Water Deck', image: 'https://images.pokemontcg.io/base1/2.png' },
-          { id: 3, name: 'Grass Deck', image: 'https://images.pokemontcg.io/base1/15.png' },
-        ]);
-        setFavoriteDecks([
-          { id: 2, name: 'Water Deck', image: 'https://images.pokemontcg.io/base1/2.png' },
-          { id: 4, name: 'Electric Deck', image: 'https://images.pokemontcg.io/base1/13.png' },
-        ]);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-  });
 
   return (
     <>
@@ -530,7 +426,7 @@ function Profile() {
                 {favoriteDecks().length > 0 ? (
                   <For each={favoriteDecks()}>
                     {(deck) => (
-                      <DeckCard name={deck.name} image={deck.image} />
+                      <DeckCard deck={deck} />
                     )}
                   </For>
                 ) : (
@@ -542,7 +438,7 @@ function Profile() {
                 {recentDecks().length > 0 ? (
                   <For each={recentDecks()}>
                     {(deck) => (
-                      <DeckCard name={deck.name} image={deck.image} />
+                      <DeckCard deck={deck} />
                     )}
                   </For>
                 ) : (

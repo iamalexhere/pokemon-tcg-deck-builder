@@ -1,437 +1,548 @@
-import { createSignal, createEffect, Switch, onMount } from 'solid-js';
+import { createSignal, createEffect, Switch, Match, For, onMount, createResource } from 'solid-js';
 import { useNavigate, useParams } from '@solidjs/router';
 import { RiArrowsArrowGoBackLine } from 'solid-icons/ri';
-import { AiFillHeart, AiOutlineHeart, AiOutlineSearch  } from 'solid-icons/ai'
+import { AiFillHeart, AiOutlineHeart, AiOutlineSearch, AiOutlineMinusCircle, AiOutlinePlusCircle } from 'solid-icons/ai';
 import { FaRegularTrashCan } from 'solid-icons/fa';
 
 import styles from './deckeditor.module.css';
 import PLACEHOLDER_IMAGE from "../assets/images/placeholder.jpg";
 
+import {
+  getDeckById,
+  updateDeck,
+  deleteDeck,
+  addRemoveFavoriteDeck,
+  addCardToDeck as addCardToDeckApi, // Renamed to avoid conflict with local function
+  removeCardFromDeck as removeCardFromDeckApi, // Renamed
+  updateCardCountInDeck
+} from '../services/deckService';
+
+import {
+  getCards,
+  searchCards,
+  getCardById as getCardDetailsById // Renamed
+} from '../services/cardService';
+
+const MAX_DECK_CARDS = 60;
+const MAX_IDENTICAL_CARDS = 4; // Max 4 copies of a non-basic energy card
+
 function DeckEditor() {
-    // Get the deck ID from the URL parameter
-    const params = useParams();
-    const deckId = params.deckId;
-    
-    // State management for the deck
-    const [deckName, setDeckName] = createSignal('Untitled Deck');
-    const [deckNameInput, setDeckNameInput] = createSignal('Untitled Deck');
-    const [deckCards, setDeckCards] = createSignal([]);
-    const [selectedCard, setSelectedCard] = createSignal(null);
-    const [searchResults, setSearchResults] = createSignal([]);
-    const [searchQuery, setSearchQuery] = createSignal('');
-    const [currentPage, setCurrentPage] = createSignal(1);
-    const [favoriteDeck, setFavoriteDeck] = createSignal(false);
-    const [isLoading, setIsLoading] = createSignal(true);
-    const [error, setError] = createSignal(null);
-    const cardsPerPage = 12;
-    const navigate = useNavigate();
+  const navigate = useNavigate();
+  const params = useParams();
+  const deckId = () => parseInt(params.deckId); // Ensure deckId is always a number
 
-    // Maximum number of cards in a deck
-    const maxCards = 60;
+  // Deck State
+  const [deckName, setDeckName] = createSignal('');
+  const [deckNameInput, setDeckNameInput] = createSignal('');
+  const [deckCards, setDeckCards] = createSignal([]); // Stores { id: 'card-id', count: N, details: { ...fullCardObject } }
+  const [favoriteDeck, setFavoriteDeck] = createSignal(false);
 
-  // TODO: Fetch cards from API or database
-    const fetchCards = async (query) => {
+  // UI State
+  const [selectedCardDetails, setSelectedCardDetails] = createSignal(null); // Full details of the card clicked in either deck or search results
+  const [isLoadingDeck, setIsLoadingDeck] = createSignal(true);
+  const [isSaving, setIsSaving] = createSignal(false);
+  const [deckError, setDeckError] = createSignal(null);
+  const [message, setMessage] = createSignal(''); // For success/info/warning messages
+  const [messageType, setMessageType] = createSignal(''); // 'success', 'info', 'warning', 'error'
 
-        // This would be replaced with actual API call
-        console.log('Searching for:', query);
+  // Card Search State
+  const [searchQuery, setSearchQuery] = createSignal('');
+  const [searchPage, setSearchPage] = createSignal(1);
+  const [searchTotalPages, setSearchTotalPages] = createSignal(1);
+  const CARDS_PER_SEARCH_PAGE = 12; // Number of cards to show in search results
 
-        // Mock data for demonstration
-        const mockResults = Array(20).fill().map((_, i) => ({
-            id: `card-${i}`,
-            name: `Pokemon ${i}`,
-            image: PLACEHOLDER_IMAGE,
-            type: i % 3 === 0 ? 'Fire' : i % 3 === 1 ? 'Water' : 'Grass',
-            release: 2020 + i,
-            subType: 'Basic',
-            abilities: [
-                { name: `Ability ${i}`, description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.' },
-                { name: `Ability ${i+1}`, description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.' }
-            ]
-        }));
+  // --- Utility Functions ---
+  const showMessage = (msg, type = 'info', duration = 3000) => {
+    setMessage(msg);
+    setMessageType(type);
+    if (duration > 0) {
+      setTimeout(() => {
+        setMessage('');
+        setMessageType('');
+      }, duration);
+    }
+  };
 
-        setSearchResults(mockResults);
-    };
+  // --- Data Fetching (Resources) ---
 
-    // Handle search input
-    const handleSearch = (e) => {
-        e.preventDefault();
-        fetchCards(searchQuery());
-    };
-
-    // Add card to deck
-    const addCardToDeck = (card) => {
-        if (deckCards().length < maxCards) {
-            setDeckCards([...deckCards(), card]);
+  // Resource for fetching search results
+  const [searchResultsData, { refetch: refetchSearchResults }] = createResource(
+    () => ({ query: searchQuery(), page: searchPage() }),
+    async ({ query, page }) => {
+      setIsSaving(true); // Use isSaving for any ongoing API activity
+      try {
+        let response;
+        if (query.trim()) {
+          response = await searchCards({ name: query.trim(), page, pageSize: CARDS_PER_SEARCH_PAGE });
         } else {
-            alert('Deck is full! Maximum 60 cards allowed.');
+          response = await getCards(page, CARDS_PER_SEARCH_PAGE);
         }
-    };
+        setSearchTotalPages(response.totalPages || 1);
+        return response.data || [];
+      } catch (err) {
+        console.error("Error fetching search results:", err);
+        showMessage(err.message || "Failed to fetch cards. Please try again.", 'error');
+        return [];
+      } finally {
+        setIsSaving(false);
+      }
+    }
+  );
 
-    // Remove card from deck
-    const removeCardFromDeck = (cardId) => {
-        setDeckCards(deckCards().filter(card => card.id !== cardId));
-    };
+  // --- Deck Data Loading ---
+  onMount(() => {
+    // Initial load of deck data
+    loadDeckData();
+    // Initial fetch for search cards
+    refetchSearchResults();
+  });
 
-    // Save deck
-    const saveDeck = () => {
-        if (deckNameInput().trim() === "") {
-            setError("Deck name cannot be empty.");
-            return;
-        }
+  // Effect to re-load deck data if deckId changes (e.g., navigating from /deckeditor/1 to /deckeditor/2)
+  createEffect(() => {
+    const currentRouteDeckId = parseInt(params.deckId);
+    if (currentRouteDeckId && currentRouteDeckId !== deckId()) {
+      loadDeckData();
+      // Reset search when navigating to a new deck
+      setSearchQuery('');
+      setSearchPage(1);
+      refetchSearchResults();
+    }
+  });
 
-        // Update deck name
-        setDeckName(deckNameInput());
+  const loadDeckData = async () => {
+    setIsLoadingDeck(true);
+    setDeckError(null);
+    try {
+      const data = await getDeckById(deckId(), true); // Fetch with full card details
+      setDeckName(data.name);
+      setDeckNameInput(data.name);
+      setDeckCards(data.cards || []);
+      setFavoriteDeck(data.favorite);
+      showMessage('Deck loaded successfully.', 'success');
+    } catch (err) {
+      console.error("Error loading deck:", err);
+      if (err.message.includes('Deck not found')) {
+        // If deck doesn't exist, assume it's a new deck
+        setDeckName(`New Deck ${deckId()}`);
+        setDeckNameInput(`New Deck ${deckId()}`);
+        setDeckCards([]);
+        setFavoriteDeck(false);
+        showMessage('Creating a new deck.', 'info');
+      } else {
+        setDeckError(err.message || 'Failed to load deck data.');
+      }
+    } finally {
+      setIsLoadingDeck(false);
+    }
+  };
 
-        // In a real app, this would save to a database
-        // For now, we'll just log it and simulate a save
-        console.log('Saving deck:', { 
-            id: deckId,
-            name: deckName(), 
-            cards: deckCards(),
-            isFavorite: favoriteDeck()
-        });
-        
-        // Update the mock database (in a real app, this would be an API call)
-        mockDecks[deckId] = {
-            id: deckId,
-            name: deckName(),
-            cards: deckCards(),
-            isFavorite: favoriteDeck()
-        };
-        
-        alert('Deck saved successfully!');
-        navigate('/decklist');
-    };
+  // --- Card Management Functions ---
 
-    // Delete deck
-    const deleteDeck = () => {
-        if (confirm('Are you sure you want to delete this deck?')) {
-            // In a real app, this would delete from a database
-            console.log(`Deleting deck with ID ${deckId}`);
-            
-            // Delete from mock database (in a real app, this would be an API call)
-            delete mockDecks[deckId];
-            
-            // Navigate back to deck list
-            navigate('/decklist', {replace: true});
-        }
-    };
+  // Handles displaying full details of a card
+  const displayCardDetails = async (card) => {
+    if (!card.details) {
+      // If card doesn't have full details (e.g., from search results which are partial)
+      setIsSaving(true);
+      try {
+        const fullDetails = await getCardDetailsById(card.id);
+        setSelectedCardDetails(fullDetails.data); // API wraps data in 'data' key
+      } catch (err) {
+        console.error("Error fetching card details:", err);
+        showMessage(err.message || "Failed to fetch card details.", 'error');
+      } finally {
+        setIsSaving(false);
+      }
+    } else {
+      setSelectedCardDetails(card.details);
+    }
+  };
 
-    // Add to favorites
-    const toggleFavorite = () => {
-        // TODO: Add/remove from favorites in database
+  const addCardToDeck = async (card) => {
+    // Check if card is already in the deck
+    const existingCard = deckCards().find(dc => dc.id === card.id);
+    const currentTotalCards = deckCards().reduce((sum, c) => sum + c.count, 0);
 
-        if (favoriteDeck()) {
-            setFavoriteDeck(false)
+    if (currentTotalCards >= MAX_DECK_CARDS) {
+      showMessage(`Deck is full! Maximum ${MAX_DECK_CARDS} cards allowed.`, 'warning');
+      return;
+    }
+
+    let newCount = 1;
+    if (existingCard) {
+      newCount = existingCard.count + 1;
+      if (newCount > MAX_IDENTICAL_CARDS) {
+        showMessage(`Cannot add more than ${MAX_IDENTICAL_CARDS} copies of a card to the deck.`, 'warning');
+        return;
+      }
+    }
+
+    setIsSaving(true);
+    try {
+      await addCardToDeckApi(deckId(), card.id, newCount);
+      // Update local state with the new card or updated count
+      setDeckCards(prev => {
+        if (existingCard) {
+          return prev.map(c => c.id === card.id ? { ...c, count: newCount } : c);
         } else {
-            setFavoriteDeck(true)
+          // Add with full details for display
+          return [...prev, { id: card.id, count: newCount, details: card }];
         }
+      });
+      showMessage(`Added ${card.name} to deck.`, 'success', 2000);
+    } catch (err) {
+      console.error("Error adding card to deck:", err);
+      showMessage(err.message || "Failed to add card to deck.", 'error');
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
-        console.log('Deck added to favorites');
-    };
+  const removeCardFromDeck = async (cardIdToRemove) => {
+    setIsSaving(true);
+    try {
+      await removeCardFromDeckApi(deckId(), cardIdToRemove);
+      setDeckCards(prev => prev.filter(card => card.id !== cardIdToRemove));
+      // If the removed card was the one whose details are currently displayed, clear it
+      if (selectedCardDetails()?.id === cardIdToRemove) {
+        setSelectedCardDetails(null);
+      }
+      showMessage('Card removed from deck.', 'success', 2000);
+    } catch (err) {
+      console.error("Error removing card from deck:", err);
+      showMessage(err.message || "Failed to remove card from deck.", 'error');
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
-    // Mock database of decks
-    const mockDecks = {
-        '1': {
-            id: '1',
-            name: 'Fire Starter Deck',
-            isFavorite: true,
-            cards: Array(15).fill().map((_, i) => ({
-                id: `fire-card-${i}`,
-                name: `Fire Pokemon ${i}`,
-                image: PLACEHOLDER_IMAGE,
-                type: 'Fire',
-                release: 2020 + i % 5,
-                subType: i % 3 === 0 ? 'Basic' : 'Evolution',
-                abilities: [
-                    { name: `Flame ${i}`, description: 'Deals 30 damage to the opponent.' },
-                    { name: `Heat Wave ${i}`, description: 'Deals 50 damage to the opponent and 10 damage to each benched Pokemon.' }
-                ]
-            }))
-        },
-        '2': {
-            id: '2',
-            name: 'Water Starter Deck',
-            isFavorite: false,
-            cards: Array(12).fill().map((_, i) => ({
-                id: `water-card-${i}`,
-                name: `Water Pokemon ${i}`,
-                image: PLACEHOLDER_IMAGE,
-                type: 'Water',
-                release: 2019 + i % 5,
-                subType: i % 4 === 0 ? 'Basic' : 'Evolution',
-                abilities: [
-                    { name: `Splash ${i}`, description: 'Deals 20 damage to the opponent.' },
-                    { name: `Hydro Pump ${i}`, description: 'Deals 40 damage plus 10 more damage for each Water Energy attached to this Pokemon.' }
-                ]
-            }))
-        },
-        '3': {
-            id: '3',
-            name: 'Grass Starter Deck',
-            isFavorite: false,
-            cards: Array(18).fill().map((_, i) => ({
-                id: `grass-card-${i}`,
-                name: `Grass Pokemon ${i}`,
-                image: PLACEHOLDER_IMAGE,
-                type: 'Grass',
-                release: 2021 + i % 3,
-                subType: i % 2 === 0 ? 'Basic' : 'Evolution',
-                abilities: [
-                    { name: `Vine Whip ${i}`, description: 'Deals 30 damage to the opponent.' },
-                    { name: `Solar Beam ${i}`, description: 'Deals 70 damage to the opponent.' }
-                ]
-            }))
-        }
-    };
-    
-    // Function to load deck data based on ID
-    const loadDeckData = () => {
-        setIsLoading(true);
-        setError(null);
-        
-        try {
-            // Simulate API call delay
-            setTimeout(() => {
-                // Check if deck exists in mock database
-                if (mockDecks[deckId]) {
-                    const deck = mockDecks[deckId];
-                    setDeckName(deck.name);
-                    setDeckNameInput(deck.name);
-                    setDeckCards(deck.cards);
-                    setFavoriteDeck(deck.isFavorite);
-                    console.log(`Loaded deck ${deckId}: ${deck.name}`);
-                } else {
-                    // Create a new deck if ID doesn't exist
-                    setDeckName(`New Deck ${deckId}`);
-                    setDeckNameInput(`New Deck ${deckId}`);
-                    setDeckCards([]);
-                    setFavoriteDeck(false);
-                    console.log(`Created new deck with ID ${deckId}`);
-                }
-                setIsLoading(false);
-            }, 500);
-        } catch (err) {
-            setError('Failed to load deck data');
-            setIsLoading(false);
-            console.error('Error loading deck:', err);
-        }
-    };
-    
-    // Load deck data when component mounts or deckId changes
-    onMount(() => {
-        loadDeckData();
-        fetchCards('');
-    });
-    
-    createEffect(() => {
-        // This will re-run when deckId changes
-        if (params.deckId && params.deckId !== deckId) {
-            loadDeckData();
-        }
-    });
+  const updateCardCount = async (cardIdToUpdate, newCount) => {
+    if (newCount < 1 || newCount > MAX_IDENTICAL_CARDS) {
+      showMessage(`Card count must be between 1 and ${MAX_IDENTICAL_CARDS}.`, 'warning');
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      await updateCardCountInDeck(deckId(), cardIdToUpdate, newCount);
+      setDeckCards(prev =>
+        prev.map(c => (c.id === cardIdToUpdate ? { ...c, count: newCount } : c))
+      );
+      showMessage('Card count updated.', 'success', 2000);
+    } catch (err) {
+      console.error("Error updating card count:", err);
+      showMessage(err.message || "Failed to update card count.", 'error');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // --- Deck Actions ---
+
+  const handleSaveDeck = async () => {
+    if (deckNameInput().trim() === '') {
+      showMessage('Deck name cannot be empty.', 'warning');
+      return;
+    }
+    setIsSaving(true);
+    try {
+      // Prepare cards data for the API (only id and count needed)
+      const cardsForApi = deckCards().map(card => ({ id: card.id, count: card.count }));
+      await updateDeck(deckId(), {
+        name: deckNameInput(),
+        imageUrl: '', // Assuming image is handled separately or not editable here
+        cards: cardsForApi
+      });
+      setDeckName(deckNameInput()); // Update displayed name if save is successful
+      showMessage('Deck saved successfully!', 'success');
+      // No navigation, stay on editor to allow more changes
+    } catch (err) {
+      console.error("Error saving deck:", err);
+      showMessage(err.message || "Failed to save deck. Please try again.", 'error');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDeleteDeck = async () => {
+    // Replace with a custom modal confirmation
+    if (!window.confirm('Are you sure you want to delete this deck? This action cannot be undone.')) {
+      return;
+    }
+    setIsSaving(true);
+    try {
+      await deleteDeck(deckId());
+      showMessage('Deck deleted successfully!', 'success');
+      navigate('/decklist', { replace: true });
+    } catch (err) {
+      console.error("Error deleting deck:", err);
+      showMessage(err.message || "Failed to delete deck.", 'error');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleToggleFavorite = async () => {
+    setIsSaving(true);
+    try {
+      const newFavoriteStatus = !favoriteDeck();
+      await addRemoveFavoriteDeck(deckId(), newFavoriteStatus);
+      setFavoriteDeck(newFavoriteStatus);
+      showMessage(`Deck ${newFavoriteStatus ? 'added to' : 'removed from'} favorites!`, 'success', 2000);
+    } catch (err) {
+      console.error("Error toggling favorite status:", err);
+      showMessage(err.message || "Failed to update favorite status.", 'error');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // --- Search Handlers ---
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    setSearchPage(1); // Reset to first page on new search
+    refetchSearchResults();
+  };
+
+  const handleSearchPageChange = (page) => {
+    setSearchPage(page);
+    refetchSearchResults();
+  };
+
+  const totalDeckCardCount = () => deckCards().reduce((sum, card) => sum + card.count, 0);
 
   return (
     <div class={styles.mainContainer}>
-      {/* Loading State */}
-      {isLoading() && (
-        <div class={styles.loadingContainer}>
-          <div class={styles.loadingSpinner}></div>
-          <p>Loading deck data...</p>
+      {/* Global Message Display */}
+      {message() && (
+        <div class={`${styles.messageBox} ${styles[messageType()]}`}>
+          {message()}
         </div>
       )}
 
-      {/* Error State */}
-      {error() && !isLoading() && (
-        <div class={styles.errorContainer}>
-          <p class={styles.errorMessage}>{error()}</p>
-          <button 
-            class={styles.retryButton}
-            onClick={loadDeckData}
-          >
-            Retry
-          </button>
-        </div>
-      )}
-
-      {/* Main Content - Only show when not loading and no errors */}
-      {!isLoading() && !error() && (
-        <div class={styles.deckEditorContent}>
-          <div class={styles.topBar}>
-
-            <button 
+      {/* Loading State for initial deck load */}
+      <Show when={isLoadingDeck()} fallback={
+        <Show when={!deckError()} fallback={
+          <div class={styles.errorContainer}>
+            <p class={styles.errorMessage}>{deckError()}</p>
+            <button
+              class={styles.retryButton}
+              onClick={loadDeckData}
+            >
+              Retry Loading Deck
+            </button>
+          </div>
+        }>
+          {/* Main Content - Only show when not loading and no errors */}
+          <div class={styles.deckEditorContent}>
+            <div class={styles.topBar}>
+              <button
                 class={styles.backButton}
                 onClick={() => navigate('/decklist')}
-            >
+              >
                 <RiArrowsArrowGoBackLine />
-            </button>
+              </button>
 
-            {/* Deck's name input */}
-            <input 
-                type="text" 
-                value={deckName()} 
+              <input
+                type="text"
+                value={deckNameInput()}
                 onInput={(e) => setDeckNameInput(e.target.value)}
                 class={styles.deckNameInput}
-            />
+                disabled={isSaving()}
+              />
 
-            {/* Action Button */}   
-            <div class={styles.actionButtons}>
-
-                <button class={styles.saveButton} onClick={saveDeck}>SAVE</button>
-
-                <button class={styles.cancelButton} onClick={() => navigate('/decklist')}>CANCEL</button>
-
-                <button class={styles.favoriteButton} onClick={toggleFavorite}>
-                    {favoriteDeck() ? <AiFillHeart /> : <AiOutlineHeart />}
+              <div class={styles.actionButtons}>
+                <button class={styles.saveButton} onClick={handleSaveDeck} disabled={isSaving()}>
+                  {isSaving() ? 'SAVING...' : 'SAVE'}
                 </button>
-
-                <button class={styles.removeButton} onClick={deleteDeck}>
-                    <FaRegularTrashCan />
+                <button class={styles.cancelButton} onClick={() => navigate('/decklist')} disabled={isSaving()}>
+                  CANCEL
                 </button>
-
+                <button class={styles.favoriteButton} onClick={handleToggleFavorite} disabled={isSaving()}>
+                  {favoriteDeck() ? <AiFillHeart /> : <AiOutlineHeart />}
+                </button>
+                <button class={styles.removeButton} onClick={handleDeleteDeck} disabled={isSaving()}>
+                  <FaRegularTrashCan />
+                </button>
+              </div>
             </div>
-      </div>
 
-      <div class={styles.subContainer}>
-
-            {/* Card Detail Container */}
-            <div class={styles.cardDetailContainer}>
-
+            <div class={styles.subContainer}>
+              {/* Card Detail Container */}
+              <div class={styles.cardDetailContainer}>
                 <h2>Card's Details</h2>
+                <Switch fallback={
+                  <div class={styles.noCardSelected}>
+                    <p>Select a card to view details</p>
+                  </div>
+                }>
+                  <Match when={selectedCardDetails()}>
+                    <div class={styles.cardImageContainer}>
+                      <img src={selectedCardDetails().images?.large || selectedCardDetails().images?.small || PLACEHOLDER_IMAGE} alt={selectedCardDetails().name} />
+                    </div>
+                    <div class={styles.cardInfo}>
+                      <h3>{selectedCardDetails().name}</h3>
+                      <p><b>HP:</b> {selectedCardDetails().hp || 'N/A'}</p>
+                      <p><b>Type:</b> {selectedCardDetails().types?.join(', ') || 'N/A'}</p>
+                      <p><b>Supertype:</b> {selectedCardDetails().supertype || 'N/A'}</p>
+                      <p><b>Subtype:</b> {selectedCardDetails().subtypes?.join(', ') || 'N/A'}</p>
+                      <p><b>Rarity:</b> {selectedCardDetails().rarity || 'N/A'}</p>
 
-                <Switch>
-                    
-                    <Match when={selectedCard()}>
-                        <>
-                            <div class={styles.cardImageContainer}>
-                                <img src={selectedCard().image || PLACEHOLDER_IMAGE} alt={selectedCard().name} />
+                      <For each={selectedCardDetails().abilities}>
+                        {(ability, index) => (
+                          <>
+                            <p class={styles.abilityName}>Ability {index() + 1}: {ability.name}</p>
+                            <div class={styles.abilityDescription}>
+                              {ability.text}
                             </div>
-
-                            <div class={styles.cardInfo}>
-                                <h3>{selectedCard().name}</h3>
-                                <p class={styles.releaseDate}><b>Release:</b> {selectedCard().release}</p>
-                                <p class={styles.cardType}><b>Type:</b> {selectedCard().type}</p>
-                                <p class={styles.cardSubtype}><b>Sub-type:</b> {selectedCard().subType}</p>
-
-                                {selectedCard().abilities.map((ability, index) => (
-                                    <>
-                                        <p class={styles.abilityName}>Ability {index + 1}</p>
-                                        <div class={styles.abilityDescription}>
-                                            {ability.description}
-                                        </div>
-                                    </>
-                                ))}
+                          </>
+                        )}
+                      </For>
+                      <For each={selectedCardDetails().attacks}>
+                        {(attack, index) => (
+                          <>
+                            <p class={styles.abilityName}>Attack {index() + 1}: {attack.name} ({attack.cost?.join(', ') || 'None'})</p>
+                            <div class={styles.abilityDescription}>
+                              {attack.text} {attack.damage && `Damage: ${attack.damage}`}
                             </div>
-                        </>
-                    </Match>
-
-                    <Match when={!selectedCard()}>
-                        <div class={styles.noCardSelected}>
-                            <p>Select a card to view details</p>
-                        </div>
-                    </Match>
-
+                          </>
+                        )}
+                      </For>
+                      <p><b>Weakness:</b> {selectedCardDetails().weaknesses?.map(w => `${w.type} ${w.value}`).join(', ') || 'N/A'}</p>
+                      <p><b>Resistance:</b> {selectedCardDetails().resistances?.map(r => `${r.type} ${r.value}`).join(', ') || 'N/A'}</p>
+                      <p><b>Retreat Cost:</b> {selectedCardDetails().retreatCost?.length || 0}</p>
+                      <p><b>Artist:</b> {selectedCardDetails().artist || 'N/A'}</p>
+                    </div>
+                  </Match>
                 </Switch>
+              </div>
 
-            </div>
-
-            {/* Card Deck Container */}
-            <div class={styles.cardDeckContainer}>
-
+              {/* Card Deck Container */}
+              <div class={styles.cardDeckContainer}>
                 <div class={styles.deckHeader}>
-                    <h2>Deck's Cards</h2>
-                    <span class={styles.cardCount}>{deckCards().length}/{maxCards} Cards</span>
+                  <h2>Deck's Cards</h2>
+                  <span class={styles.cardCount}>
+                    {totalDeckCardCount()}/{MAX_DECK_CARDS} Cards
+                  </span>
                 </div>
 
                 <div class={styles.deckGrid}>
-                    {deckCards().map(card => (
-                        <div 
-                            class={styles.deckCard} 
-                            onClick={() => setSelectedCard(card)}
-                            onDblClick={() => removeCardFromDeck(card.id)}
-                        >
-                            <img src={card.image || PLACEHOLDER_IMAGE} alt={card.name} />
+                  <For each={deckCards()}>
+                    {(card) => (
+                      <div class={styles.deckCard}>
+                        <img
+                          src={card.details?.images?.small || PLACEHOLDER_IMAGE}
+                          alt={card.details?.name || 'Card'}
+                          onClick={() => displayCardDetails(card.details)}
+                          onDblClick={() => removeCardFromDeck(card.id)}
+                        />
+                        <div class={styles.cardQuantityControls}>
+                          <span class={styles.cardQuantity}>{card.count}x</span>
+                          <button
+                            class={styles.quantityButton}
+                            onClick={() => updateCardCount(card.id, card.count - 1)}
+                            disabled={card.count <= 1 || isSaving()}
+                          >
+                            <AiOutlineMinusCircle />
+                          </button>
+                          <button
+                            class={styles.quantityButton}
+                            onClick={() => updateCardCount(card.id, card.count + 1)}
+                            disabled={card.count >= MAX_IDENTICAL_CARDS || isSaving()}
+                          >
+                            <AiOutlinePlusCircle />
+                          </button>
                         </div>
-                    ))}
-                    
-                    {/* EMPTY CARD PLACEHOLDER */}
-                    {/* {Array(maxCards - deckCards().length).fill().map(() => (
-                        <div class={`${styles.deckCard} ${styles.empty}`}>
-                            <div class={styles.cardPlaceholder}></div>
-                        </div>
-                    ))} */}
-
+                      </div>
+                    )}
+                  </For>
+                  {/* Empty card placeholders if needed, but usually not visible with dynamic grid */}
+                  {/* {Array(MAX_DECK_CARDS - totalDeckCardCount()).fill().map(() => (
+                      <div class={`${styles.deckCard} ${styles.empty}`}>
+                          <div class={styles.cardPlaceholder}></div>
+                      </div>
+                  ))} */}
                 </div>
+              </div>
 
-            </div>
-
-            {/* Card Search Container */}
-            <div class={styles.cardSearchContainer}>
-
+              {/* Card Search Container */}
+              <div class={styles.cardSearchContainer}>
                 <h2>Search for Cards</h2>
-                
-                {/* Search input */}
-                <form onSubmit={handleSearch} class={styles.searchForm}>
-                    <input 
-                        type="text" 
-                        placeholder="Search pokemon cards..." 
-                        value={searchQuery()} 
-                        onInput={(e) => setSearchQuery(e.target.value)}
-                        class={styles.searchInput}
-                    />
-
-                    <button type="submit" class={styles.searchButton}>
-                        <AiOutlineSearch />
-                    </button>
+                <form onSubmit={handleSearchSubmit} class={styles.searchForm}>
+                  <input
+                    type="text"
+                    placeholder="Search Pokémon cards..."
+                    value={searchQuery()}
+                    onInput={(e) => setSearchQuery(e.target.value)}
+                    class={styles.searchInput}
+                    disabled={isSaving()}
+                  />
+                  <button type="submit" class={styles.searchButton} disabled={isSaving()}>
+                    <AiOutlineSearch />
+                  </button>
                 </form>
-                
-                {/* Search results */}
-                <div class={styles.searchResults}>
-                    {searchResults().slice((currentPage() - 1) * cardsPerPage, currentPage() * cardsPerPage).map(card => (
-                    <div 
-                        class={styles.searchCard} 
-                        onClick={() => setSelectedCard(card)}
-                        onDblClick={() => addCardToDeck(card)}
-                    >
-                        <img src={card.image || PLACEHOLDER_IMAGE} alt={card.name} />
-                    </div>
-                    ))}
-                </div>
-                
-                {/* Pagination */}
-                <div class={styles.pagination}>
-                    <button 
-                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                        disabled={currentPage() === 1}
-                        class={styles.paginationButton}
-                    >
-                        &lt;
-                    </button>
 
-                    {[...Array(Math.ceil(searchResults().length / cardsPerPage))].map((_, i) => (
-                        <button 
-                            class={currentPage() === i + 1 ? `${styles.paginationButton} ${styles.active}` : styles.paginationButton}
-                            onClick={() => setCurrentPage(i + 1)}
+                <Show when={!searchResultsData.loading} fallback={
+                  <div class={styles.loadingContainer}>
+                    <div class={styles.loadingSpinner}></div>
+                    <p>Searching cards...</p>
+                  </div>
+                }>
+                  <div class={styles.searchResults}>
+                    <For each={searchResultsData()} fallback={
+                      <p class={styles.noCardSelected}>No cards found.</p>
+                    }>
+                      {(card) => (
+                        <div
+                          class={styles.searchCard}
+                          onClick={() => displayCardDetails(card)}
+                          onDblClick={() => addCardToDeck(card)}
                         >
-                            {i + 1}
-                        </button>
-                    ))}
+                          <img src={card.images?.small || PLACEHOLDER_IMAGE} alt={card.name} />
+                        </div>
+                      )}
+                    </For>
+                  </div>
 
-                    <button 
-                        onClick={() => setCurrentPage(p => Math.min(Math.ceil(searchResults().length / cardsPerPage), p + 1))}
-                        disabled={currentPage() === Math.ceil(searchResults().length / cardsPerPage)}
-                        class={styles.paginationButton}
+                  {/* Search Pagination */}
+                  <div class={styles.pagination}>
+                    <button
+                      onClick={() => handleSearchPageChange(searchPage() - 1)}
+                      disabled={searchPage() === 1 || isSaving()}
+                      class={styles.paginationButton}
                     >
-                        &gt;
+                      &lt;
                     </button>
-                </div>
-
+                    <For each={Array(searchTotalPages()).fill()}>
+                      {(_, i) => (
+                        <button
+                          class={searchPage() === i + 1 ? `${styles.paginationButton} ${styles.active}` : styles.paginationButton}
+                          onClick={() => handleSearchPageChange(i + 1)}
+                          disabled={isSaving()}
+                        >
+                          {i + 1}
+                        </button>
+                      )}
+                    </For>
+                    <button
+                      onClick={() => handleSearchPageChange(searchPage() + 1)}
+                      disabled={searchPage() === searchTotalPages() || isSaving()}
+                      class={styles.paginationButton}
+                    >
+                      &gt;
+                    </button>
+                  </div>
+                </Show>
+              </div>
             </div>
-
-      </div>
-
+          </div>
+        </Show>
+      }>
+        {/* Initial loading spinner for the whole page */}
+        <div class={styles.loadingContainer}>
+          <div class={styles.loadingSpinner}></div>
+          <p>Loading deck editor...</p>
         </div>
-      )}
+      </Show>
     </div>
   );
 }

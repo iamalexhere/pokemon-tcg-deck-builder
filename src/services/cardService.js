@@ -5,26 +5,12 @@
 const API_URL = 'http://localhost:3001/api';
 
 /**
- * Get all cards with pagination
- * @param {number} page - Page number (starting from 1)
- * @param {number} pageSize - Number of cards per page
+ * Get all cards
  * @returns {Promise} - Promise with card data
  */
-export async function getCards(page = 1, pageSize = 20) {
-  const tokenJson = localStorage.getItem('token');
-  if (!tokenJson) {
-    throw new Error('Authentication required');
-  }
-  
-  // Parse the token from JSON string
-  const token = JSON.parse(tokenJson);
-
-  const response = await fetch(`${API_URL}/cards?page=${page}&pageSize=${pageSize}`, {
+export async function getCards() {
+  const response = await fetch(`${API_URL}/cards`, {
     method: 'GET',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    }
   });
 
   if (!response.ok) {
@@ -43,18 +29,9 @@ export async function getCards(page = 1, pageSize = 20) {
  * @returns {Promise} - Promise with card data
  */
 export async function getCardsBySet(setId, page = 1, pageSize = 20) {
-  const tokenJson = localStorage.getItem('token');
-  if (!tokenJson) {
-    throw new Error('Authentication required');
-  }
-  
-  // Parse the token from JSON string
-  const token = JSON.parse(tokenJson);
-
   const response = await fetch(`${API_URL}/cards/set/${setId}?page=${page}&pageSize=${pageSize}`, {
     method: 'GET',
     headers: {
-      'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json'
     }
   });
@@ -74,34 +51,18 @@ export async function getCardsBySet(setId, page = 1, pageSize = 20) {
  * @param {string} params.type - Card type
  * @param {string} params.supertype - Card supertype
  * @param {string} params.rarity - Card rarity
- * @param {number} params.page - Page number
- * @param {number} params.pageSize - Page size
  * @returns {Promise} - Promise with card data
  */
 export async function searchCards(params = {}) {
-  const tokenJson = localStorage.getItem('token');
-  if (!tokenJson) {
-    throw new Error('Authentication required');
-  }
-  
-  // Parse the token from JSON string
-  const token = JSON.parse(tokenJson);
-
   // Build query string from params
   const queryParams = new URLSearchParams();
   if (params.name) queryParams.append('name', params.name);
   if (params.type) queryParams.append('type', params.type);
   if (params.supertype) queryParams.append('supertype', params.supertype);
   if (params.rarity) queryParams.append('rarity', params.rarity);
-  queryParams.append('page', params.page || 1);
-  queryParams.append('pageSize', params.pageSize || 20);
 
   const response = await fetch(`${API_URL}/cards/search?${queryParams.toString()}`, {
     method: 'GET',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    }
   });
 
   if (!response.ok) {
@@ -118,18 +79,9 @@ export async function searchCards(params = {}) {
  * @returns {Promise} - Promise with card data
  */
 export async function getCardById(cardId) {
-  const tokenJson = localStorage.getItem('token');
-  if (!tokenJson) {
-    throw new Error('Authentication required');
-  }
-  
-  // Parse the token from JSON string
-  const token = JSON.parse(tokenJson);
-
   const response = await fetch(`${API_URL}/cards/${cardId}`, {
     method: 'GET',
     headers: {
-      'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json'
     }
   });

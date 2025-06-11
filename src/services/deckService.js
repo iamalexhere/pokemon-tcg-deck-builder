@@ -45,20 +45,17 @@ async function authenticatedApiCall(endpoint, method = 'GET', data = null) {
 }
 
 /**
- * Get all decks for the authenticated user with optional pagination and search.
- * @param {number} page - Page number (starting from 1).
- * @param {number} limit - Number of decks per page.
+ * Get all decks for the authenticated user with an optional search term.
  * @param {string} search - Search term for deck names.
- * @returns {Promise<object>} - Object containing decks array and totalPages.
+ * @returns {Promise<object>} - Object containing an array of decks.
  */
-export async function getDecks(page = 1, limit = 9, search = '') {
+export async function getDecks(search = '') {
   const queryParams = new URLSearchParams();
-  queryParams.append('page', page);
-  queryParams.append('limit', limit);
   if (search) {
     queryParams.append('search', search);
   }
-  return await authenticatedApiCall(`/decks?${queryParams.toString()}`, 'GET');
+  const queryString = queryParams.toString();
+  return await authenticatedApiCall(`/decks${queryString ? `?${queryString}` : ''}`, 'GET');
 }
 
 /**

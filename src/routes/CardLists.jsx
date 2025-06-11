@@ -180,89 +180,42 @@ function Pagination({ currentPage, totalPages, onPageChange }) {
 function ListCards() {
     const [searchTerm, setSearchTerm] = createSignal('');
     const [currentPage, setCurrentPage] = createSignal(1);
-    const [isSearching, setIsSearching] = createSignal(false);
-    const [searchParams, setSearchParams] = createSignal({});
+    const [searchTrigger, setSearchTrigger] = createSignal(''); // Will hold the term to search for
     const ITEMS_PER_PAGE = 50;
-    
-    // Fetch cards from API based on current page
-    const fetchCards = async ([page, isSearch, params]) => {
+
+    const [cardsData] = createResource(searchTrigger, async (term) => {
         try {
-            let result;
-            if (isSearch) {
-                // If searching, use search endpoint
-                result = await searchCards({
-                    ...params,
-                    page,
-                    pageSize: ITEMS_PER_PAGE
-                });
-            } else {
-                // Otherwise get all cards with pagination
-                result = await getCards(page, ITEMS_PER_PAGE);
+            if (term) {
+                // If searching, use search endpoint, which now returns all matching cards
+                return await searchCards({ name: term });
             }
-            
-            // Debug server response structure
-            console.log('Server response:', result);
-            console.log('Page:', page);
-            console.log('Total pages:', result.totalPages);
-            console.log('Card count:', result.count);
-            
-            return result;
+            // Otherwise get all cards
+            return await getCards();
         } catch (error) {
             console.error('Error fetching cards:', error);
             throw error;
         }
+    });
+
+    const allCards = () => cardsData()?.data || [];
+
+    const totalPages = () => Math.ceil(allCards().length / ITEMS_PER_PAGE);
+
+    const paginatedCards = () => {
+        const startIndex = (currentPage() - 1) * ITEMS_PER_PAGE;
+        return allCards().slice(startIndex, startIndex + ITEMS_PER_PAGE);
     };
-    
-    // Create a resource for fetching cards
-    const [cardsData, { refetch, mutate }] = createResource(
-        () => [currentPage(), isSearching(), searchParams()],
-        fetchCards
-    );
-    
-    // Handle search form submission
+
     const handleSearch = (e) => {
         e.preventDefault();
-        const term = searchTerm().trim();
-        
-        // Reset to page 1 when searching
         setCurrentPage(1);
-        
-        if (term) {
-            // Set search parameters based on the search term
-            setSearchParams({ name: term });
-            setIsSearching(true);
-        } else {
-            // If search term is empty, show all cards
-            setIsSearching(false);
-            setSearchParams({});
-        }
-        
-        console.log("Searching for:", term);
+        setSearchTrigger(searchTerm().trim());
     };
-    
-    // Handle page change
+
     const handlePageChange = (page) => {
-        console.log('Page changed to:', page);
         setCurrentPage(page);
     };
-    
-    // Calculate total pages based on API response
-    const totalPages = () => {
-        if (!cardsData()) {
-            return 1;
-        }
-        // Server returns totalPages directly in the response
-        return cardsData().totalPages || 1;
-    };
-    
-    // Get cards from the API response
-    const cards = () => {
-        if (!cardsData() || !cardsData().data) {
-            return [];
-        }
-        return cardsData().data;
-    };
-    
+
     return (
         <div class={styles.listContainer}>
             {/* Display error at the top if present */}
@@ -279,8 +232,8 @@ function ListCards() {
             <Show when={!cardsData.loading} fallback={<LoadingDisplay />}>
                 <Show when={!cardsData.error}>
                     <div class={styles.resultsInfo}>
-                        {isSearching() && searchTerm() 
-                            ? `Search results for "${searchTerm()}"` 
+                        {searchTrigger()
+                            ? `Search results for "${searchTrigger()}"` 
                             : 'All Pokémon Cards'}
                         {cardsData() && cardsData().count && (
                             <span class={styles.cardCount}>
@@ -290,7 +243,7 @@ function ListCards() {
                     </div>
                     
                     <CardGrid 
-                        cards={cards}
+                        cards={paginatedCards}
                     />
                     
                     <Pagination 

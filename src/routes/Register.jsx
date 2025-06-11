@@ -8,7 +8,7 @@ import { useAuth } from '../context/AuthContext';
 
 function FormRegister(){
     const [username, setUsername] = createSignal("");
-    const [name, setName] = createSignal("");
+
     const [password, setPassword] = createSignal("");
     const [confirmPassword, setConfirmPassword] = createSignal("");
     const [showPassword, setShowPassword] = createSignal(false);
@@ -28,11 +28,6 @@ function FormRegister(){
             return;
         }
 
-        if(!name()){
-            setFormError('Name is required.');
-            return;
-        }
-
         if(password().length < 5){
             setFormError('Password must be at least 5 characters.');
             return;
@@ -49,7 +44,7 @@ function FormRegister(){
             // Register the user
             await auth.register({
                 username: username(),
-                name: name(),
+                name: username(),
                 password: password()
             });
 
@@ -95,9 +90,12 @@ function FormRegister(){
 
     return (
         <form method="post" class={styles.loginForm} onsubmit={handleSubmit}>
+            <Show when={formError()}>
+                <p class={styles.Error}>{formError()}</p>
+            </Show>
 
             <table class={styles.formTable}>
-                <thead>
+                <tbody>
                     <tr class={styles.UsernameCell}>
                         <td class={styles.Error}>
                             <p>{usernameError()}</p>
@@ -185,12 +183,12 @@ function FormRegister(){
                     </tr>
                     <tr>
                         <td>
-                            <button class={styles.loginButton} disabled={isSubmitting()}>
+                            <button type="submit" class={styles.loginButton} disabled={isSubmitting()}>
                                 {isSubmitting() ? 'Registering...' : 'Register'}
                             </button>
                         </td>
                     </tr>
-                </thead>
+                </tbody>
             </table>
 
             <p>Already have an account? <A href="/login">Login.</A></p>

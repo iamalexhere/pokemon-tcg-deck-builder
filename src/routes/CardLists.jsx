@@ -1,6 +1,7 @@
 import styles from './cardlists.module.css';
 import { A } from "@solidjs/router";
 import { createSignal, Switch, Match, For, createEffect, createResource, Show } from "solid-js";
+import Pagination from '../components/Pagination';
 import { useNavigate } from "@solidjs/router";
 import PLACEHOLDER_IMAGE from "../assets/images/placeholder.jpg";
 import { getCards } from '../services/cardService';
@@ -96,86 +97,7 @@ function CardGrid({ cards }) {
     );
 }
 
-function Pagination({ currentPage, totalPages, onPageChange }) {
-    // Function to generate the page numbers to display (only 5 at a time)
-    const getPageNumbers = () => {
-        const current = currentPage();
-        const total = totalPages();
-        const pages = [];
-        
-        // Always show 5 pages or less if totalPages < 5
-        let startPage = Math.max(1, current - 2);
-        let endPage = Math.min(total, startPage + 4);
-        
-        // Adjust if we're near the end
-        if (endPage - startPage < 4 && total > 5) {
-            startPage = Math.max(1, endPage - 4);
-        }
-        
-        // Generate the array of page numbers
-        for (let i = startPage; i <= endPage; i++) {
-            pages.push(i);
-        }
-        
-        return pages;
-    };
-    
-    return (
-        <div class={styles.pagination}>
-            {/* First page button */}
-            <button 
-                class={styles.paginationBtn}
-                onClick={() => onPageChange(1)}
-                disabled={currentPage() === 1}
-                title="First Page"
-            >
-                &lt;&lt;
-            </button>
-            
-            {/* Previous page button */}
-            <button 
-                class={styles.paginationBtn}
-                onClick={() => onPageChange(currentPage() - 1)}
-                disabled={currentPage() === 1}
-                title="Previous Page"
-            >
-                &lt;
-            </button>
-            
-            {/* Page number buttons - only show 5 at a time */}
-            <For each={getPageNumbers()}>
-                {(page) => (
-                    <button 
-                        class={`${styles.paginationBtn} ${currentPage() === page ? styles.active : ''}`}
-                        onClick={() => onPageChange(page)}
-                    >
-                        {page}
-                    </button>
-                )}
-            </For>
-            
-            {/* Next page button */}
-            <button 
-                class={styles.paginationBtn}
-                onClick={() => onPageChange(currentPage() + 1)}
-                disabled={currentPage() === totalPages()}
-                title="Next Page"
-            >
-                &gt;
-            </button>
-            
-            {/* Last page button */}
-            <button 
-                class={styles.paginationBtn}
-                onClick={() => onPageChange(totalPages())}
-                disabled={currentPage() === totalPages()}
-                title="Last Page"
-            >
-                &gt;&gt;
-            </button>
-        </div>
-    );
-}
+
 
 function ListCards() {
     const [searchTerm, setSearchTerm] = createSignal('');
@@ -248,10 +170,10 @@ function ListCards() {
                         cards={paginatedCards}
                     />
                     
-                    <Pagination 
-                        currentPage={currentPage} 
-                        totalPages={totalPages} 
-                        onPageChange={handlePageChange} 
+                    <Pagination
+                        currentPage={currentPage}
+                        totalPages={totalPages()}
+                        onPageChange={handlePageChange}
                     />
                 </Show>
             </Show>

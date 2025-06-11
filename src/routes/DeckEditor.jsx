@@ -1,4 +1,5 @@
 import { createSignal, createEffect, Switch, Match, For, onMount, createResource } from 'solid-js';
+import Pagination from '../components/Pagination';
 import { useNavigate, useParams } from '@solidjs/router';
 import { RiArrowsArrowGoBackLine } from 'solid-icons/ri';
 import { AiFillHeart, AiOutlineHeart, AiOutlineSearch, AiOutlineMinusCircle, AiOutlinePlusCircle } from 'solid-icons/ai';
@@ -298,6 +299,14 @@ function DeckEditor() {
     
   };
 
+
+
+  const handleSearchPageChange = (page) => {
+    if (page > 0 && page <= searchTotalPages()) {
+      setSearchPage(page);
+    }
+  };
+
   const totalDeckCardCount = () => deckCards().reduce((sum, card) => sum + card.count, 0);
 
   return (
@@ -494,33 +503,11 @@ function DeckEditor() {
                   </div>
 
                   {/* Search Pagination */}
-                  <div class={styles.pagination}>
-                    <button
-                      onClick={() => handleSearchPageChange(searchPage() - 1)}
-                      disabled={searchPage() === 1 || isSaving()}
-                      class={styles.paginationButton}
-                    >
-                      &lt;
-                    </button>
-                    <For each={Array(searchTotalPages()).fill()}>
-                      {(_, i) => (
-                        <button
-                          class={searchPage() === i + 1 ? `${styles.paginationButton} ${styles.active}` : styles.paginationButton}
-                          onClick={() => handleSearchPageChange(i + 1)}
-                          disabled={isSaving()}
-                        >
-                          {i + 1}
-                        </button>
-                      )}
-                    </For>
-                    <button
-                      onClick={() => handleSearchPageChange(searchPage() + 1)}
-                      disabled={searchPage() === searchTotalPages() || isSaving()}
-                      class={styles.paginationButton}
-                    >
-                      &gt;
-                    </button>
-                  </div>
+                  <Pagination
+                    currentPage={searchPage}
+                    totalPages={searchTotalPages()}
+                    onPageChange={handleSearchPageChange}
+                  />
                 </Show>
               </div>
             </div>

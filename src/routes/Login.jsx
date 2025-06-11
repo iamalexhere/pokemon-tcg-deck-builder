@@ -23,10 +23,6 @@ function Login() {
             setUsernameError("Username is required");
             return false;
         }
-        if (value.length < 3) {
-            setUsernameError("Username must be at least 3 characters");
-            return false;
-        }
         setUsernameError("");
         return true;
     };
@@ -35,10 +31,6 @@ function Login() {
     const validatePassword = (value) => {
         if (!value) {
             setPasswordError("Password is required");
-            return false;
-        }
-        if (value.length < 4) {
-            setPasswordError("Password must be at least 4 characters");
             return false;
         }
         setPasswordError("");

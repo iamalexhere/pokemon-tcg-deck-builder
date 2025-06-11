@@ -1,9 +1,10 @@
 import styles from './cardlists.module.css';
 import { A } from "@solidjs/router";
 import { createSignal, Switch, Match, For, createEffect, createResource, Show } from "solid-js";
+import Pagination from '../components/Pagination';
 import { useNavigate } from "@solidjs/router";
 import PLACEHOLDER_IMAGE from "../assets/images/placeholder.jpg";
-import { getCards, searchCards } from '../services/cardService';
+import { getCards } from '../services/cardService';
 
 // Search Icon component
 const SearchIcon = () => (
@@ -96,173 +97,51 @@ function CardGrid({ cards }) {
     );
 }
 
-function Pagination({ currentPage, totalPages, onPageChange }) {
-    // Function to generate the page numbers to display (only 5 at a time)
-    const getPageNumbers = () => {
-        const current = currentPage();
-        const total = totalPages();
-        const pages = [];
-        
-        // Always show 5 pages or less if totalPages < 5
-        let startPage = Math.max(1, current - 2);
-        let endPage = Math.min(total, startPage + 4);
-        
-        // Adjust if we're near the end
-        if (endPage - startPage < 4 && total > 5) {
-            startPage = Math.max(1, endPage - 4);
-        }
-        
-        // Generate the array of page numbers
-        for (let i = startPage; i <= endPage; i++) {
-            pages.push(i);
-        }
-        
-        return pages;
-    };
-    
-    return (
-        <div class={styles.pagination}>
-            {/* First page button */}
-            <button 
-                class={styles.paginationBtn}
-                onClick={() => onPageChange(1)}
-                disabled={currentPage() === 1}
-                title="First Page"
-            >
-                &lt;&lt;
-            </button>
-            
-            {/* Previous page button */}
-            <button 
-                class={styles.paginationBtn}
-                onClick={() => onPageChange(currentPage() - 1)}
-                disabled={currentPage() === 1}
-                title="Previous Page"
-            >
-                &lt;
-            </button>
-            
-            {/* Page number buttons - only show 5 at a time */}
-            <For each={getPageNumbers()}>
-                {(page) => (
-                    <button 
-                        class={`${styles.paginationBtn} ${currentPage() === page ? styles.active : ''}`}
-                        onClick={() => onPageChange(page)}
-                    >
-                        {page}
-                    </button>
-                )}
-            </For>
-            
-            {/* Next page button */}
-            <button 
-                class={styles.paginationBtn}
-                onClick={() => onPageChange(currentPage() + 1)}
-                disabled={currentPage() === totalPages()}
-                title="Next Page"
-            >
-                &gt;
-            </button>
-            
-            {/* Last page button */}
-            <button 
-                class={styles.paginationBtn}
-                onClick={() => onPageChange(totalPages())}
-                disabled={currentPage() === totalPages()}
-                title="Last Page"
-            >
-                &gt;&gt;
-            </button>
-        </div>
-    );
-}
+
 
 function ListCards() {
     const [searchTerm, setSearchTerm] = createSignal('');
     const [currentPage, setCurrentPage] = createSignal(1);
-    const [isSearching, setIsSearching] = createSignal(false);
-    const [searchParams, setSearchParams] = createSignal({});
     const ITEMS_PER_PAGE = 50;
-    
-    // Fetch cards from API based on current page
-    const fetchCards = async ([page, isSearch, params]) => {
-        try {
-            let result;
-            if (isSearch) {
-                // If searching, use search endpoint
-                result = await searchCards({
-                    ...params,
-                    page,
-                    pageSize: ITEMS_PER_PAGE
-                });
-            } else {
-                // Otherwise get all cards with pagination
-                result = await getCards(page, ITEMS_PER_PAGE);
-            }
-            
-            // Debug server response structure
-            console.log('Server response:', result);
-            console.log('Page:', page);
-            console.log('Total pages:', result.totalPages);
-            console.log('Card count:', result.count);
-            
-            return result;
-        } catch (error) {
-            console.error('Error fetching cards:', error);
-            throw error;
+
+    // Fetch all cards once
+    const [cardsData] = createResource(getCards);
+
+    const allCards = () => cardsData()?.data || [];
+
+    // Filter cards based on search term
+    const filteredCards = () => {
+        const term = searchTerm().trim().toLowerCase();
+        if (!term) {
+            return allCards();
         }
+        return allCards().filter(card =>
+            card.name.toLowerCase().includes(term)
+        );
     };
-    
-    // Create a resource for fetching cards
-    const [cardsData, { refetch, mutate }] = createResource(
-        () => [currentPage(), isSearching(), searchParams()],
-        fetchCards
-    );
-    
-    // Handle search form submission
+
+    // Reset to page 1 when search term changes
+    createEffect(() => {
+        searchTerm(); // re-run when searchTerm changes
+        setCurrentPage(1);
+    });
+
+    const totalPages = () => Math.ceil(filteredCards().length / ITEMS_PER_PAGE);
+
+    const paginatedCards = () => {
+        const startIndex = (currentPage() - 1) * ITEMS_PER_PAGE;
+        return filteredCards().slice(startIndex, startIndex + ITEMS_PER_PAGE);
+    };
+
     const handleSearch = (e) => {
         e.preventDefault();
-        const term = searchTerm().trim();
-        
-        // Reset to page 1 when searching
-        setCurrentPage(1);
-        
-        if (term) {
-            // Set search parameters based on the search term
-            setSearchParams({ name: term });
-            setIsSearching(true);
-        } else {
-            // If search term is empty, show all cards
-            setIsSearching(false);
-            setSearchParams({});
-        }
-        
-        console.log("Searching for:", term);
+        // Search is reactive, this just prevents form submission
     };
-    
-    // Handle page change
+
     const handlePageChange = (page) => {
-        console.log('Page changed to:', page);
         setCurrentPage(page);
     };
-    
-    // Calculate total pages based on API response
-    const totalPages = () => {
-        if (!cardsData()) {
-            return 1;
-        }
-        // Server returns totalPages directly in the response
-        return cardsData().totalPages || 1;
-    };
-    
-    // Get cards from the API response
-    const cards = () => {
-        if (!cardsData() || !cardsData().data) {
-            return [];
-        }
-        return cardsData().data;
-    };
-    
+
     return (
         <div class={styles.listContainer}>
             {/* Display error at the top if present */}
@@ -279,24 +158,22 @@ function ListCards() {
             <Show when={!cardsData.loading} fallback={<LoadingDisplay />}>
                 <Show when={!cardsData.error}>
                     <div class={styles.resultsInfo}>
-                        {isSearching() && searchTerm() 
+                        {searchTerm()
                             ? `Search results for "${searchTerm()}"` 
                             : 'All Pokémon Cards'}
-                        {cardsData() && cardsData().count && (
-                            <span class={styles.cardCount}>
-                                {cardsData().count} cards found
-                            </span>
-                        )}
+                        <span class={styles.cardCount}>
+                            {filteredCards().length} cards found
+                        </span>
                     </div>
                     
                     <CardGrid 
-                        cards={cards}
+                        cards={paginatedCards}
                     />
                     
-                    <Pagination 
-                        currentPage={currentPage} 
-                        totalPages={totalPages} 
-                        onPageChange={handlePageChange} 
+                    <Pagination
+                        currentPage={currentPage}
+                        totalPages={totalPages()}
+                        onPageChange={handlePageChange}
                     />
                 </Show>
             </Show>

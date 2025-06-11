@@ -1,4 +1,4 @@
-import { createSignal, createEffect, Switch, Match, For, onMount, createResource } from 'solid-js';
+import { createSignal, createEffect, Switch, Match, For, onMount, createResource, Show } from 'solid-js';
 import { useNavigate, useParams } from '@solidjs/router';
 import { RiArrowsArrowGoBackLine } from 'solid-icons/ri';
 import { AiFillHeart, AiOutlineHeart, AiOutlineSearch, AiOutlineMinusCircle, AiOutlinePlusCircle } from 'solid-icons/ai';
@@ -50,6 +50,10 @@ function DeckEditor() {
   const [searchPage, setSearchPage] = createSignal(1);
   const [searchTotalPages, setSearchTotalPages] = createSignal(1);
   const CARDS_PER_SEARCH_PAGE = 12; // Number of cards to show in search results
+
+  // Drag and Drop State
+  const [draggedCard, setDraggedCard] = createSignal(null);
+  const [isDraggingOver, setIsDraggingOver] = createSignal(false);
 
   // --- Utility Functions ---
   const showMessage = (msg, type = 'info', duration = 3000) => {
@@ -308,6 +312,57 @@ function DeckEditor() {
     refetchSearchResults();
   };
 
+  // --- Drag and Drop Handlers ---
+  const handleDragStart = (e, card) => {
+    setDraggedCard(card);
+    e.dataTransfer.effectAllowed = 'copy';
+    // Add a visual effect to the dragged element
+    e.target.style.opacity = '0.5';
+  };
+
+  const handleDragEnd = (e) => {
+    // Reset the visual effect
+    e.target.style.opacity = '';
+    setDraggedCard(null);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'copy';
+  };
+
+  let dragCounter = 0;
+  
+  const handleDragEnter = (e) => {
+      e.preventDefault();
+      dragCounter++;
+      // Only set to true on the first enter event
+      if (dragCounter === 1) {
+          setIsDraggingOver(true);
+      }
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    dragCounter--;
+    // Only set to false when the counter is back to 0
+    if (dragCounter === 0) {
+        setIsDraggingOver(false);
+    }
+    console.log(dragCounter)
+  };
+
+  const handleDrop = async (e) => {
+    e.preventDefault();
+    const card = draggedCard();
+    if (card) {
+        await addCardToDeck(card);
+    }
+    // Reset state after drop
+    dragCounter = 0;
+    setIsDraggingOver(false);
+  };
+
   const totalDeckCardCount = () => deckCards().reduce((sum, card) => sum + card.count, 0);
 
   return (
@@ -417,7 +472,13 @@ function DeckEditor() {
               </div>
 
               {/* Card Deck Container */}
-              <div class={styles.cardDeckContainer}>
+              <div 
+                class={`${styles.cardDeckContainer} ${isDraggingOver() ? styles.draggingOver : ''}`}
+                onDragOver={handleDragOver}
+                onDragEnter={handleDragEnter}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+              >
                 <div class={styles.deckHeader}>
                   <h2>Deck's Cards</h2>
                   <span class={styles.cardCount}>
@@ -455,12 +516,12 @@ function DeckEditor() {
                       </div>
                     )}
                   </For>
-                  {/* Empty card placeholders if needed, but usually not visible with dynamic grid */}
-                  {/* {Array(MAX_DECK_CARDS - totalDeckCardCount()).fill().map(() => (
-                      <div class={`${styles.deckCard} ${styles.empty}`}>
-                          <div class={styles.cardPlaceholder}></div>
-                      </div>
-                  ))} */}
+                  {/* Drop zone hint when dragging */}
+                  {/* <Show when={isDraggingOver()}>
+                    <div class={styles.dropZoneHint}>
+                      Drop card here to add to deck
+                    </div>
+                  </Show> */}
                 </div>
               </div>
 
@@ -493,11 +554,19 @@ function DeckEditor() {
                     }>
                       {(card) => (
                         <div
-                          class={styles.searchCard}
+                          class={`${styles.searchCard} ${styles.draggable}`}
                           onClick={() => displayCardDetails(card)}
                           onDblClick={() => addCardToDeck(card)}
+                          draggable={true}
+                          onDragStart={(e) => handleDragStart(e, card)}
+                          onDragEnd={handleDragEnd}
                         >
-                          <img src={card.images?.small || PLACEHOLDER_IMAGE} alt={card.name} />
+                          <img 
+                            src={card.images?.small || PLACEHOLDER_IMAGE} 
+                            alt={card.name}
+                            draggable={false} // Prevent image from being dragged separately
+                          />
+                          <div class={styles.dragHint}>Drag to deck</div>
                         </div>
                       )}
                     </For>

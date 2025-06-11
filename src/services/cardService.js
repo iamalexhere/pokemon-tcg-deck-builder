@@ -53,25 +53,25 @@ export async function getCardsBySet(setId, page = 1, pageSize = 20) {
  * @param {string} params.rarity - Card rarity
  * @returns {Promise} - Promise with card data
  */
-export async function searchCards(params = {}) {
-  // Build query string from params
-  const queryParams = new URLSearchParams();
-  if (params.name) queryParams.append('name', params.name);
-  if (params.type) queryParams.append('type', params.type);
-  if (params.supertype) queryParams.append('supertype', params.supertype);
-  if (params.rarity) queryParams.append('rarity', params.rarity);
+// export async function searchCards(params = {}) {
+//   // Build query string from params
+//   const queryParams = new URLSearchParams();
+//   if (params.name) queryParams.append('name', params.name);
+//   if (params.type) queryParams.append('type', params.type);
+//   if (params.supertype) queryParams.append('supertype', params.supertype);
+//   if (params.rarity) queryParams.append('rarity', params.rarity);
 
-  const response = await fetch(`${API_URL}/cards/search?${queryParams.toString()}`, {
-    method: 'GET',
-  });
+//   const response = await fetch(`${API_URL}/cards/search?${queryParams.toString()}`, {
+//     method: 'GET',
+//   });
 
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || 'Failed to search cards');
-  }
+//   if (!response.ok) {
+//     const error = await response.json();
+//     throw new Error(error.message || 'Failed to search cards');
+//   }
 
-  return response.json();
-}
+//   return response.json();
+// }
 
 /**
  * Get a specific card by ID

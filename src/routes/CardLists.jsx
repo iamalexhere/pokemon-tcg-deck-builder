@@ -3,7 +3,7 @@ import { A } from "@solidjs/router";
 import { createSignal, Switch, Match, For, createEffect, createResource, Show } from "solid-js";
 import { useNavigate } from "@solidjs/router";
 import PLACEHOLDER_IMAGE from "../assets/images/placeholder.jpg";
-import { getCards, searchCards } from '../services/cardService';
+import { getCards } from '../services/cardService';
 
 // Search Icon component
 const SearchIcon = () => (
@@ -180,36 +180,40 @@ function Pagination({ currentPage, totalPages, onPageChange }) {
 function ListCards() {
     const [searchTerm, setSearchTerm] = createSignal('');
     const [currentPage, setCurrentPage] = createSignal(1);
-    const [searchTrigger, setSearchTrigger] = createSignal(''); // Will hold the term to search for
     const ITEMS_PER_PAGE = 50;
 
-    const [cardsData] = createResource(searchTrigger, async (term) => {
-        try {
-            if (term) {
-                // If searching, use search endpoint, which now returns all matching cards
-                return await searchCards({ name: term });
-            }
-            // Otherwise get all cards
-            return await getCards();
-        } catch (error) {
-            console.error('Error fetching cards:', error);
-            throw error;
-        }
-    });
+    // Fetch all cards once
+    const [cardsData] = createResource(getCards);
 
     const allCards = () => cardsData()?.data || [];
 
-    const totalPages = () => Math.ceil(allCards().length / ITEMS_PER_PAGE);
+    // Filter cards based on search term
+    const filteredCards = () => {
+        const term = searchTerm().trim().toLowerCase();
+        if (!term) {
+            return allCards();
+        }
+        return allCards().filter(card =>
+            card.name.toLowerCase().includes(term)
+        );
+    };
+
+    // Reset to page 1 when search term changes
+    createEffect(() => {
+        searchTerm(); // re-run when searchTerm changes
+        setCurrentPage(1);
+    });
+
+    const totalPages = () => Math.ceil(filteredCards().length / ITEMS_PER_PAGE);
 
     const paginatedCards = () => {
         const startIndex = (currentPage() - 1) * ITEMS_PER_PAGE;
-        return allCards().slice(startIndex, startIndex + ITEMS_PER_PAGE);
+        return filteredCards().slice(startIndex, startIndex + ITEMS_PER_PAGE);
     };
 
     const handleSearch = (e) => {
         e.preventDefault();
-        setCurrentPage(1);
-        setSearchTrigger(searchTerm().trim());
+        // Search is reactive, this just prevents form submission
     };
 
     const handlePageChange = (page) => {
@@ -232,14 +236,12 @@ function ListCards() {
             <Show when={!cardsData.loading} fallback={<LoadingDisplay />}>
                 <Show when={!cardsData.error}>
                     <div class={styles.resultsInfo}>
-                        {searchTrigger()
-                            ? `Search results for "${searchTrigger()}"` 
+                        {searchTerm()
+                            ? `Search results for "${searchTerm()}"` 
                             : 'All Pokémon Cards'}
-                        {cardsData() && cardsData().count && (
-                            <span class={styles.cardCount}>
-                                {cardsData().count} cards found
-                            </span>
-                        )}
+                        <span class={styles.cardCount}>
+                            {filteredCards().length} cards found
+                        </span>
                     </div>
                     
                     <CardGrid 

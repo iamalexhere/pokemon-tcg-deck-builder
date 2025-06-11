@@ -1,11 +1,12 @@
-import { createSignal, createEffect, Switch, Match, For, onMount, createResource } from 'solid-js';
-import Pagination from '../components/Pagination';
+import { createSignal, createEffect, Switch, Match, For, onMount, createResource, Show } from 'solid-js';
 import { useNavigate, useParams } from '@solidjs/router';
 import { RiArrowsArrowGoBackLine } from 'solid-icons/ri';
 import { AiFillHeart, AiOutlineHeart, AiOutlineSearch, AiOutlineMinusCircle, AiOutlinePlusCircle } from 'solid-icons/ai';
 import { FaRegularTrashCan } from 'solid-icons/fa';
 
 import styles from './deckeditor.module.css';
+import cardDetailStyles from './carddetail.module.css'; // Import the new styles
+import Pagination from '../components/Pagination';
 import PLACEHOLDER_IMAGE from "../assets/images/placeholder.jpg";
 
 import {
@@ -13,8 +14,8 @@ import {
   updateDeck,
   deleteDeck,
   addRemoveFavoriteDeck,
-  addCardToDeck as addCardToDeckApi, // Renamed to avoid conflict with local function
-  removeCardFromDeck as removeCardFromDeckApi, // Renamed
+  addCardToDeck as addCardToDeckApi,
+  removeCardFromDeck as removeCardFromDeckApi,
   updateCardCountInDeck
 } from '../services/deckService';
 
@@ -24,32 +25,35 @@ import {
 } from '../services/cardService';
 
 const MAX_DECK_CARDS = 60;
-const MAX_IDENTICAL_CARDS = 4; // Max 4 copies of a non-basic energy card
+const MAX_IDENTICAL_CARDS = 4;
 
 function DeckEditor() {
   const navigate = useNavigate();
   const params = useParams();
-  const deckId = () => parseInt(params.deckId); // Ensure deckId is always a number
+  const deckId = () => parseInt(params.deckId);
 
   // Deck State
   const [deckName, setDeckName] = createSignal('');
   const [deckNameInput, setDeckNameInput] = createSignal('');
-  const [deckCards, setDeckCards] = createSignal([]); // Stores { id: 'card-id', count: N, details: { ...fullCardObject } }
+  const [deckCards, setDeckCards] = createSignal([]);
   const [favoriteDeck, setFavoriteDeck] = createSignal(false);
 
   // UI State
-  const [selectedCardDetails, setSelectedCardDetails] = createSignal(null); // Full details of the card clicked in either deck or search results
+  const [selectedCardDetails, setSelectedCardDetails] = createSignal(null);
   const [isLoadingDeck, setIsLoadingDeck] = createSignal(true);
   const [isSaving, setIsSaving] = createSignal(false);
   const [deckError, setDeckError] = createSignal(null);
-  const [message, setMessage] = createSignal(''); // For success/info/warning messages
-  const [messageType, setMessageType] = createSignal(''); // 'success', 'info', 'warning', 'error'
+  const [message, setMessage] = createSignal('');
+  const [messageType, setMessageType] = createSignal('');
 
   // Card Search State
   const [searchQuery, setSearchQuery] = createSignal('');
   const [searchPage, setSearchPage] = createSignal(1);
-  const [searchTotalPages, setSearchTotalPages] = createSignal(1);
-  const CARDS_PER_SEARCH_PAGE = 12; // Number of cards to show in search results
+  const CARDS_PER_SEARCH_PAGE = 12;
+
+  // Drag and Drop State
+  const [draggedCard, setDraggedCard] = createSignal(null);
+  const [isDraggingOver, setIsDraggingOver] = createSignal(false);
 
   // --- Utility Functions ---
   const showMessage = (msg, type = 'info', duration = 3000) => {
@@ -79,26 +83,23 @@ function DeckEditor() {
     );
   };
 
+  const searchTotalPages = () => Math.ceil(filteredCards().length / CARDS_PER_SEARCH_PAGE);
+
   const paginatedSearchResults = () => {
     const cards = filteredCards();
     const startIndex = (searchPage() - 1) * CARDS_PER_SEARCH_PAGE;
-    const paginated = cards.slice(startIndex, startIndex + CARDS_PER_SEARCH_PAGE);
-    setSearchTotalPages(Math.ceil(cards.length / CARDS_PER_SEARCH_PAGE));
-    return paginated;
+    return cards.slice(startIndex, startIndex + CARDS_PER_SEARCH_PAGE);
   };
 
   // --- Deck Data Loading ---
   onMount(() => {
-    // Initial load of deck data
     loadDeckData();
   });
 
-  // Effect to re-load deck data if deckId changes (e.g., navigating from /deckeditor/1 to /deckeditor/2)
   createEffect(() => {
     const currentRouteDeckId = parseInt(params.deckId);
     if (currentRouteDeckId && currentRouteDeckId !== deckId()) {
       loadDeckData();
-      // Reset search when navigating to a new deck
       setSearchQuery('');
       setSearchPage(1);
     }
@@ -108,7 +109,7 @@ function DeckEditor() {
     setIsLoadingDeck(true);
     setDeckError(null);
     try {
-      const data = await getDeckById(deckId(), true); // Fetch with full card details
+      const data = await getDeckById(deckId(), true);
       setDeckName(data.name);
       setDeckNameInput(data.name);
       setDeckCards(data.cards || []);
@@ -117,7 +118,6 @@ function DeckEditor() {
     } catch (err) {
       console.error("Error loading deck:", err);
       if (err.message.includes('Deck not found')) {
-        // If deck doesn't exist, assume it's a new deck
         setDeckName(`New Deck ${deckId()}`);
         setDeckNameInput(`New Deck ${deckId()}`);
         setDeckCards([]);
@@ -139,15 +139,12 @@ function DeckEditor() {
   };
 
   // --- Card Management Functions ---
-
-  // Handles displaying full details of a card
   const displayCardDetails = async (card) => {
     if (!card.details) {
-      // If card doesn't have full details (e.g., from search results which are partial)
       setIsSaving(true);
       try {
         const fullDetails = await getCardDetailsById(card.id);
-        setSelectedCardDetails(fullDetails.data); // API wraps data in 'data' key
+        setSelectedCardDetails(fullDetails.data);
       } catch (err) {
         console.error("Error fetching card details:", err);
         showMessage(err.message || "Failed to fetch card details.", 'error');
@@ -160,7 +157,6 @@ function DeckEditor() {
   };
 
   const addCardToDeck = async (card) => {
-    // Check if card is already in the deck
     const existingCard = deckCards().find(dc => dc.id === card.id);
     const currentTotalCards = deckCards().reduce((sum, c) => sum + c.count, 0);
 
@@ -181,12 +177,10 @@ function DeckEditor() {
     setIsSaving(true);
     try {
       await addCardToDeckApi(deckId(), card.id, newCount);
-      // Update local state with the new card or updated count
       setDeckCards(prev => {
         if (existingCard) {
           return prev.map(c => c.id === card.id ? { ...c, count: newCount } : c);
         } else {
-          // Add with full details for display
           return [...prev, { id: card.id, count: newCount, details: card }];
         }
       });
@@ -204,7 +198,6 @@ function DeckEditor() {
     try {
       await removeCardFromDeckApi(deckId(), cardIdToRemove);
       setDeckCards(prev => prev.filter(card => card.id !== cardIdToRemove));
-      // If the removed card was the one whose details are currently displayed, clear it
       if (selectedCardDetails()?.id === cardIdToRemove) {
         setSelectedCardDetails(null);
       }
@@ -239,7 +232,6 @@ function DeckEditor() {
   };
 
   // --- Deck Actions ---
-
   const handleSaveDeck = async () => {
     if (deckNameInput().trim() === '') {
       showMessage('Deck name cannot be empty.', 'warning');
@@ -247,16 +239,14 @@ function DeckEditor() {
     }
     setIsSaving(true);
     try {
-      // Prepare cards data for the API (only id and count needed)
       const cardsForApi = deckCards().map(card => ({ id: card.id, count: card.count }));
       await updateDeck(deckId(), {
         name: deckNameInput(),
-        imageUrl: '', // Assuming image is handled separately or not editable here
+        imageUrl: '',
         cards: cardsForApi
       });
-      setDeckName(deckNameInput()); // Update displayed name if save is successful
+      setDeckName(deckNameInput());
       showMessage('Deck saved successfully!', 'success');
-      // No navigation, stay on editor to allow more changes
     } catch (err) {
       console.error("Error saving deck:", err);
       showMessage(err.message || "Failed to save deck. Please try again.", 'error');
@@ -266,7 +256,6 @@ function DeckEditor() {
   };
 
   const handleDeleteDeck = async () => {
-    // Replace with a custom modal confirmation
     if (!window.confirm('Are you sure you want to delete this deck? This action cannot be undone.')) {
       return;
     }
@@ -300,25 +289,67 @@ function DeckEditor() {
   };
 
 
-
   const handleSearchPageChange = (page) => {
     if (page > 0 && page <= searchTotalPages()) {
       setSearchPage(page);
     }
   };
 
+  // --- Drag and Drop Handlers ---
+  const handleDragStart = (e, card) => {
+    setDraggedCard(card);
+    e.dataTransfer.effectAllowed = 'copy';
+    e.target.style.opacity = '0.5';
+  };
+
+  const handleDragEnd = (e) => {
+    e.target.style.opacity = '';
+    setDraggedCard(null);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'copy';
+  };
+
+  let dragCounter = 0;
+  
+  const handleDragEnter = (e) => {
+      e.preventDefault();
+      dragCounter++;
+      if (dragCounter === 1) {
+          setIsDraggingOver(true);
+      }
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    dragCounter--;
+    if (dragCounter === 0) {
+        setIsDraggingOver(false);
+    }
+  };
+
+  const handleDrop = async (e) => {
+    e.preventDefault();
+    const card = draggedCard();
+    if (card) {
+        await addCardToDeck(card);
+    }
+    dragCounter = 0;
+    setIsDraggingOver(false);
+  };
+
   const totalDeckCardCount = () => deckCards().reduce((sum, card) => sum + card.count, 0);
 
   return (
     <div class={styles.mainContainer}>
-      {/* Global Message Display */}
       {message() && (
         <div class={`${styles.messageBox} ${styles[messageType()]}`}>
           {message()}
         </div>
       )}
 
-      {/* Loading State for initial deck load */}
       <Show when={isLoadingDeck()} fallback={
         <Show when={!deckError()} fallback={
           <div class={styles.errorContainer}>
@@ -331,7 +362,6 @@ function DeckEditor() {
             </button>
           </div>
         }>
-          {/* Main Content - Only show when not loading and no errors */}
           <div class={styles.deckEditorContent}>
             <div class={styles.topBar}>
               <button
@@ -366,59 +396,117 @@ function DeckEditor() {
             </div>
 
             <div class={styles.subContainer}>
-              {/* Card Detail Container */}
+              {/* Card Detail Container - UPDATED STRUCTURE */}
               <div class={styles.cardDetailContainer}>
                 <h2>Card's Details</h2>
-                <Switch fallback={
-                  <div class={styles.noCardSelected}>
-                    <p>Select a card to view details</p>
-                  </div>
-                }>
+                <Switch>
                   <Match when={selectedCardDetails()}>
-                    <div class={styles.cardImageContainer}>
-                      <img src={selectedCardDetails().images?.large || selectedCardDetails().images?.small || PLACEHOLDER_IMAGE} alt={selectedCardDetails().name} />
-                    </div>
-                    <div class={styles.cardInfo}>
-                      <h3>{selectedCardDetails().name}</h3>
-                      <p><b>HP:</b> {selectedCardDetails().hp || 'N/A'}</p>
-                      <p><b>Type:</b> {selectedCardDetails().types?.join(', ') || 'N/A'}</p>
-                      <p><b>Supertype:</b> {selectedCardDetails().supertype || 'N/A'}</p>
-                      <p><b>Subtype:</b> {selectedCardDetails().subtypes?.join(', ') || 'N/A'}</p>
-                      <p><b>Rarity:</b> {selectedCardDetails().rarity || 'N/A'}</p>
+                    <div class={cardDetailStyles.cardContainer} style={{ "flex-direction": "column", "align-items": "stretch" }}>
+                      <div class={cardDetailStyles.imageContainer} style={{ "padding-left": "0", "margin": "0 auto", "max-width": "300px" }}>
+                        <div class={styles.cardImageContainer} style={{ "width": "100%", "height": "auto" }}>
+                          <img 
+                            class={cardDetailStyles.placeholderSvg}
+                            src={selectedCardDetails().images?.large || selectedCardDetails().images?.small || PLACEHOLDER_IMAGE}
+                            alt={selectedCardDetails().name}
+                          />
+                        </div>
+                      </div>
 
-                      <For each={selectedCardDetails().abilities}>
-                        {(ability, index) => (
-                          <>
-                            <p class={styles.abilityName}>Ability {index() + 1}: {ability.name}</p>
-                            <div class={styles.abilityDescription}>
-                              {ability.text}
+                      <div class={cardDetailStyles.infoContainer} style={{"margin-top": "20px"}}>
+                        <div class={cardDetailStyles.cardHeader}>
+                          <h3 class={cardDetailStyles.headerTitle}>
+                            {selectedCardDetails().name}
+                          </h3>
+                        </div>
+
+                        <div class={cardDetailStyles.typeHpRow}>
+                          <div class={cardDetailStyles.typeCell}>
+                            <span>Type: {selectedCardDetails().types?.join(', ') || 'N/A'}</span>
+                          </div>
+                          <div class={cardDetailStyles.hpCell}>
+                            <span>HP: {selectedCardDetails().hp || 'N/A'}</span>
+                          </div>
+                        </div>
+                        
+                        <Show when={selectedCardDetails().abilities?.length > 0}>
+                            <div class={cardDetailStyles.abilitiesSection}>
+                                <For each={selectedCardDetails().abilities}>
+                                    {(ability) => (
+                                        <div class={cardDetailStyles.abilityItem}>
+                                            <div class={cardDetailStyles.abilityContent}>
+                                                <div class={cardDetailStyles.abilityName}>{ability.name}</div>
+                                                <div class={cardDetailStyles.abilityDescription}>{ability.text}</div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </For>
                             </div>
-                          </>
-                        )}
-                      </For>
-                      <For each={selectedCardDetails().attacks}>
-                        {(attack, index) => (
-                          <>
-                            <p class={styles.abilityName}>Attack {index() + 1}: {attack.name} ({attack.cost?.join(', ') || 'None'})</p>
-                            <div class={styles.abilityDescription}>
-                              {attack.text} {attack.damage && `Damage: ${attack.damage}`}
-                            </div>
-                          </>
-                        )}
-                      </For>
-                      <p><b>Weakness:</b> {selectedCardDetails().weaknesses?.map(w => `${w.type} ${w.value}`).join(', ') || 'N/A'}</p>
-                      <p><b>Resistance:</b> {selectedCardDetails().resistances?.map(r => `${r.type} ${r.value}`).join(', ') || 'N/A'}</p>
-                      <p><b>Retreat Cost:</b> {selectedCardDetails().retreatCost?.length || 0}</p>
-                      <p><b>Artist:</b> {selectedCardDetails().artist || 'N/A'}</p>
+                        </Show>
+
+                        <Show when={selectedCardDetails().attacks?.length > 0}>
+                          <div class={cardDetailStyles.abilitiesSection}>
+                            <For each={selectedCardDetails().attacks}>
+                              {(attack) => (
+                                <div class={cardDetailStyles.abilityItem}>
+                                  <div class={cardDetailStyles.abilityContent}>
+                                    <div class={cardDetailStyles.abilityName}>{attack.name} ({attack.cost?.join(', ') || 'None'})</div>
+                                    <div class={cardDetailStyles.abilityDescription}>{attack.text}</div>
+                                  </div>
+                                  <Show when={attack.damage}>
+                                    <div class={cardDetailStyles.abilityValue}>{attack.damage}</div>
+                                  </Show>
+                                </div>
+                              )}
+                            </For>
+                          </div>
+                        </Show>
+
+                        <div class={cardDetailStyles.statsSection}>
+                          <div class={cardDetailStyles.statsHeader}>
+                            <div class={cardDetailStyles.statHeaderItem}><span>Weakness</span></div>
+                            <div class={cardDetailStyles.statHeaderItem}><span>Resistance</span></div>
+                            <div class={cardDetailStyles.statHeaderItem}><span>Retreat Cost</span></div>
+                          </div>
+                          <div class={cardDetailStyles.statsValues}>
+                            <div class={cardDetailStyles.statValueItem}><span>{selectedCardDetails().weaknesses?.map(w => `${w.type} ${w.value}`).join(', ') || 'N/A'}</span></div>
+                            <div class={cardDetailStyles.statValueItem}><span>{selectedCardDetails().resistances?.map(r => `${r.type} ${r.value}`).join(', ') || 'N/A'}</span></div>
+                            <div class={cardDetailStyles.statValueItem}><span>{selectedCardDetails().retreatCost?.length || 0}</span></div>
+                          </div>
+                          <div class={cardDetailStyles.illustratorSection}>
+                            <span>Illustrator: {selectedCardDetails().artist || 'N/A'}</span>
+                          </div>
+                        </div>
+                      </div>
                     </div>
+                  </Match>
+                  <Match when={!selectedCardDetails()}>
+                     <div class={styles.noCardSelected}>
+                        <p>Select a card to view details</p>
+                     </div>
                   </Match>
                 </Switch>
               </div>
 
               {/* Card Deck Container */}
-              <div class={styles.cardDeckContainer}>
+              <div 
+                class={`${styles.cardDeckContainer} ${isDraggingOver() ? styles.draggingOver : ''}`}
+                onDragOver={handleDragOver}
+                onDragEnter={handleDragEnter}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+              >
                 <div class={styles.deckHeader}>
-                  <h2>Deck's Cards</h2>
+                  {/* START: Updated Section */}
+                  <div class={styles.deckHeaderTitle}>
+                    <h2>Deck's Cards</h2>
+                    <p class={styles.deckHeaderDescription}>
+                      Drag cards from the search results to add them here.
+                    </p>
+                    <p class={styles.deckHeaderDescription}>
+                      Double-Click cards to remove it from deck.
+                    </p>
+                  </div>
+                  {/* END: Updated Section */}
                   <span class={styles.cardCount}>
                     {totalDeckCardCount()}/{MAX_DECK_CARDS} Cards
                   </span>
@@ -454,12 +542,6 @@ function DeckEditor() {
                       </div>
                     )}
                   </For>
-                  {/* Empty card placeholders if needed, but usually not visible with dynamic grid */}
-                  {/* {Array(MAX_DECK_CARDS - totalDeckCardCount()).fill().map(() => (
-                      <div class={`${styles.deckCard} ${styles.empty}`}>
-                          <div class={styles.cardPlaceholder}></div>
-                      </div>
-                  ))} */}
                 </div>
               </div>
 
@@ -492,17 +574,24 @@ function DeckEditor() {
                     }>
                       {(card) => (
                         <div
-                          class={styles.searchCard}
+                          class={`${styles.searchCard} ${styles.draggable}`}
                           onClick={() => displayCardDetails(card)}
                           onDblClick={() => addCardToDeck(card)}
+                          draggable={true}
+                          onDragStart={(e) => handleDragStart(e, card)}
+                          onDragEnd={handleDragEnd}
                         >
-                          <img src={card.images?.small || PLACEHOLDER_IMAGE} alt={card.name} />
+                          <img 
+                            src={card.images?.small || PLACEHOLDER_IMAGE} 
+                            alt={card.name}
+                            draggable={false}
+                          />
+                          <div class={styles.dragHint}>Drag to deck</div>
                         </div>
                       )}
                     </For>
                   </div>
 
-                  {/* Search Pagination */}
                   <Pagination
                     currentPage={searchPage}
                     totalPages={searchTotalPages()}
@@ -514,7 +603,6 @@ function DeckEditor() {
           </div>
         </Show>
       }>
-        {/* Initial loading spinner for the whole page */}
         <div class={styles.loadingContainer}>
           <div class={styles.loadingSpinner}></div>
           <p>Loading deck editor...</p>

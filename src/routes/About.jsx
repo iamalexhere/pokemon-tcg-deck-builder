@@ -1,6 +1,6 @@
 import styles from './about.module.css';
 import alexUserImage from '../assets/images/team/alex.jpg';
-import zakkiUserImage from '../assets/images/team/zakki.png';
+import zakkiUserImage from '../assets/images/team/zakki.jpg';
 import elvinUserImage from '../assets/images/team/elvin.jpg';
 import vinchentUserImage from '../assets/images/team/vinchent.jpg';
 import uusUserImage from '../assets/images/team/uus.jpg';
@@ -17,8 +17,8 @@ const teamMembers = [
   {
     id: 2,
     name: 'Muhammad Zakki Baldani',
-    role: 'placeholder',
-    description: 'placeholder',
+    role: 'Gooning Analyst',
+    description: 'Not every day is a good day, but there is something good in every day.',
     imageUrl: zakkiUserImage,
     contactLink: 'https://github.com/zakkib'
   },
@@ -28,7 +28,7 @@ const teamMembers = [
     role: 'placeholder',
     description: 'placeholder',
     imageUrl: elvinUserImage,
-    contactLink: ''
+    contactLink: 'https://github.com/SyalomElvinPasau'
   },
   {
     id: 4,
@@ -36,7 +36,7 @@ const teamMembers = [
     role: 'placeholder',
     description: 'placeholder',
     imageUrl: vinchentUserImage,
-    contactLink: ''
+    contactLink: 'https://github.com/Basin312'
   },
   {
     id: 5,
@@ -44,7 +44,7 @@ const teamMembers = [
     role: 'placeholder',
     description: 'placeholder',
     imageUrl: uusUserImage,
-    contactLink: ''
+    contactLink: 'https://github.com/Gregorius-Denmas'
   }
 ];
 

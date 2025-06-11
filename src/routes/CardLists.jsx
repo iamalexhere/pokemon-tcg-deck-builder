@@ -38,9 +38,15 @@ function Header() {
     return (
         <div class={styles.header}>
             <h1 style={{color: "white"}}>Card List</h1>
-            <p style={{color: "white"}}>Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has 
-                been the industry's standard dummy text ever since the 1500s, when an unknown printer 
-                took a galley of type and scrambled it to make a type specimen book.</p>
+            <p style={{color: "white"}}>Explore and manage your Pokémon collection 
+                through a beautifully designed desktop experience. Navigate rich 
+                visuals and intuitive menus as you browse different regions, track 
+                your favorite Pokémon, and dive into detailed stats and evolutions. 
+                Discover type matchups, compare base stats, and build your ultimate 
+                dream team. Whether you're researching legendary Pokémon or exploring 
+                the full Pokédex, the site offers smooth interaction and immersive 
+                design built for fans. Jump into the world of Pokémon and start your 
+                journey today!</p>
         </div>
     )
 }

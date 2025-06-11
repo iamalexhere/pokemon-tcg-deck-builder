@@ -86,6 +86,30 @@
 
 .cardDeckContainer {
     flex: 2;
+    position: relative;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Drag and Drop Styles */
+.cardDeckContainer.draggingOver {
+    background-color: rgba(76, 175, 80, 0.1);
+    border-color: #4caf50;
+    border-width: 2px;
+    border-style: dashed;
+}
+
+.dropZoneHint {
+    grid-column: 1 / -1;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    border-radius: 8px;
+    color: #4caf50;
+    font-weight: bold;
+    font-size: 16px;
+    text-align: center;
+    min-height: 100px;
 }
 
 .cardSearchContainer {
@@ -97,7 +121,6 @@
     width: 100%;
     max-width: 250px;
     margin: 0 auto 20px;
-    border: 1px solid #ddd;
 }
 
 .cardImageContainer img {
@@ -106,41 +129,50 @@
     display: block;
 }
 
-.cardInfo h3 {
-    margin-top: 0;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 10px;
-}
-
-.abilityDescription {
-    /* background-color: #f9f9f9; */
-    padding: 10px;
-    border: 1px solid #eee;
-    margin-bottom: 15px;
-    border-radius: 4px;
-}
+/* REMOVED old card detail styles that are now handled by carddetail.module.css */
+/* .cardImageContainer { ... } */
+/* .cardInfo { ... } */
 
 .noCardSelected {
-    font-size: larger;
-    font-weight: bold;
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 300px;
+    height: 100%;
+    color: #999;
+    font-size: 1.1rem;
+    font-weight: bold;
+    text-align: center;
     border-radius: 5px;
+    /* background-color: #f0f0f0; */
 }
+
 
 /* Deck container styles */
 .deckHeader {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    /* align-items: center; */ /* Changed to flex-start for better alignment with description */
+    align-items: flex-start;
     margin-bottom: 15px;
 }
+
+/* START: New Styles */
+.deckHeaderTitle h2 {
+    margin-bottom: 2px; /* Reduces space between title and description */
+}
+
+.deckHeaderDescription {
+    margin-top: 0;
+    font-size: 12px;
+    color: #888;
+}
+/* END: New Styles */
 
 .cardCount {
     font-weight: bold;
     color: #555;
+    white-space: nowrap; /* Ensures the card count doesn't wrap */
+    margin-left: 15px; /* Adds some space between title and count */
 }
 
 .deckGrid {
@@ -157,6 +189,7 @@
     overflow: hidden;
     cursor: pointer;
     transition: transform 0.2s;
+    position: relative;
 }
 
 .deckCard:hover {
@@ -168,6 +201,46 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
+}
+
+.cardQuantityControls {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 2px 4px;
+    font-size: 12px;
+}
+
+.cardQuantity {
+    font-weight: bold;
+    margin: 0 4px;
+}
+
+.quantityButton {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-size: 16px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.quantityButton:hover:not(:disabled) {
+    color: #4caf50;
+}
+
+.quantityButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
 .empty .cardPlaceholder {
@@ -200,7 +273,6 @@
     background-color: rgba(0,0,0,0.1);
     color: white;
     border: none;
-    /* border-radius: 0 4px 4px 0; */
     cursor: pointer;
 }
 
@@ -218,7 +290,16 @@
     border-radius: 5px;
     overflow: hidden;
     cursor: pointer;
-    transition: transform 0.2s;
+    transition: transform 0.2s, box-shadow 0.2s;
+    position: relative;
+}
+
+.searchCard.draggable {
+    cursor: grab;
+}
+
+.searchCard.draggable:active {
+    cursor: grabbing;
 }
 
 .searchCard:hover {
@@ -226,42 +307,34 @@
     box-shadow: 0 5px 15px rgba(0,0,0,0.1);
 }
 
+.searchCard:hover .dragHint {
+    opacity: 1;
+}
+
+.dragHint {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 4px;
+    text-align: center;
+    font-size: 12px;
+    font-weight: bold;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
 .searchCard img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-}
-
-/* Pagination */
-.pagination {
-    display: flex;
-    justify-content: center;
-    gap: 5px;
-    margin-top: 15px;
-}
-
-.paginationButton {
-    width: 30px;
-    height: 30px;
-    border: 1px solid #ddd;
-    background-color: white;
-    cursor: pointer;
-    border-radius: 4px;
-}
-
-.paginationButton.active {
-    background-color: #2196F3;
-    color: white;
-    border-color: #2196F3;
-}
-
-.paginationButton:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+    user-select: none;
 }
 
 /* Loading and Error States */
-.loadingContainer {
+.loadingContainer, .errorContainer {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -287,13 +360,6 @@
 }
 
 .errorContainer {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 3rem;
-    min-height: 300px;
-    width: 100%;
     background-color: rgba(229, 57, 53, 0.05);
     border-radius: 8px;
     margin: 2rem;
@@ -329,7 +395,29 @@
     flex-direction: column;
 }
 
-/* others */
+/* Message Box Styles */
+.messageBox {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 15px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    max-width: 400px;
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+.messageBox.success { background-color: #4caf50; color: white; }
+.messageBox.info { background-color: #2196f3; color: white; }
+.messageBox.warning { background-color: #ff9800; color: white; }
+.messageBox.error { background-color: #f44336; color: white; }
+
 h2 {
     margin-top: 0.5em;
     margin-bottom: 0.5em;

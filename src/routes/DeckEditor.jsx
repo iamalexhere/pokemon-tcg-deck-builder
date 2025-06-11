@@ -6,6 +6,7 @@ import { FaRegularTrashCan } from 'solid-icons/fa';
 
 import styles from './deckeditor.module.css';
 import cardDetailStyles from './carddetail.module.css'; // Import the new styles
+import Pagination from '../components/Pagination';
 import PLACEHOLDER_IMAGE from "../assets/images/placeholder.jpg";
 
 import {
@@ -48,7 +49,6 @@ function DeckEditor() {
   // Card Search State
   const [searchQuery, setSearchQuery] = createSignal('');
   const [searchPage, setSearchPage] = createSignal(1);
-  const [searchTotalPages, setSearchTotalPages] = createSignal(1);
   const CARDS_PER_SEARCH_PAGE = 12;
 
   // Drag and Drop State
@@ -83,12 +83,12 @@ function DeckEditor() {
     );
   };
 
+  const searchTotalPages = () => Math.ceil(filteredCards().length / CARDS_PER_SEARCH_PAGE);
+
   const paginatedSearchResults = () => {
     const cards = filteredCards();
     const startIndex = (searchPage() - 1) * CARDS_PER_SEARCH_PAGE;
-    const paginated = cards.slice(startIndex, startIndex + CARDS_PER_SEARCH_PAGE);
-    setSearchTotalPages(Math.ceil(cards.length / CARDS_PER_SEARCH_PAGE));
-    return paginated;
+    return cards.slice(startIndex, startIndex + CARDS_PER_SEARCH_PAGE);
   };
 
   // --- Deck Data Loading ---
@@ -592,33 +592,11 @@ function DeckEditor() {
                     </For>
                   </div>
 
-                  <div class={styles.pagination}>
-                    <button
-                      onClick={() => handleSearchPageChange(searchPage() - 1)}
-                      disabled={searchPage() === 1 || isSaving()}
-                      class={styles.paginationButton}
-                    >
-                      &lt;
-                    </button>
-                    <For each={Array(searchTotalPages()).fill()}>
-                      {(_, i) => (
-                        <button
-                          class={searchPage() === i + 1 ? `${styles.paginationButton} ${styles.active}` : styles.paginationButton}
-                          onClick={() => handleSearchPageChange(i + 1)}
-                          disabled={isSaving()}
-                        >
-                          {i + 1}
-                        </button>
-                      )}
-                    </For>
-                    <button
-                      onClick={() => handleSearchPageChange(searchPage() + 1)}
-                      disabled={searchPage() === searchTotalPages() || isSaving()}
-                      class={styles.paginationButton}
-                    >
-                      &gt;
-                    </button>
-                  </div>
+                  <Pagination
+                    currentPage={searchPage}
+                    totalPages={searchTotalPages()}
+                    onPageChange={handleSearchPageChange}
+                  />
                 </Show>
               </div>
             </div>

@@ -333,34 +333,6 @@
     user-select: none;
 }
 
-/* Pagination */
-.pagination {
-    display: flex;
-    justify-content: center;
-    gap: 5px;
-    margin-top: 15px;
-}
-
-.paginationButton {
-    width: 30px;
-    height: 30px;
-    border: 1px solid #ddd;
-    background-color: white;
-    cursor: pointer;
-    border-radius: 4px;
-}
-
-.paginationButton.active {
-    background-color: #2196F3;
-    color: white;
-    border-color: #2196F3;
-}
-
-.paginationButton:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
 /* Loading and Error States */
 .loadingContainer, .errorContainer {
     display: flex;

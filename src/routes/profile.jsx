@@ -1,38 +1,51 @@
-import styles from './profile.module.css';
-import { createSignal, createEffect, onMount, Show, For } from 'solid-js';
-import { useAuth } from '../context/AuthContext';
-import DeckCard from '../components/DeckCard';
-import defaultProfileImage from '../assets/images/icon/Profile.png';
-import { getRecentDecks, getFavoriteDecks } from '../services/deckService'; // Import deck service functions
+import styles from "./profile.module.css";
+import { createSignal, createEffect, onMount, Show, For } from "solid-js";
+import { useAuth } from "../context/AuthContext";
+import DeckCard from "../components/DeckCard";
+import defaultProfileImage from "../assets/images/icon/Profile.png";
+import { getRecentDecks, getFavoriteDecks } from "../services/deckService"; // Import deck service functions
+import { useNavigate } from "@solidjs/router";
+import deckEditor from "./DeckEditor";
 
 function Profile() {
   const auth = useAuth();
-  
+
   // State signals
-  const [activeButton, setActiveButton] = createSignal(localStorage.getItem('activeButton') || 'recentDecks');
+  const [activeButton, setActiveButton] = createSignal(
+    localStorage.getItem("activeButton") || "recentDecks",
+  );
   const [isEditingProfile, setIsEditingProfile] = createSignal(false);
   const [isChangingPassword, setIsChangingPassword] = createSignal(false);
-  const [tempUsername, setTempUsername] = createSignal(auth.username || '');
-  const [tempPronouns, setTempPronouns] = createSignal(auth.pronouns || '');
-  const [tempDescription, setTempDescription] = createSignal(auth.description || '');
-  const [profilePicture, setProfilePicture] = createSignal(auth.profilePicture || defaultProfileImage);
-  const [currentPassword, setCurrentPassword] = createSignal('');
-  const [newPassword, setNewPassword] = createSignal('');
-  const [confirmPassword, setConfirmPassword] = createSignal('');
-  const [passwordError, setPasswordError] = createSignal('');
-  const [successMessage, setSuccessMessage] = createSignal('');
-  const [errorMessage, setErrorMessage] = createSignal('');
+  const [tempUsername, setTempUsername] = createSignal(auth.username || "");
+  const [tempPronouns, setTempPronouns] = createSignal(auth.pronouns || "");
+  const [tempDescription, setTempDescription] = createSignal(
+    auth.description || "",
+  );
+  const [profilePicture, setProfilePicture] = createSignal(
+    auth.profilePicture || defaultProfileImage,
+  );
+  const [currentPassword, setCurrentPassword] = createSignal("");
+  const [newPassword, setNewPassword] = createSignal("");
+  const [confirmPassword, setConfirmPassword] = createSignal("");
+  const [passwordError, setPasswordError] = createSignal("");
+  const [successMessage, setSuccessMessage] = createSignal("");
+  const [errorMessage, setErrorMessage] = createSignal("");
   const [isLoading, setIsLoading] = createSignal(false);
   const [recentDecks, setRecentDecks] = createSignal([]);
   const [favoriteDecks, setFavoriteDecks] = createSignal([]);
-  const [usernameError, setUsernameError] = createSignal('');
-  const [pronounsError, setPronounsError] = createSignal('');
+  const [usernameError, setUsernameError] = createSignal("");
+  const [pronounsError, setPronounsError] = createSignal("");
   const [isUploading, setIsUploading] = createSignal(false);
-  const [uploadError, setUploadError] = createSignal('');
+  const [uploadError, setUploadError] = createSignal("");
+  const navigate = useNavigate();
+
+  function handleEditDeck(deck) {
+    navigate(`/deckEditor/${deck.id}`);
+  }
 
   // Save active button selection to localStorage
   createEffect(() => {
-    localStorage.setItem('activeButton', activeButton());
+    localStorage.setItem("activeButton", activeButton());
   });
 
   // Load user data and decks on component mount
@@ -40,13 +53,13 @@ function Profile() {
     if (auth.isLoggedIn()) {
       try {
         setIsLoading(true);
-        
+
         // Initialize form fields with user data
-        setTempUsername(auth.username || '');
-        setTempPronouns(auth.pronouns || '');
-        setTempDescription(auth.description || '');
+        setTempUsername(auth.username || "");
+        setTempPronouns(auth.pronouns || "");
+        setTempDescription(auth.description || "");
         setProfilePicture(auth.profilePicture || defaultProfileImage);
-        
+
         // Fetch decks from API
         try {
           const recentDecksResponse = await getRecentDecks();
@@ -55,21 +68,27 @@ function Profile() {
           if (recentDecksResponse && recentDecksResponse.decks) {
             setRecentDecks(recentDecksResponse.decks);
           } else {
-            console.warn('Recent decks response is missing "decks" array:', recentDecksResponse);
+            console.warn(
+              'Recent decks response is missing "decks" array:',
+              recentDecksResponse,
+            );
           }
 
           if (favoriteDecksResponse && favoriteDecksResponse.decks) {
             setFavoriteDecks(favoriteDecksResponse.decks);
           } else {
-            console.warn('Favorite decks response is missing "decks" array:', favoriteDecksResponse);
+            console.warn(
+              'Favorite decks response is missing "decks" array:',
+              favoriteDecksResponse,
+            );
           }
         } catch (error) {
-          console.error('Error fetching decks:', error);
-          setErrorMessage('Failed to load decks. Please try again later.');
+          console.error("Error fetching decks:", error);
+          setErrorMessage("Failed to load decks. Please try again later.");
         }
       } catch (error) {
-        console.error('Error loading profile:', error);
-        setErrorMessage('Failed to load profile. Please try again later.');
+        console.error("Error loading profile:", error);
+        setErrorMessage("Failed to load profile. Please try again later.");
       } finally {
         setIsLoading(false);
       }
@@ -82,21 +101,21 @@ function Profile() {
     if (!file) return;
 
     // Check file type
-    const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
+    const validTypes = ["image/jpeg", "image/png", "image/gif"];
     if (!validTypes.includes(file.type)) {
-      setErrorMessage('Please select a valid image file (JPEG, PNG, GIF)');
+      setErrorMessage("Please select a valid image file (JPEG, PNG, GIF)");
       return;
     }
 
     // Check file size (max 5MB)
     const maxSize = 5 * 1024 * 1024; // 5MB in bytes
     if (file.size > maxSize) {
-      setErrorMessage('Image size should be less than 5MB');
+      setErrorMessage("Image size should be less than 5MB");
       return;
     }
 
     setIsUploading(true);
-    
+
     // Read and set the image
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -104,7 +123,7 @@ function Profile() {
       setIsUploading(false);
     };
     reader.onerror = () => {
-      setErrorMessage('Error reading file');
+      setErrorMessage("Error reading file");
       setIsUploading(false);
     };
     reader.readAsDataURL(file);
@@ -113,38 +132,40 @@ function Profile() {
   // Handle saving profile changes
   const handleSaveProfile = async () => {
     setIsLoading(true);
-    setErrorMessage('');
-    setSuccessMessage('');
-    
+    setErrorMessage("");
+    setSuccessMessage("");
+
     // Validate inputs
     if (tempUsername().length < 3) {
-      setErrorMessage('Username must be at least 3 characters');
+      setErrorMessage("Username must be at least 3 characters");
       setIsLoading(false);
       return;
     }
-    
+
     try {
       // Prepare profile data
       const profileData = {
         username: tempUsername(),
         pronouns: tempPronouns(),
         description: tempDescription(),
-        profilePicture: profilePicture()
+        profilePicture: profilePicture(),
       };
-      
+
       // Update profile through API
       await auth.updateProfile(profileData);
-      
+
       setIsEditingProfile(false);
-      setSuccessMessage('Profile updated successfully!');
-      
+      setSuccessMessage("Profile updated successfully!");
+
       // Clear success message after 3 seconds
       setTimeout(() => {
-        setSuccessMessage('');
+        setSuccessMessage("");
       }, 3000);
     } catch (error) {
-      console.error('Error updating profile:', error);
-      setErrorMessage(error.message || 'Failed to update profile. Please try again.');
+      console.error("Error updating profile:", error);
+      setErrorMessage(
+        error.message || "Failed to update profile. Please try again.",
+      );
     } finally {
       setIsLoading(false);
     }
@@ -153,57 +174,60 @@ function Profile() {
   // Handle password change
   const handleChangePassword = async () => {
     setIsLoading(true);
-    setPasswordError('');
-    setErrorMessage('');
-    setSuccessMessage('');
-    
+    setPasswordError("");
+    setErrorMessage("");
+    setSuccessMessage("");
+
     // Validate password inputs
     if (!currentPassword()) {
-      setPasswordError('Current password is required');
+      setPasswordError("Current password is required");
       setIsLoading(false);
       return;
     }
 
     if (!newPassword()) {
-      setPasswordError('New password is required');
+      setPasswordError("New password is required");
       setIsLoading(false);
       return;
     }
 
     if (newPassword().length < 5) {
-      setPasswordError('New password must be at least 5 characters');
+      setPasswordError("New password must be at least 5 characters");
       setIsLoading(false);
       return;
     }
 
     if (newPassword() !== confirmPassword()) {
-      setPasswordError('Passwords do not match');
+      setPasswordError("Passwords do not match");
       setIsLoading(false);
       return;
     }
 
     try {
       // Call password change API
-      await auth.apiCall('/profile/password', 'PUT', {
+      await auth.apiCall("/profile/password", "PUT", {
         currentPassword: currentPassword(),
-        newPassword: newPassword()
+        newPassword: newPassword(),
       });
-      
+
       // Reset form and show success message
       setIsChangingPassword(false);
-      setCurrentPassword('');
-      setNewPassword('');
-      setConfirmPassword('');
-      setPasswordError('');
-      setSuccessMessage('Password changed successfully!');
-      
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      setPasswordError("");
+      setSuccessMessage("Password changed successfully!");
+
       // Clear success message after 3 seconds
       setTimeout(() => {
-        setSuccessMessage('');
+        setSuccessMessage("");
       }, 3000);
     } catch (error) {
-      console.error('Error changing password:', error);
-      setPasswordError(error.message || 'Failed to change password. Please check your current password.');
+      console.error("Error changing password:", error);
+      setPasswordError(
+        error.message ||
+          "Failed to change password. Please check your current password.",
+      );
     } finally {
       setIsLoading(false);
     }
@@ -219,116 +243,117 @@ function Profile() {
       <div class={styles.profileContainer}>
         {/* Success and Error Messages */}
         {successMessage() && (
-          <div class={styles.successMessage}>
-            {successMessage()}
-          </div>
+          <div class={styles.successMessage}>{successMessage()}</div>
         )}
-        
+
         {errorMessage() && (
-          <div class={styles.errorMessage}>
-            {errorMessage()}
-          </div>
+          <div class={styles.errorMessage}>{errorMessage()}</div>
         )}
 
         {/* Profile Section */}
         <div class={styles.profileFrame}>
           {/* Profile Picture */}
           <div class={styles.fotoProfile}>
-            <img 
-              src={profilePicture()} 
-              alt="Profile" 
-              onClick={() => !isEditingProfile() && setIsEditingProfile(true)} 
-              style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" 
+            <img
+              src={profilePicture()}
+              alt="Profile"
+              onClick={() => !isEditingProfile() && setIsEditingProfile(true)}
+              style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;"
             />
           </div>
 
           {/* Profile Information */}
           <div class={styles.profileInfo}>
             {/* Show either profile view or edit mode */}
-            <Show when={!isEditingProfile()} fallback={
-              <div class={styles.profileEditForm}>
-                <h2>Edit Profile</h2>
-                
-                <div class={styles.formGroup}>
-                  <label>Username</label>
-                  <input 
-                    type="text" 
-                    value={tempUsername()} 
-                    onInput={(e) => setTempUsername(e.target.value)}
-                    maxLength={20}
-                  />
+            <Show
+              when={!isEditingProfile()}
+              fallback={
+                <div class={styles.profileEditForm}>
+                  <h2>Edit Profile</h2>
+
+                  <div class={styles.formGroup}>
+                    <label>Username</label>
+                    <input
+                      type="text"
+                      value={tempUsername()}
+                      onInput={(e) => setTempUsername(e.target.value)}
+                      maxLength={20}
+                    />
+                  </div>
+
+                  <div class={styles.formGroup}>
+                    <label>Pronouns</label>
+                    <input
+                      type="text"
+                      value={tempPronouns()}
+                      onInput={(e) => setTempPronouns(e.target.value)}
+                      maxLength={20}
+                    />
+                  </div>
+
+                  <div class={styles.formGroup}>
+                    <label>Description</label>
+                    <textarea
+                      value={tempDescription()}
+                      onInput={(e) => setTempDescription(e.target.value)}
+                      rows={4}
+                    />
+                  </div>
+
+                  <div class={styles.formGroup}>
+                    <label>Profile Picture</label>
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/gif"
+                      onChange={handleProfilePictureChange}
+                      disabled={isUploading()}
+                    />
+                    {isUploading() && <span>Uploading...</span>}
+                  </div>
+
+                  <div class={styles.profileEditActions}>
+                    <button
+                      class={styles.saveProfileButton}
+                      onClick={handleSaveProfile}
+                      disabled={isLoading()}
+                    >
+                      {isLoading() ? "Saving..." : "Save"}
+                    </button>
+                    <button
+                      class={styles.cancelButton}
+                      onClick={() => {
+                        setIsEditingProfile(false);
+                        setTempUsername(auth.username);
+                        setTempPronouns(auth.pronouns);
+                        setTempDescription(auth.description);
+                        setProfilePicture(
+                          auth.profilePicture || defaultProfileImage,
+                        );
+                      }}
+                      disabled={isLoading()}
+                    >
+                      Cancel
+                    </button>
+                  </div>
                 </div>
-                
-                <div class={styles.formGroup}>
-                  <label>Pronouns</label>
-                  <input 
-                    type="text" 
-                    value={tempPronouns()} 
-                    onInput={(e) => setTempPronouns(e.target.value)}
-                    maxLength={20}
-                  />
-                </div>
-                
-                <div class={styles.formGroup}>
-                  <label>Description</label>
-                  <textarea 
-                    value={tempDescription()} 
-                    onInput={(e) => setTempDescription(e.target.value)}
-                    rows={4}
-                  />
-                </div>
-                
-                <div class={styles.formGroup}>
-                  <label>Profile Picture</label>
-                  <input 
-                    type="file" 
-                    accept="image/jpeg,image/png,image/gif" 
-                    onChange={handleProfilePictureChange}
-                    disabled={isUploading()} 
-                  />
-                  {isUploading() && <span>Uploading...</span>}
-                </div>
-                
-                <div class={styles.profileEditActions}>
-                  <button 
-                    class={styles.saveProfileButton} 
-                    onClick={handleSaveProfile}
-                    disabled={isLoading()}
-                  >
-                    {isLoading() ? 'Saving...' : 'Save'}
-                  </button>
-                  <button 
-                    class={styles.cancelButton} 
-                    onClick={() => {
-                      setIsEditingProfile(false);
-                      setTempUsername(auth.username);
-                      setTempPronouns(auth.pronouns);
-                      setTempDescription(auth.description);
-                      setProfilePicture(auth.profilePicture || defaultProfileImage);
-                    }}
-                    disabled={isLoading()}
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            }>
+              }
+            >
               {/* Profile View Mode */}
               <div class={styles.profileDetails}>
                 <h2>{auth.username}</h2>
                 <p class={styles.pronouns}>{auth.pronouns}</p>
                 <p class={styles.description}>{auth.description}</p>
-                
+
                 <div class={styles.profileActions}>
-                  <button 
-                    class={styles.editProfileButton} 
+                  <button
+                    class={styles.editProfileButton}
                     onClick={() => setIsEditingProfile(true)}
                     disabled={isLoading()}
                   >
                     Edit Profile
                   </button>
-                  <button 
-                    class={styles.changePasswordButton} 
+                  <button
+                    class={styles.changePasswordButton}
                     onClick={() => setIsChangingPassword(true)}
                     disabled={isLoading()}
                   >
@@ -339,60 +364,60 @@ function Profile() {
             </Show>
           </div>
         </div>
-        
+
         {/* Password Change Modal */}
         <Show when={isChangingPassword()}>
           <div class={styles.passwordChangeModal}>
             <div class={styles.modalContent}>
               <h2>Change Password</h2>
-              
+
               <div class={styles.formGroup}>
                 <label>Current Password</label>
-                <input 
-                  type="password" 
-                  value={currentPassword()} 
+                <input
+                  type="password"
+                  value={currentPassword()}
                   onInput={(e) => setCurrentPassword(e.target.value)}
                 />
               </div>
-              
+
               <div class={styles.formGroup}>
                 <label>New Password</label>
-                <input 
-                  type="password" 
-                  value={newPassword()} 
+                <input
+                  type="password"
+                  value={newPassword()}
                   onInput={(e) => setNewPassword(e.target.value)}
                 />
               </div>
-              
+
               <div class={styles.formGroup}>
                 <label>Confirm New Password</label>
-                <input 
-                  type="password" 
-                  value={confirmPassword()} 
+                <input
+                  type="password"
+                  value={confirmPassword()}
                   onInput={(e) => setConfirmPassword(e.target.value)}
                 />
               </div>
-              
+
               {passwordError() && (
                 <div class={styles.errorMessage}>{passwordError()}</div>
               )}
-              
+
               <div class={styles.passwordChangeActions}>
-                <button 
-                  class={styles.savePasswordButton} 
+                <button
+                  class={styles.savePasswordButton}
                   onClick={handleChangePassword}
                   disabled={isLoading()}
                 >
-                  {isLoading() ? 'Changing...' : 'Change Password'}
+                  {isLoading() ? "Changing..." : "Change Password"}
                 </button>
-                <button 
-                  class={styles.cancelButton} 
+                <button
+                  class={styles.cancelButton}
                   onClick={() => {
                     setIsChangingPassword(false);
-                    setCurrentPassword('');
-                    setNewPassword('');
-                    setConfirmPassword('');
-                    setPasswordError('');
+                    setCurrentPassword("");
+                    setNewPassword("");
+                    setConfirmPassword("");
+                    setPasswordError("");
                   }}
                   disabled={isLoading()}
                 >
@@ -402,43 +427,56 @@ function Profile() {
             </div>
           </div>
         </Show>
-        
+
         {/* Decks Section */}
         <div class={styles.deckSection}>
           <div class={styles.deckButtonFrame}>
-            <button 
-              class={`${styles.deckButton} ${activeButton() === 'recentDecks' ? styles.activeButton : styles.inactiveButton}`} 
-              onClick={() => toggleDecks('recentDecks')}
+            <button
+              class={`${styles.deckButton} ${activeButton() === "recentDecks" ? styles.activeButton : styles.inactiveButton}`}
+              onClick={() => toggleDecks("recentDecks")}
             >
               Recent Decks
             </button>
-            <button 
-              class={`${styles.deckButton} ${activeButton() === 'favoriteDecks' ? styles.activeButton : styles.inactiveButton}`} 
-              onClick={() => toggleDecks('favoriteDecks')}
+            <button
+              class={`${styles.deckButton} ${activeButton() === "favoriteDecks" ? styles.activeButton : styles.inactiveButton}`}
+              onClick={() => toggleDecks("favoriteDecks")}
             >
               Favorite Decks
             </button>
           </div>
 
           <div class={styles.deckList}>
-            <Show when={activeButton() === 'recentDecks'} fallback={
-              <div class={styles.favoriteDeck}>
-                {favoriteDecks().length > 0 ? (
-                  <For each={favoriteDecks()}>
-                    {(deck) => (
-                      <DeckCard deck={deck} />
-                    )}
-                  </For>
-                ) : (
-                  <p class={styles.noDeckMessage}>No favorite decks yet</p>
-                )}
-              </div>
-            }>
+            <Show
+              when={activeButton() === "recentDecks"}
+              fallback={
+                <div class={styles.favoriteDeck}>
+                  {favoriteDecks().length > 0 ? (
+                    <For each={favoriteDecks()}>
+                      {(deck) => (
+                        <div
+                          onClick={() => handleEditDeck(deck)}
+                          style={{ cursor: "pointer" }}
+                        >
+                          <DeckCard deck={deck} />
+                        </div>
+                      )}
+                    </For>
+                  ) : (
+                    <p class={styles.noDeckMessage}>No favorite decks yet</p>
+                  )}
+                </div>
+              }
+            >
               <div class={styles.recentDeck}>
                 {recentDecks().length > 0 ? (
                   <For each={recentDecks()}>
                     {(deck) => (
-                      <DeckCard deck={deck} />
+                      <div
+                        onClick={() => handleEditDeck(deck)}
+                        style={{ cursor: "pointer" }}
+                      >
+                        <DeckCard deck={deck} />
+                      </div>
                     )}
                   </For>
                 ) : (
@@ -451,6 +489,7 @@ function Profile() {
         {/* End of deck section */}
       </div>
     </>
-  );}
+  );
+}
 
 export default Profile;

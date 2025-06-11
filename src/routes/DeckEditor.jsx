@@ -20,8 +20,7 @@ import {
 
 import {
   getCards,
-  searchCards,
-  getCardById as getCardDetailsById
+  getCardById as getCardDetailsById // Renamed
 } from '../services/cardService';
 
 const MAX_DECK_CARDS = 60;
@@ -69,33 +68,32 @@ function DeckEditor() {
   };
 
   // --- Data Fetching (Resources) ---
-  const [searchResultsData, { refetch: refetchSearchResults }] = createResource(
-    () => ({ query: searchQuery(), page: searchPage() }),
-    async ({ query, page }) => {
-      setIsSaving(true);
-      try {
-        let response;
-        if (query.trim()) {
-          response = await searchCards({ name: query.trim(), page, pageSize: CARDS_PER_SEARCH_PAGE });
-        } else {
-          response = await getCards(page, CARDS_PER_SEARCH_PAGE);
-        }
-        setSearchTotalPages(response.totalPages || 1);
-        return response.data || [];
-      } catch (err) {
-        console.error("Error fetching search results:", err);
-        showMessage(err.message || "Failed to fetch cards. Please try again.", 'error');
-        return [];
-      } finally {
-        setIsSaving(false);
-      }
+
+  // Resource for fetching all cards for searching
+  const [allCardsData] = createResource(getCards);
+
+  const filteredCards = () => {
+    const allCards = allCardsData()?.data || [];
+    const term = searchQuery().trim().toLowerCase();
+    if (!term) {
+        return allCards;
     }
-  );
+    return allCards.filter(card => 
+        card.name.toLowerCase().includes(term)
+    );
+  };
+
+  const paginatedSearchResults = () => {
+    const cards = filteredCards();
+    const startIndex = (searchPage() - 1) * CARDS_PER_SEARCH_PAGE;
+    const paginated = cards.slice(startIndex, startIndex + CARDS_PER_SEARCH_PAGE);
+    setSearchTotalPages(Math.ceil(cards.length / CARDS_PER_SEARCH_PAGE));
+    return paginated;
+  };
 
   // --- Deck Data Loading ---
   onMount(() => {
     loadDeckData();
-    refetchSearchResults();
   });
 
   createEffect(() => {
@@ -104,7 +102,6 @@ function DeckEditor() {
       loadDeckData();
       setSearchQuery('');
       setSearchPage(1);
-      refetchSearchResults();
     }
   });
 
@@ -132,6 +129,13 @@ function DeckEditor() {
     } finally {
       setIsLoadingDeck(false);
     }
+  };
+
+  // --- Search Handlers ---
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    // Search is reactive, this just prevents form submission
+    setSearchPage(1);
   };
 
   // --- Card Management Functions ---
@@ -281,18 +285,14 @@ function DeckEditor() {
     } finally {
       setIsSaving(false);
     }
+    
   };
 
-  // --- Search Handlers ---
-  const handleSearchSubmit = (e) => {
-    e.preventDefault();
-    setSearchPage(1);
-    refetchSearchResults();
-  };
 
   const handleSearchPageChange = (page) => {
-    setSearchPage(page);
-    refetchSearchResults();
+    if (page > 0 && page <= searchTotalPages()) {
+      setSearchPage(page);
+    }
   };
 
   // --- Drag and Drop Handlers ---
@@ -562,14 +562,14 @@ function DeckEditor() {
                   </button>
                 </form>
 
-                <Show when={!searchResultsData.loading} fallback={
+                <Show when={!allCardsData.loading} fallback={
                   <div class={styles.loadingContainer}>
                     <div class={styles.loadingSpinner}></div>
                     <p>Searching cards...</p>
                   </div>
                 }>
                   <div class={styles.searchResults}>
-                    <For each={searchResultsData()} fallback={
+                    <For each={paginatedSearchResults()} fallback={
                       <p class={styles.noCardSelected}>No cards found.</p>
                     }>
                       {(card) => (

@@ -18,33 +18,33 @@ const ITEMS_PER_PAGE = 9; // Number of decks to display per page
 function DeckList() {
   const [searchTerm, setSearchTerm] = createSignal('');
   const [currentPage, setCurrentPage] = createSignal(1);
-  const [searchTrigger, setSearchTrigger] = createSignal(0); // Used to re-trigger resource
+  const [allDecks, setAllDecks] = createSignal([]);
   const navigate = useNavigate();
-  const { isLoggedIn, token } = useAuth(); // Get token from auth context
+  const { isLoggedIn } = useAuth();
 
-  // Resource to fetch decks based on current page and search term
-  const [decksData] = createResource(() => {
-    // Depend on currentPage and searchTrigger to re-fetch
-    const page = currentPage();
-    const search = searchTerm();
-    return { page, search };
-  }, async ({ page, search }) => {
+  const [decksData] = createResource(searchTerm, async (search) => {
     try {
-      const response = await getDecks(page, ITEMS_PER_PAGE, search);
-      // The API should return { decks: [...], totalPages: N }
-      return response;
+      const response = await getDecks(search);
+      setAllDecks(response.decks || []);
+      return response.decks || [];
     } catch (error) {
       console.error('Error fetching decks:', error);
-      // Re-throw to be caught by Solid's error handling for resource
       throw new Error(error.message || 'Failed to load decks.');
     }
   });
 
-  // Handle pagination and filtering logic
-  const totalPages = () => decksData()?.totalPages || 1;
+  const filteredDecks = () => {
+    const search = searchTerm().toLowerCase();
+    if (!search) return allDecks();
+    return allDecks().filter(deck => deck.name.toLowerCase().includes(search));
+  };
 
-  // Derive paginated decks from the resource data
-  const paginatedDecks = () => decksData()?.decks || [];
+  const totalPages = () => Math.ceil(filteredDecks().length / ITEMS_PER_PAGE);
+
+  const paginatedDecks = () => {
+    const startIndex = (currentPage() - 1) * ITEMS_PER_PAGE;
+    return filteredDecks().slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  };
 
   // If not logged in, redirect to login page
   // This check should happen before any authenticated API calls are attempted.
@@ -60,20 +60,13 @@ function DeckList() {
     );
   }
 
-  // Effect to reset current page to 1 whenever the search term changes significantly
   createEffect(() => {
-    // Only reset if decksData has loaded and the search term isn't empty on initial load
-    // This prevents resetting page when component first mounts and search term is empty
-    if (searchTrigger() > 0 && currentPage() !== 1) {
-      setCurrentPage(1);
-    }
+    setCurrentPage(1);
   });
 
   const handleSearch = (e) => {
     e.preventDefault();
-    // Trigger a re-fetch of the resource with the new search term
-    setCurrentPage(1); // Always reset to page 1 on new search
-    setSearchTrigger(prev => prev + 1); // Increment to trigger resource re-fetch
+    setSearchTerm(e.currentTarget.querySelector('input').value);
   };
 
   const handlePageChange = (page) => {

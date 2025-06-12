@@ -1,12 +1,12 @@
 /**
- * Service for interacting with the Pokemon TCG card API endpoints
+ * Layanan untuk berinteraksi dengan endpoint API kartu Pokemon TCG
  */
 
 const API_URL = 'http://localhost:3001/api';
 
 /**
- * Get all cards
- * @returns {Promise} - Promise with card data
+ * Mendapatkan semua kartu
+ * @returns {Promise} - Promise dengan data kartu
  */
 export async function getCards() {
   const response = await fetch(`${API_URL}/cards`, {
@@ -22,11 +22,11 @@ export async function getCards() {
 }
 
 /**
- * Get cards by set ID
- * @param {string} setId - Set ID (e.g. 'sm1', 'sm2')
- * @param {number} page - Page number (starting from 1)
- * @param {number} pageSize - Number of cards per page
- * @returns {Promise} - Promise with card data
+ * Mendapatkan kartu berdasarkan ID set
+ * @param {string} setId - ID Set (contoh: 'sm1', 'sm2')
+ * @param {number} page - Nomor halaman (dimulai dari 1)
+ * @param {number} pageSize - Jumlah kartu per halaman
+ * @returns {Promise} - Promise dengan data kartu
  */
 export async function getCardsBySet(setId, page = 1, pageSize = 20) {
   const response = await fetch(`${API_URL}/cards/set/${setId}?page=${page}&pageSize=${pageSize}`, {
@@ -45,13 +45,13 @@ export async function getCardsBySet(setId, page = 1, pageSize = 20) {
 }
 
 /**
- * Search for cards
- * @param {Object} params - Search parameters
- * @param {string} params.name - Card name
- * @param {string} params.type - Card type
- * @param {string} params.supertype - Card supertype
- * @param {string} params.rarity - Card rarity
- * @returns {Promise} - Promise with card data
+ * Mencari kartu
+ * @param {Object} params - Parameter pencarian
+ * @param {string} params.name - Nama kartu
+ * @param {string} params.type - Tipe kartu
+ * @param {string} params.supertype - Supertipe kartu
+ * @param {string} params.rarity - Kelangkaan kartu
+ * @returns {Promise} - Promise dengan data kartu
  */
 // export async function searchCards(params = {}) {
 //   // Build query string from params
@@ -74,9 +74,9 @@ export async function getCardsBySet(setId, page = 1, pageSize = 20) {
 // }
 
 /**
- * Get a specific card by ID
- * @param {string} cardId - Card ID
- * @returns {Promise} - Promise with card data
+ * Mendapatkan kartu spesifik berdasarkan ID
+ * @param {string} cardId - ID Kartu
+ * @returns {Promise} - Promise dengan data kartu
  */
 export async function getCardById(cardId) {
   const response = await fetch(`${API_URL}/cards/${cardId}`, {

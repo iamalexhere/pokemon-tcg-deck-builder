@@ -1,13 +1,13 @@
-// Service for interacting with the Pokemon TCG deck API endpoints
+// Layanan untuk berinteraksi dengan endpoint API deck Pokemon TCG
 const API_URL = 'http://localhost:3001/api';
 
 /**
- * Helper function to make authenticated API calls with proper error handling.
- * @param {string} endpoint - API endpoint relative to API_URL.
- * @param {string} method - HTTP method (GET, POST, PUT, DELETE).
- * @param {object} data - Request body data (for POST/PUT).
- * @returns {Promise<object>} - Response data from the API.
- * @throws {Error} - Throws an error if the API call fails or token is missing.
+ * Fungsi pembantu untuk membuat panggilan API terautentikasi dengan penanganan kesalahan yang tepat.
+ * @param {string} endpoint - Endpoint API relatif terhadap API_URL.
+ * @param {string} method - Metode HTTP (GET, POST, PUT, DELETE).
+ * @param {object} data - Data body request (untuk POST/PUT).
+ * @returns {Promise<object>} - Data respons dari API.
+ * @throws {Error} - Melempar error jika panggilan API gagal atau token tidak ada.
  */
 async function authenticatedApiCall(endpoint, method = 'GET', data = null) {
   const tokenJson = localStorage.getItem('token');
@@ -45,9 +45,9 @@ async function authenticatedApiCall(endpoint, method = 'GET', data = null) {
 }
 
 /**
- * Get all decks for the authenticated user with an optional search term.
- * @param {string} search - Search term for deck names.
- * @returns {Promise<object>} - Object containing an array of decks.
+ * Mendapatkan semua deck untuk pengguna terautentikasi dengan kata pencarian opsional.
+ * @param {string} search - Kata pencarian untuk nama deck.
+ * @returns {Promise<object>} - Objek yang berisi array deck.
  */
 export async function getDecks(search = '') {
   const queryParams = new URLSearchParams();
@@ -59,10 +59,10 @@ export async function getDecks(search = '') {
 }
 
 /**
- * Get a specific deck by ID for the authenticated user.
- * @param {number} deckId - The ID of the deck to retrieve.
- * @param {boolean} includeCardDetails - Whether to include full card details in the response.
- * @returns {Promise<object>} - Deck data.
+ * Mendapatkan deck spesifik berdasarkan ID untuk pengguna terautentikasi.
+ * @param {number} deckId - ID deck yang akan diambil.
+ * @param {boolean} includeCardDetails - Apakah akan menyertakan detail kartu lengkap dalam respons.
+ * @returns {Promise<object>} - Data deck.
  */
 export async function getDeckById(deckId, includeCardDetails = false) {
   const queryParams = new URLSearchParams();
@@ -74,90 +74,90 @@ export async function getDeckById(deckId, includeCardDetails = false) {
 }
 
 /**
- * Create a new deck for the authenticated user.
- * @param {string} name - The name of the new deck.
- * @param {string} [imageUrl=''] - Optional URL for the deck's image.
- * @returns {Promise<object>} - Created deck data.
+ * Membuat deck baru untuk pengguna terautentikasi.
+ * @param {string} name - Nama deck baru.
+ * @param {string} [imageUrl=''] - URL opsional untuk gambar deck.
+ * @returns {Promise<object>} - Data deck yang dibuat.
  */
 export async function createDeck(name, imageUrl = '') {
   return await authenticatedApiCall('/decks', 'POST', { name, imageUrl });
 }
 
 /**
- * Update an existing deck for the authenticated user.
- * @param {number} deckId - The ID of the deck to update.
- * @param {object} deckData - Object containing updated deck properties (name, imageUrl, cards).
- * @param {string} [deckData.name] - New name of the deck.
- * @param {string} [deckData.imageUrl] - New image URL for the deck.
- * @param {Array<object>} [deckData.cards] - Array of cards in the deck, e.g., [{ id: 'card-id', count: 1 }].
- * @returns {Promise<object>} - Updated deck data.
+ * Memperbarui deck yang ada untuk pengguna terautentikasi.
+ * @param {number} deckId - ID deck yang akan diperbarui.
+ * @param {object} deckData - Objek yang berisi properti deck yang diperbarui (nama, imageUrl, kartu).
+ * @param {string} [deckData.name] - Nama baru deck.
+ * @param {string} [deckData.imageUrl] - URL gambar baru untuk deck.
+ * @param {Array<object>} [deckData.cards] - Array kartu dalam deck, contoh: [{ id: 'card-id', count: 1 }].
+ * @returns {Promise<object>} - Data deck yang diperbarui.
  */
 export async function updateDeck(deckId, deckData) {
   return await authenticatedApiCall(`/decks/${deckId}`, 'PUT', deckData);
 }
 
 /**
- * Delete a deck for the authenticated user.
- * @param {number} deckId - The ID of the deck to delete.
- * @returns {Promise<object>} - Success message.
+ * Menghapus deck untuk pengguna terautentikasi.
+ * @param {number} deckId - ID deck yang akan dihapus.
+ * @returns {Promise<object>} - Pesan sukses.
  */
 export async function deleteDeck(deckId) {
   return await authenticatedApiCall(`/decks/${deckId}`, 'DELETE');
 }
 
 /**
- * Get the most recently modified decks for the authenticated user.
- * @returns {Promise<object>} - Object containing an array of recent decks.
+ * Mendapatkan deck yang baru-baru ini dimodifikasi untuk pengguna terautentikasi.
+ * @returns {Promise<object>} - Objek yang berisi array deck terbaru.
  */
 export async function getRecentDecks() {
   return await authenticatedApiCall('/decks/recent', 'GET');
 }
 
 /**
- * Get favorite decks for the authenticated user.
- * @returns {Promise<object>} - Object containing an array of favorite decks.
+ * Mendapatkan deck favorit untuk pengguna terautentikasi.
+ * @returns {Promise<object>} - Objek yang berisi array deck favorit.
  */
 export async function getFavoriteDecks() {
   return await authenticatedApiCall('/decks/favorites', 'GET');
 }
 
 /**
- * Add or remove a deck from favorites for the authenticated user.
- * @param {number} deckId - The ID of the deck.
- * @param {boolean} favorite - True to add to favorites, false to remove.
- * @returns {Promise<object>} - Success message and new favorite status.
+ * Menambah atau menghapus deck dari favorit untuk pengguna terautentikasi.
+ * @param {number} deckId - ID deck.
+ * @param {boolean} favorite - True untuk menambahkan ke favorit, false untuk menghapus.
+ * @returns {Promise<object>} - Pesan sukses dan status favorit baru.
  */
 export async function addRemoveFavoriteDeck(deckId, favorite) {
   return await authenticatedApiCall(`/decks/${deckId}/favorite`, 'POST', { favorite });
 }
 
 /**
- * Add a card to a deck or update its count for the authenticated user.
- * @param {number} deckId - The ID of the deck.
- * @param {string} cardId - The ID of the card to add/update.
- * @param {number} count - The number of copies of the card (between 1 and 4).
- * @returns {Promise<object>} - Added/updated card details.
+ * Menambah kartu ke deck atau memperbarui jumlahnya untuk pengguna terautentikasi.
+ * @param {number} deckId - ID deck.
+ * @param {string} cardId - ID kartu yang akan ditambah/diperbarui.
+ * @param {number} count - Jumlah salinan kartu (antara 1 dan 4).
+ * @returns {Promise<object>} - Detail kartu yang ditambah/diperbarui.
  */
 export async function addCardToDeck(deckId, cardId, count = 1) {
   return await authenticatedApiCall(`/decks/${deckId}/cards`, 'POST', { cardId, count });
 }
 
 /**
- * Remove a card from a deck for the authenticated user.
- * @param {number} deckId - The ID of the deck.
- * @param {string} cardId - The ID of the card to remove.
- * @returns {Promise<object>} - Success message and removed card ID.
+ * Menghapus kartu dari deck untuk pengguna terautentikasi.
+ * @param {number} deckId - ID deck.
+ * @param {string} cardId - ID kartu yang akan dihapus.
+ * @returns {Promise<object>} - Pesan sukses dan ID kartu yang dihapus.
  */
 export async function removeCardFromDeck(deckId, cardId) {
   return await authenticatedApiCall(`/decks/${deckId}/cards/${cardId}`, 'DELETE');
 }
 
 /**
- * Update the count of a specific card within a deck for the authenticated user.
- * @param {number} deckId - The ID of the deck.
- * @param {string} cardId - The ID of the card.
- * @param {number} count - The new count of the card (between 1 and 4).
- * @returns {Promise<object>} - Updated card details.
+ * Memperbarui jumlah kartu tertentu dalam deck untuk pengguna terautentikasi.
+ * @param {number} deckId - ID deck.
+ * @param {string} cardId - ID kartu.
+ * @param {number} count - Jumlah baru kartu (antara 1 dan 4).
+ * @returns {Promise<object>} - Detail kartu yang diperbarui.
  */
 export async function updateCardCountInDeck(deckId, cardId, count) {
   return await authenticatedApiCall(`/decks/${deckId}/cards/${cardId}`, 'PUT', { count });

@@ -1,17 +1,17 @@
-// Authentication service for interacting with the server API
+// Layanan autentikasi untuk berinteraksi dengan server API
 const API_URL = 'http://localhost:3001/api';
 
 /**
- * Service for handling authentication-related API calls
+ * Layanan untuk menangani panggilan API terkait autentikasi
  */
 export const useAuthService = () => {
   /**
-   * Make an API call with proper error handling
-   * @param {string} endpoint - API endpoint
-   * @param {string} method - HTTP method
-   * @param {object} data - Request body data
-   * @param {string} token - Auth token
-   * @returns {Promise<object>} - Response data
+   * Membuat panggilan API dengan penanganan kesalahan yang tepat
+   * @param {string} endpoint - Endpoint API
+   * @param {string} method - Metode HTTP
+   * @param {object} data - Data body request
+   * @param {string} token - Token autentikasi
+   * @returns {Promise<object>} - Data respons
    */
   const apiCall = async (endpoint, method = 'GET', data = null, token = null) => {
     const headers = {
@@ -44,37 +44,37 @@ export const useAuthService = () => {
   };
 
   /**
-   * Login user with username and password
-   * @param {object} credentials - User credentials
-   * @returns {Promise<object>} - Token and user data
+   * Login pengguna dengan username dan password
+   * @param {object} credentials - Kredensial pengguna
+   * @returns {Promise<object>} - Token dan data pengguna
    */
   const login = async (credentials) => {
     return await apiCall('/login', 'POST', credentials);
   };
 
   /**
-   * Register a new user
-   * @param {object} userData - User registration data
-   * @returns {Promise<object>} - Registration response
+   * Mendaftarkan pengguna baru
+   * @param {object} userData - Data registrasi pengguna
+   * @returns {Promise<object>} - Respons registrasi
    */
   const register = async (userData) => {
     return await apiCall('/register', 'POST', userData);
   };
 
   /**
-   * Get user profile data
-   * @param {string} token - Auth token
-   * @returns {Promise<object>} - User profile data
+   * Mendapatkan data profil pengguna
+   * @param {string} token - Token autentikasi
+   * @returns {Promise<object>} - Data profil pengguna
    */
   const getProfile = async (token) => {
     return await apiCall('/profile', 'GET', null, token);
   };
 
   /**
-   * Update user profile
-   * @param {object} profileData - Profile data to update
-   * @param {string} token - Auth token
-   * @returns {Promise<object>} - Updated profile data
+   * Memperbarui profil pengguna
+   * @param {object} profileData - Data profil yang akan diperbarui
+   * @param {string} token - Token autentikasi
+   * @returns {Promise<object>} - Data profil yang telah diperbarui
    */
   const updateProfile = async (profileData, token) => {
     return await apiCall('/profile', 'PUT', profileData, token);

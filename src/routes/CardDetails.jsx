@@ -1,37 +1,39 @@
 import { createSignal, createEffect, onMount, Show } from "solid-js";
 import cardStyles from "./carddetail.module.css";
-import PLACEHOLDER_IMAGE from "../assets/images/placeholder.jpg"; // Renamed from poke for clarity
+import PLACEHOLDER_IMAGE from "../assets/images/placeholder.jpg"; 
 import { useNavigate, useParams } from "@solidjs/router";
-import { getCardById } from '../services/cardService'; // Import the actual card service
+import { getCardById } from '../services/cardService'; 
 
 function CardDetails() {
   const navigate = useNavigate();
+  // Mengambil parameter `cardId` dari URL.
   const params = useParams();
   const cardId = params.cardId;
   
-  // State for card data and loading state
+  // State untuk menyimpan data kartu, status loading, dan pesan error.
   const [cardData, setCardData] = createSignal(null);
   const [isLoading, setIsLoading] = createSignal(true);
   const [error, setError] = createSignal(null);
   
-  // Fetch card data when component mounts or cardId changes
+  // Memanggil fungsi fetch data saat komponen pertama kali di-mount.
   onMount(() => {
     fetchCardData();
   });
   
+  // `createEffect` untuk memuat ulang data jika `cardId` dari URL berubah.
   createEffect(() => {
-    // This will re-run when cardId changes
-    if (params.cardId && params.cardId !== cardData()?.id) { // Only re-fetch if ID actually changed
+    if (params.cardId && params.cardId !== cardData()?.id) { 
       fetchCardData();
     }
   });
   
-  // Function to fetch card data based on cardId
+  // Fungsi untuk mengambil data detail kartu dari API.
   const fetchCardData = async () => {
     setIsLoading(true);
     setError(null);
-    setCardData(null); // Clear previous data
+    setCardData(null); 
     
+    // Blok try-catch untuk menangani proses fetch dan kemungkinan error.
     try {
       const response = await getCardById(cardId);
       if (response && response.data) {
@@ -41,20 +43,21 @@ function CardDetails() {
       }
     } catch (err) {
       console.error('Error fetching card data:', err);
+      // State management untuk error handling.
       setError(err.message || 'Failed to load card data. Please check your network connection.');
     } finally {
+      // State management untuk menghentikan status loading.
       setIsLoading(false);
     }
   };
 
+  // Handler untuk tombol kembali, mengarahkan pengguna ke halaman daftar kartu.
   const handleBackClick = () => {
-    // Navigate back to the card list page
     navigate('/cardlist');
   };
 
   return (
     <div class={cardStyles.pageContainer}>
-      {/* Back Button */}
       <button class={cardStyles.backButton} onClick={handleBackClick}>
         <svg
           class={cardStyles.backIcon}
@@ -75,15 +78,12 @@ function CardDetails() {
       <div class={cardStyles.showcaseSection}>
         <h2>Card Details: {cardData()?.name || cardId}</h2>
 
-        {/* Loading State */}
+        {/* Conditional rendering untuk menampilkan loading, error, atau data kartu. */}
         <Show when={isLoading()} fallback={
-          // Error State
           <Show when={error()} fallback={
-            // Card Data
             <Show when={cardData()}>
               <div class={cardStyles.card}>
                 <div class={cardStyles.cardContainer}>
-                  {/* Card Image Placeholder */}
                   <div class={cardStyles.imageContainer}>
                     <div class={cardStyles.imagePlaceholder}>
                       <img 
@@ -94,16 +94,13 @@ function CardDetails() {
                     </div>
                   </div>
 
-                  {/* Card Info Panel */}
                   <div class={cardStyles.infoContainer}>
-                    {/* Header */}
                     <div class={cardStyles.cardHeader}>
                       <h3 class={cardStyles.headerTitle}>
                         {cardData().name}
                       </h3>
                     </div>
 
-                    {/* Type and HP Row */}
                     <div class={cardStyles.typeHpRow}>
                       <div class={cardStyles.typeCell}>
                         <span class={cardStyles.subtext1}>Type: {cardData().types?.join(', ') || 'N/A'}</span>
@@ -113,7 +110,6 @@ function CardDetails() {
                       </div>
                     </div>
 
-                    {/* Abilities Section */}
                     {(cardData().attacks || cardData().abilities) && (
                       <div class={cardStyles.abilitiesSection}>
                         {(cardData().attacks || cardData().abilities).map((attack) => (
@@ -142,9 +138,7 @@ function CardDetails() {
                       </div>
                     )}
 
-                    {/* Stats Section */}
                     <div class={cardStyles.statsSection}>
-                      {/* Stats Header */}
                       <div class={cardStyles.statsHeader}>
                         <div class={cardStyles.statHeaderItem}>
                           <span class={`${cardStyles.subtext1} ${cardStyles.statLabel}`}>
@@ -163,7 +157,6 @@ function CardDetails() {
                         </div>
                       </div>
 
-                      {/* Stats Values */}
                       <div class={cardStyles.statsValues}>
                         <div class={cardStyles.statValueItem}>
                           <span
@@ -188,7 +181,6 @@ function CardDetails() {
                         </div>
                       </div>
 
-                      {/* Illustrator */}
                       <div class={cardStyles.illustratorSection}>
                         <span
                           class={`${cardStyles.subtext0} ${cardStyles.illustratorText}`}
@@ -202,6 +194,7 @@ function CardDetails() {
               </div>
             </Show>
           }>
+            {/* Tampilan jika terjadi error saat fetch data. */}
             <div class={cardStyles.errorContainer}>
               <p class={cardStyles.errorMessage}>{error()}</p>
               <button 
@@ -213,6 +206,7 @@ function CardDetails() {
             </div>
           </Show>
         }>
+          {/* Tampilan saat data sedang dimuat. */}
           <div class={cardStyles.loadingContainer}>
             <div class={cardStyles.loadingSpinner}></div>
             <p>Loading card data...</p>

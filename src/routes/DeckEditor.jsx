@@ -5,7 +5,7 @@ import { AiFillHeart, AiOutlineHeart, AiOutlineSearch, AiOutlineMinusCircle, AiO
 import { FaRegularTrashCan } from 'solid-icons/fa';
 
 import styles from './deckeditor.module.css';
-import cardDetailStyles from './carddetail.module.css'; // Import the new styles
+import cardDetailStyles from './carddetail.module.css'; 
 import Pagination from '../components/Pagination';
 import PLACEHOLDER_IMAGE from "../assets/images/placeholder.jpg";
 
@@ -21,7 +21,7 @@ import {
 
 import {
   getCards,
-  getCardById as getCardDetailsById // Renamed
+  getCardById as getCardDetailsById
 } from '../services/cardService';
 
 const MAX_DECK_CARDS = 60;
@@ -29,16 +29,17 @@ const MAX_IDENTICAL_CARDS = 4;
 
 function DeckEditor() {
   const navigate = useNavigate();
+  // Mengambil `deckId` dari parameter URL.
   const params = useParams();
   const deckId = () => parseInt(params.deckId);
 
-  // Deck State
+  // State Management untuk Data Deck.
   const [deckName, setDeckName] = createSignal('');
   const [deckNameInput, setDeckNameInput] = createSignal('');
   const [deckCards, setDeckCards] = createSignal([]);
   const [favoriteDeck, setFavoriteDeck] = createSignal(false);
 
-  // UI State
+  // State Management untuk UI.
   const [selectedCardDetails, setSelectedCardDetails] = createSignal(null);
   const [isLoadingDeck, setIsLoadingDeck] = createSignal(true);
   const [isSaving, setIsSaving] = createSignal(false);
@@ -46,16 +47,16 @@ function DeckEditor() {
   const [message, setMessage] = createSignal('');
   const [messageType, setMessageType] = createSignal('');
 
-  // Card Search State
+  // State Management untuk Pencarian Kartu.
   const [searchQuery, setSearchQuery] = createSignal('');
   const [searchPage, setSearchPage] = createSignal(1);
   const CARDS_PER_SEARCH_PAGE = 12;
 
-  // Drag and Drop State
+  // State Management untuk Drag and Drop.
   const [draggedCard, setDraggedCard] = createSignal(null);
   const [isDraggingOver, setIsDraggingOver] = createSignal(false);
 
-  // --- Utility Functions ---
+  // Fungsi utilitas untuk menampilkan notifikasi.
   const showMessage = (msg, type = 'info', duration = 3000) => {
     setMessage(msg);
     setMessageType(type);
@@ -67,11 +68,10 @@ function DeckEditor() {
     }
   };
 
-  // --- Data Fetching (Resources) ---
-
-  // Resource for fetching all cards for searching
+  // `createResource` untuk mengambil semua kartu dari API untuk fitur pencarian.
   const [allCardsData] = createResource(getCards);
 
+  // State turunan (derived state) untuk memfilter kartu berdasarkan `searchQuery`.
   const filteredCards = () => {
     const allCards = allCardsData()?.data || [];
     const term = searchQuery().trim().toLowerCase();
@@ -85,17 +85,19 @@ function DeckEditor() {
 
   const searchTotalPages = () => Math.ceil(filteredCards().length / CARDS_PER_SEARCH_PAGE);
 
+  // State turunan untuk paginasi hasil pencarian kartu.
   const paginatedSearchResults = () => {
     const cards = filteredCards();
     const startIndex = (searchPage() - 1) * CARDS_PER_SEARCH_PAGE;
     return cards.slice(startIndex, startIndex + CARDS_PER_SEARCH_PAGE);
   };
 
-  // --- Deck Data Loading ---
+  // Memuat data deck saat komponen pertama kali di-mount.
   onMount(() => {
     loadDeckData();
   });
 
+  // Efek untuk memuat ulang data deck jika `deckId` di URL berubah.
   createEffect(() => {
     const currentRouteDeckId = parseInt(params.deckId);
     if (currentRouteDeckId && currentRouteDeckId !== deckId()) {
@@ -105,6 +107,7 @@ function DeckEditor() {
     }
   });
 
+  // Fungsi untuk memuat data deck dari API.
   const loadDeckData = async () => {
     setIsLoadingDeck(true);
     setDeckError(null);
@@ -115,7 +118,7 @@ function DeckEditor() {
       setDeckCards(data.cards || []);
       setFavoriteDeck(data.favorite);
       showMessage('Deck loaded successfully.', 'success');
-    } catch (err) {
+    } catch (err) { // Error handling jika deck tidak ditemukan (mode membuat deck baru).
       console.error("Error loading deck:", err);
       if (err.message.includes('Deck not found')) {
         setDeckName(`New Deck ${deckId()}`);
@@ -131,21 +134,20 @@ function DeckEditor() {
     }
   };
 
-  // --- Search Handlers ---
+  // Handler untuk form pencarian.
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    // Search is reactive, this just prevents form submission
     setSearchPage(1);
   };
 
-  // --- Card Management Functions ---
+  // Fungsi untuk menampilkan detail kartu yang dipilih.
   const displayCardDetails = async (card) => {
     if (!card.details) {
       setIsSaving(true);
       try {
         const fullDetails = await getCardDetailsById(card.id);
         setSelectedCardDetails(fullDetails.data);
-      } catch (err) {
+      } catch (err) { // Error handling saat fetch detail kartu.
         console.error("Error fetching card details:", err);
         showMessage(err.message || "Failed to fetch card details.", 'error');
       } finally {
@@ -156,10 +158,12 @@ function DeckEditor() {
     }
   };
 
+  // Fungsi untuk menambahkan kartu ke dalam deck.
   const addCardToDeck = async (card) => {
     const existingCard = deckCards().find(dc => dc.id === card.id);
     const currentTotalCards = deckCards().reduce((sum, c) => sum + c.count, 0);
 
+    // Validasi jumlah total kartu dalam deck.
     if (currentTotalCards >= MAX_DECK_CARDS) {
       showMessage(`Deck is full! Maximum ${MAX_DECK_CARDS} cards allowed.`, 'warning');
       return;
@@ -168,6 +172,7 @@ function DeckEditor() {
     let newCount = 1;
     if (existingCard) {
       newCount = existingCard.count + 1;
+      // Validasi jumlah kartu identik.
       if (newCount > MAX_IDENTICAL_CARDS) {
         showMessage(`Cannot add more than ${MAX_IDENTICAL_CARDS} copies of a card to the deck.`, 'warning');
         return;
@@ -177,6 +182,7 @@ function DeckEditor() {
     setIsSaving(true);
     try {
       await addCardToDeckApi(deckId(), card.id, newCount);
+      // Memperbarui state `deckCards` secara lokal untuk responsivitas UI.
       setDeckCards(prev => {
         if (existingCard) {
           return prev.map(c => c.id === card.id ? { ...c, count: newCount } : c);
@@ -185,7 +191,7 @@ function DeckEditor() {
         }
       });
       showMessage(`Added ${card.name} to deck.`, 'success', 2000);
-    } catch (err) {
+    } catch (err) { // Error handling saat menambahkan kartu.
       console.error("Error adding card to deck:", err);
       showMessage(err.message || "Failed to add card to deck.", 'error');
     } finally {
@@ -193,6 +199,7 @@ function DeckEditor() {
     }
   };
 
+  // Fungsi untuk menghapus kartu dari deck.
   const removeCardFromDeck = async (cardIdToRemove) => {
     setIsSaving(true);
     try {
@@ -202,7 +209,7 @@ function DeckEditor() {
         setSelectedCardDetails(null);
       }
       showMessage('Card removed from deck.', 'success', 2000);
-    } catch (err) {
+    } catch (err) { // Error handling saat menghapus kartu.
       console.error("Error removing card from deck:", err);
       showMessage(err.message || "Failed to remove card from deck.", 'error');
     } finally {
@@ -210,6 +217,7 @@ function DeckEditor() {
     }
   };
 
+  // Fungsi untuk mengubah jumlah kartu tertentu di dalam deck.
   const updateCardCount = async (cardIdToUpdate, newCount) => {
     if (newCount < 1 || newCount > MAX_IDENTICAL_CARDS) {
       showMessage(`Card count must be between 1 and ${MAX_IDENTICAL_CARDS}.`, 'warning');
@@ -223,7 +231,7 @@ function DeckEditor() {
         prev.map(c => (c.id === cardIdToUpdate ? { ...c, count: newCount } : c))
       );
       showMessage('Card count updated.', 'success', 2000);
-    } catch (err) {
+    } catch (err) { // Error handling saat mengubah jumlah kartu.
       console.error("Error updating card count:", err);
       showMessage(err.message || "Failed to update card count.", 'error');
     } finally {
@@ -231,7 +239,7 @@ function DeckEditor() {
     }
   };
 
-  // --- Deck Actions ---
+  // Handler untuk menyimpan perubahan pada deck.
   const handleSaveDeck = async () => {
     if (deckNameInput().trim() === '') {
       showMessage('Deck name cannot be empty.', 'warning');
@@ -247,7 +255,7 @@ function DeckEditor() {
       });
       setDeckName(deckNameInput());
       showMessage('Deck saved successfully!', 'success');
-    } catch (err) {
+    } catch (err) { // Error handling saat menyimpan deck.
       console.error("Error saving deck:", err);
       showMessage(err.message || "Failed to save deck. Please try again.", 'error');
     } finally {
@@ -255,6 +263,7 @@ function DeckEditor() {
     }
   };
 
+  // Handler untuk menghapus deck.
   const handleDeleteDeck = async () => {
     if (!window.confirm('Are you sure you want to delete this deck? This action cannot be undone.')) {
       return;
@@ -264,7 +273,7 @@ function DeckEditor() {
       await deleteDeck(deckId());
       showMessage('Deck deleted successfully!', 'success');
       navigate('/decklist', { replace: true });
-    } catch (err) {
+    } catch (err) { // Error handling saat menghapus deck.
       console.error("Error deleting deck:", err);
       showMessage(err.message || "Failed to delete deck.", 'error');
     } finally {
@@ -272,6 +281,7 @@ function DeckEditor() {
     }
   };
 
+  // Handler untuk menambah/menghapus deck dari favorit.
   const handleToggleFavorite = async () => {
     setIsSaving(true);
     try {
@@ -279,7 +289,7 @@ function DeckEditor() {
       await addRemoveFavoriteDeck(deckId(), newFavoriteStatus);
       setFavoriteDeck(newFavoriteStatus);
       showMessage(`Deck ${newFavoriteStatus ? 'added to' : 'removed from'} favorites!`, 'success', 2000);
-    } catch (err) {
+    } catch (err) { // Error handling saat mengubah status favorit.
       console.error("Error toggling favorite status:", err);
       showMessage(err.message || "Failed to update favorite status.", 'error');
     } finally {
@@ -288,25 +298,27 @@ function DeckEditor() {
     
   };
 
-
+  // Handler untuk paginasi hasil pencarian.
   const handleSearchPageChange = (page) => {
     if (page > 0 && page <= searchTotalPages()) {
       setSearchPage(page);
     }
   };
 
-  // --- Drag and Drop Handlers ---
+  // Handler untuk memulai proses drag.
   const handleDragStart = (e, card) => {
     setDraggedCard(card);
     e.dataTransfer.effectAllowed = 'copy';
     e.target.style.opacity = '0.5';
   };
 
+  // Handler untuk mengakhiri proses drag.
   const handleDragEnd = (e) => {
     e.target.style.opacity = '';
     setDraggedCard(null);
   };
-
+  
+  // Handler saat item yang di-drag berada di atas drop zone.
   const handleDragOver = (e) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'copy';
@@ -314,6 +326,7 @@ function DeckEditor() {
 
   let dragCounter = 0;
   
+  // Handler saat item yang di-drag memasuki drop zone.
   const handleDragEnter = (e) => {
       e.preventDefault();
       dragCounter++;
@@ -322,6 +335,7 @@ function DeckEditor() {
       }
   };
 
+  // Handler saat item yang di-drag meninggalkan drop zone.
   const handleDragLeave = (e) => {
     e.preventDefault();
     dragCounter--;
@@ -330,6 +344,7 @@ function DeckEditor() {
     }
   };
 
+  // Handler saat item di-drop ke drop zone.
   const handleDrop = async (e) => {
     e.preventDefault();
     const card = draggedCard();
@@ -344,12 +359,14 @@ function DeckEditor() {
 
   return (
     <div class={styles.mainContainer}>
+      {/* Notifikasi akan muncul di sini. */}
       {message() && (
         <div class={`${styles.messageBox} ${styles[messageType()]}`}>
           {message()}
         </div>
       )}
 
+      {/* Conditional rendering: tampilkan loading, error, atau editor deck. */}
       <Show when={isLoadingDeck()} fallback={
         <Show when={!deckError()} fallback={
           <div class={styles.errorContainer}>
@@ -396,9 +413,10 @@ function DeckEditor() {
             </div>
 
             <div class={styles.subContainer}>
-              {/* Card Detail Container - UPDATED STRUCTURE */}
+              {/* Kontainer untuk menampilkan detail kartu. */}
               <div class={styles.cardDetailContainer}>
                 <h2>Card's Details</h2>
+                {/* Switch untuk menampilkan detail kartu atau pesan placeholder. */}
                 <Switch>
                   <Match when={selectedCardDetails()}>
                     <div class={cardDetailStyles.cardContainer} style={{ "flex-direction": "column", "align-items": "stretch" }}>
@@ -487,7 +505,7 @@ function DeckEditor() {
                 </Switch>
               </div>
 
-              {/* Card Deck Container */}
+              {/* Kontainer untuk menampilkan kartu yang ada di deck (Drop Zone). */}
               <div 
                 class={`${styles.cardDeckContainer} ${isDraggingOver() ? styles.draggingOver : ''}`}
                 onDragOver={handleDragOver}
@@ -496,7 +514,6 @@ function DeckEditor() {
                 onDrop={handleDrop}
               >
                 <div class={styles.deckHeader}>
-                  {/* START: Updated Section */}
                   <div class={styles.deckHeaderTitle}>
                     <h2>Deck's Cards</h2>
                     <p class={styles.deckHeaderDescription}>
@@ -506,13 +523,13 @@ function DeckEditor() {
                       Double-Click cards to remove it from deck.
                     </p>
                   </div>
-                  {/* END: Updated Section */}
                   <span class={styles.cardCount}>
                     {totalDeckCardCount()}/{MAX_DECK_CARDS} Cards
                   </span>
                 </div>
 
                 <div class={styles.deckGrid}>
+                  {/* Iterasi untuk menampilkan setiap kartu di dalam deck. */}
                   <For each={deckCards()}>
                     {(card) => (
                       <div class={styles.deckCard}>
@@ -545,7 +562,7 @@ function DeckEditor() {
                 </div>
               </div>
 
-              {/* Card Search Container */}
+              {/* Kontainer untuk pencarian kartu. */}
               <div class={styles.cardSearchContainer}>
                 <h2>Search for Cards</h2>
                 <form onSubmit={handleSearchSubmit} class={styles.searchForm}>
@@ -561,7 +578,8 @@ function DeckEditor() {
                     <AiOutlineSearch />
                   </button>
                 </form>
-
+                
+                {/* Menampilkan loading atau hasil pencarian. */}
                 <Show when={!allCardsData.loading} fallback={
                   <div class={styles.loadingContainer}>
                     <div class={styles.loadingSpinner}></div>
@@ -569,6 +587,7 @@ function DeckEditor() {
                   </div>
                 }>
                   <div class={styles.searchResults}>
+                    {/* Iterasi untuk menampilkan hasil pencarian. */}
                     <For each={paginatedSearchResults()} fallback={
                       <p class={styles.noCardSelected}>No cards found.</p>
                     }>

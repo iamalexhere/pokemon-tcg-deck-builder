@@ -6,14 +6,13 @@ import { useNavigate } from "@solidjs/router";
 import PLACEHOLDER_IMAGE from "../assets/images/placeholder.jpg";
 import { getCards } from '../services/cardService';
 
-// Search Icon component
 const SearchIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
     <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
   </svg>
 );
 
-// Error component for displaying API errors
+// Komponen untuk menampilkan pesan error dari API.
 function ErrorDisplay({ error }) {
   return (
     <div class={styles.errorContainer}>
@@ -24,7 +23,7 @@ function ErrorDisplay({ error }) {
   );
 }
 
-// Loading component for displaying loading state
+// Komponen untuk menampilkan status loading.
 function LoadingDisplay() {
   return (
     <div class={styles.loadingContainer}>
@@ -71,6 +70,7 @@ function SearchBar({ searchTerm, setSearchTerm, handleSearch }) {
 function Card({ card }) {
     const navigate = useNavigate();
     
+    // Handler untuk navigasi ke halaman detail kartu saat kartu di-klik.
     const handleCardClick = () => {
         navigate(`/card-details/${card.id}`);
     };
@@ -106,16 +106,17 @@ function CardGrid({ cards }) {
 
 
 function ListCards() {
+    // State management untuk istilah pencarian dan halaman saat ini.
     const [searchTerm, setSearchTerm] = createSignal('');
     const [currentPage, setCurrentPage] = createSignal(1);
     const ITEMS_PER_PAGE = 50;
 
-    // Fetch all cards once
+    // `createResource` untuk fetch semua kartu sekali. Ini menangani state loading dan error secara otomatis.
     const [cardsData] = createResource(getCards);
 
     const allCards = () => cardsData()?.data || [];
 
-    // Filter cards based on search term
+    // State turunan (derived state) untuk memfilter kartu berdasarkan `searchTerm`.
     const filteredCards = () => {
         const term = searchTerm().trim().toLowerCase();
         if (!term) {
@@ -126,31 +127,33 @@ function ListCards() {
         );
     };
 
-    // Reset to page 1 when search term changes
+    // Efek untuk mereset ke halaman pertama setiap kali `searchTerm` berubah.
     createEffect(() => {
-        searchTerm(); // re-run when searchTerm changes
+        searchTerm(); 
         setCurrentPage(1);
     });
 
     const totalPages = () => Math.ceil(filteredCards().length / ITEMS_PER_PAGE);
 
+    // State turunan untuk menampilkan kartu yang sesuai dengan halaman saat ini (paginasi).
     const paginatedCards = () => {
         const startIndex = (currentPage() - 1) * ITEMS_PER_PAGE;
         return filteredCards().slice(startIndex, startIndex + ITEMS_PER_PAGE);
     };
 
+    // Handler untuk form pencarian.
     const handleSearch = (e) => {
         e.preventDefault();
-        // Search is reactive, this just prevents form submission
     };
 
+    // Handler untuk mengubah halaman.
     const handlePageChange = (page) => {
         setCurrentPage(page);
     };
 
     return (
         <div class={styles.listContainer}>
-            {/* Display error at the top if present */}
+            {/* Menampilkan komponen error jika ada masalah saat fetch data. */}
             <Show when={cardsData.error}>
                 <ErrorDisplay error={cardsData.error} />
             </Show>
@@ -161,6 +164,7 @@ function ListCards() {
                 handleSearch={handleSearch} 
             />
             
+            {/* Conditional rendering: tampilkan loading atau konten (daftar kartu). */}
             <Show when={!cardsData.loading} fallback={<LoadingDisplay />}>
                 <Show when={!cardsData.error}>
                     <div class={styles.resultsInfo}>

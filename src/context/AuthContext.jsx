@@ -2,10 +2,27 @@ import { createContext, createSignal, useContext, createEffect, onMount } from "
 import defaultProfileImage from '../assets/images/icon/Profile.png';
 import { useAuthService } from '../services/authService';
 
+/**
+ * Context untuk state management autentikasi global
+ * 
+ * Menyediakan:
+ * - State autentikasi (isAuthenticated)
+ * - Data profil pengguna
+ * - Token JWT
+ * - Fungsi login/logout
+ * - Fungsi update profil
+ * 
+ * Digunakan oleh:
+ * - Layout: untuk membungkus aplikasi dengan provider
+ * - Navbar: untuk status login dan data profil
+ * - Protected routes: untuk mengecek autentikasi
+ * 
+ * @context
+ */
 const AuthContext = createContext();
 const API_URL = 'http://localhost:3001/api';
 
-// Helper functions for localStorage
+// Helper functions untuk menyimpan dan mengambil data dari localStorage
 const saveToLocalStorage = (key, value) => {
   if (value === null || value === undefined) {
     localStorage.removeItem(key);
@@ -24,10 +41,10 @@ const getFromLocalStorage = (key, defaultValue) => {
 };
 
 export function AuthProvider(props) {
-  // Initialize auth service
+  // Inisialisasi service autentikasi
   const authService = useAuthService();
   
-  // Initialize state from localStorage if available
+  // Inisialisasi state untuk autentikasi
   const [isLoggedIn, setIsLoggedIn] = createSignal(getFromLocalStorage('isLoggedIn', false));
   const [token, setToken] = createSignal(getFromLocalStorage('token', null));
   const [user, setUser] = createSignal(getFromLocalStorage('user', null));
@@ -38,7 +55,7 @@ export function AuthProvider(props) {
   const [loading, setLoading] = createSignal(false);
   const [error, setError] = createSignal(null);
 
-  // Effects to update localStorage when state changes
+  // Effects untuk menyimpan state ke localStorage
   createEffect(() => saveToLocalStorage('isLoggedIn', isLoggedIn()));
   createEffect(() => saveToLocalStorage('token', token()));
   createEffect(() => saveToLocalStorage('user', user()));
@@ -47,7 +64,7 @@ export function AuthProvider(props) {
   createEffect(() => saveToLocalStorage('pronouns', pronouns()));
   createEffect(() => saveToLocalStorage('description', description()));
 
-  // Load user profile on mount if token exists
+  // Load user profile on mount jika token tersedia
   onMount(async () => {
     const savedToken = token();
     if (savedToken) {
@@ -61,7 +78,7 @@ export function AuthProvider(props) {
     }
   });
 
-  // Fetch user profile from API
+  // Fetch user profile dari API
   const fetchUserProfile = async (authToken) => {
     setLoading(true);
     setError(null);
@@ -96,7 +113,7 @@ export function AuthProvider(props) {
       
       setToken(authToken);
       
-      // Fetch user profile with the new token
+      // Fetch user profile dengan token yang didapat
       await fetchUserProfile(authToken);
       
       return true;
@@ -146,7 +163,7 @@ export function AuthProvider(props) {
       
       const updatedProfile = await authService.updateProfile(profileData, currentToken);
       
-      // If the server returned a new token (happens after username change), update it
+      // Jika token berubah (misalnya setelah ganti username), simpan token baru
       if (updatedProfile.token) {
         setToken(updatedProfile.token);
         console.log('Token updated after username change');
@@ -166,7 +183,7 @@ export function AuthProvider(props) {
     }
   };
   
-  // Update local profile state without API call
+  // Update local profile state tanpa API call
   const handleUpdateLocalProfile = (profileData) => {
     if (profileData.username) setUsername(profileData.username);
     if (profileData.profilePicture) setProfilePicture(profileData.profilePicture);

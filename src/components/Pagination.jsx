@@ -3,15 +3,23 @@ import styles from './pagination.module.css';
 
 /**
  * @typedef {Object} PaginationProps
- * @property {() => number} currentPage - A signal accessor for the current page number.
- * @property {number} totalPages - The total number of pages.
- * @property {(page: number) => void} onPageChange - Callback function when a page is changed.
- * @property {number} [maxPagesToShow=5] - Maximum number of page buttons to show directly (excluding prev/next and first/last ellipsis).
+ * @property {() => number} currentPage - Signal accessor untuk nomor halaman saat ini
+ * @property {number} totalPages - Total jumlah halaman
+ * @property {(page: number) => void} onPageChange - Fungsi callback saat halaman berubah
+ * @property {number} [maxPagesToShow=5] - Maksimum jumlah tombol halaman yang ditampilkan (tidak termasuk prev/next dan ellipsis)
  */
 
 /**
- * A reusable pagination component.
- * @param {PaginationProps} props
+ * Komponen paginasi yang dapat digunakan kembali
+ * 
+ * Fitur:
+ * - Navigasi halaman (Prev/Next)
+ * - Tampilan nomor halaman dengan ellipsis
+ * - Indikator halaman aktif
+ * - Responsif untuk jumlah halaman yang banyak
+ * 
+ * @component
+ * @param {PaginationProps} props - Props komponen
  */
 function Pagination(props) {
   const currentPage = props.currentPage;
@@ -21,11 +29,11 @@ function Pagination(props) {
 
   const pageNumbers = () => {
     const pages = [];
-    // Logic for displaying page numbers (e.g., ellipsis for many pages)
+    // Logic untuk display page number (menggunakan ellipsis jika perlu)
     let startPage = Math.max(1, currentPage() - Math.floor(maxPagesToShow / 2));
     let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
 
-    // Adjust startPage if endPage hits the limit before showing maxPagesToShow
+    // Menyesuaikan startPage jika endPage terlalu dekat dengan totalPages
     if (endPage - startPage + 1 < maxPagesToShow && totalPages >= maxPagesToShow) {
       startPage = Math.max(1, endPage - maxPagesToShow + 1);
     }
@@ -36,7 +44,7 @@ function Pagination(props) {
     return pages;
   };
 
-  // Don't render if there's only one page or less
+  // Jangan tampilkan pagination jika hanya ada satu halaman
   if (totalPages <= 1) {
     return null;
   }

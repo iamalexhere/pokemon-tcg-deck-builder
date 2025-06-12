@@ -5,6 +5,7 @@ import elvinUserImage from '../assets/images/team/elvin.jpg';
 import vinchentUserImage from '../assets/images/team/vinchent.jpg';
 import uusUserImage from '../assets/images/team/uus.jpg';
 
+// Data untuk anggota tim disimpan dalam sebuah array of objects.
 const teamMembers = [
   {
     id: 1,
@@ -48,6 +49,7 @@ const teamMembers = [
   }
 ];
 
+// Komponen fungsional untuk menampilkan kartu anggota tim.
 function TeamMemberCard({ member }) {
   return (
     <div class={styles.teamCard}>
@@ -68,10 +70,12 @@ function TeamMemberCard({ member }) {
   );
 }
 
+// Komponen utama halaman "About" yang me-render daftar anggota tim.
 function About() {
   return (
     <div class={styles.aboutPageContainer}>
       <h1 class={styles.pageTitle}>Our Team</h1>
+      {/* Melakukan iterasi pada array teamMembers untuk me-render setiap kartu anggota. */}
       <div class={styles.teamGrid}>
         {teamMembers.map(member => (
           <TeamMemberCard key={member.id} member={member} />

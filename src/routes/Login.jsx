@@ -7,6 +7,7 @@ import { FiEye, FiEyeOff } from "solid-icons/fi";
 import { useAuth } from '../context/AuthContext';
 
 function Login() {
+    // State management untuk input form, visibilitas password, dan error.
     const [username, setUsername] = createSignal("");
     const [password, setPassword] = createSignal("");
     const [showPassword, setShowPassword] = createSignal(false);
@@ -15,9 +16,10 @@ function Login() {
     const [formError, setFormError] = createSignal("");
     const [isSubmitting, setIsSubmitting] = createSignal(false);
     const navigate = useNavigate();
+    // Menggunakan hook `useAuth` untuk mengakses fungsi login dari context.
     const auth = useAuth();
 
-    // Validate username input
+    // Fungsi untuk validasi input username.
     const validateUsername = (value) => {
         if (!value.trim()) {
             setUsernameError("Username is required");
@@ -27,7 +29,7 @@ function Login() {
         return true;
     };
 
-    // Validate password input
+    // Fungsi untuk validasi input password.
     const validatePassword = (value) => {
         if (!value) {
             setPasswordError("Password is required");
@@ -37,7 +39,7 @@ function Login() {
         return true;
     };
 
-    // Handle username input change
+    // Handler untuk perubahan input username.
     const handleUsernameChange = (e) => {
         const value = e.target.value;
         setUsername(value);
@@ -45,7 +47,7 @@ function Login() {
         validateUsername(value);
     };
 
-    // Handle password input change
+    // Handler untuk perubahan input password.
     const handlePasswordChange = (e) => {
         const value = e.target.value;
         setPassword(value);
@@ -53,32 +55,30 @@ function Login() {
         validatePassword(value);
     };
 
+    // Handler untuk submit form login.
     const handleSubmit = async (event) => {
         event.preventDefault();
         setFormError("");
         
-        // Validate all fields
-        if (!validateUsername(username())) {
-            return;
-        }
-        
-        if (!validatePassword(password())) {
+        // Validasi semua field sebelum submit.
+        if (!validateUsername(username()) || !validatePassword(password())) {
             return;
         }
         
         setIsSubmitting(true);
         
+        // Blok try-catch untuk menangani proses login dan kemungkinan error.
         try {
-            // Call login function from AuthContext with credentials
+            // Memanggil fungsi login dari AuthContext.
             await auth.login({
                 username: username(),
                 password: password()
             });
             
-            // If login is successful, navigate to home
+            // Jika login berhasil, navigasi ke halaman utama.
             navigate("/", { replace: true });
         } catch (error) {
-            // Display error message
+            // State management untuk error handling: menampilkan pesan error.
             setFormError(error.message || "Invalid username or password");
             console.error("Login error:", error);
         } finally {
@@ -93,6 +93,7 @@ function Login() {
 
                 <h1 class={styles.title}>Login</h1>
 
+                {/* Conditional rendering untuk menampilkan pesan error form. */}
                 <Show when={formError()}>
                     <div class={styles.formErrorOverlay}>
                         <div style={{
@@ -161,6 +162,7 @@ function Login() {
                                 <td>
                                     <A href="/register" class={styles.forgotPassword}>Forgot password?</A> 
                                     <button class={styles.loginButton} disabled={isSubmitting()}>
+                                        {/* Menampilkan status loading pada tombol saat proses submit. */}
                                         {isSubmitting() ? 
                                             <div class={styles.loadingState}>
                                                 <div class={styles.loadingSpinner}></div>

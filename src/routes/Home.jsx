@@ -2,6 +2,7 @@ import styles from "./home.module.css";
 import poke from "../assets/images/home/home_img.png";
 import { useNavigate } from "@solidjs/router";
 function Home() {
+  // `useNavigate` digunakan untuk navigasi programmatic.
   const navigate = useNavigate();
   return (
     <div class={styles.pageContainer}>
@@ -12,6 +13,7 @@ function Home() {
             The Pokémon TCG website is a platform that provides comprehensive
             information about the Pokémon Trading Card Game.
           </h3>
+          {/* Tombol ini akan mengarahkan pengguna ke halaman "About" saat diklik. */}
           <button class={styles.learnMoreButton}  onclick={() => navigate("/about")}>About Us</button>
         </div>
         <img class={styles.imagePlaceholder} src={poke} alt="home_img" />

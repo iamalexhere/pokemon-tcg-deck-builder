@@ -5,6 +5,20 @@ import { useNavigate } from "@solidjs/router"
 import { A } from "@solidjs/router"
 import { useAuth } from "../context/AuthContext"
 
+/**
+ * Komponen Navbar untuk navigasi utama aplikasi
+ * 
+ * Fitur:
+ * - Logo dengan link ke halaman utama
+ * - Menu navigasi (Card List, Deck, About)
+ * - Tombol Login/Logout berdasarkan status autentikasi
+ * - Gambar profil pengguna
+ * 
+ * Menggunakan context:
+ * - AuthContext: untuk status login, logout, dan data profil
+ * 
+ * @component
+ */
 const Navbar = () => {
   const navigate = useNavigate()
   const { isLoggedIn, logout, profilePicture } = useAuth()

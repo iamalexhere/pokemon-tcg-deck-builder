@@ -3,6 +3,7 @@ import cardStyles from "./carddetail.module.css";
 import PLACEHOLDER_IMAGE from "../assets/images/placeholder.jpg"; 
 import { useNavigate, useParams } from "@solidjs/router";
 import { getCardById } from '../services/cardService'; 
+import { BiRegularArrowBack } from 'solid-icons/bi';
 
 function CardDetails() {
   const navigate = useNavigate();
@@ -59,19 +60,7 @@ function CardDetails() {
   return (
     <div class={cardStyles.pageContainer}>
       <button class={cardStyles.backButton} onClick={handleBackClick}>
-        <svg
-          class={cardStyles.backIcon}
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth="1.5"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"
-          />
-        </svg>
+        <BiRegularArrowBack class={cardStyles.backIcon} />
         Back
       </button>
 

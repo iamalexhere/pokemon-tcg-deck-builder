@@ -1,8 +1,9 @@
 import { createSignal, createEffect, Switch, Match, For, onMount, createResource, Show } from 'solid-js';
 import { useNavigate, useParams } from '@solidjs/router';
 import { RiArrowsArrowGoBackLine } from 'solid-icons/ri';
-import { AiFillHeart, AiOutlineHeart, AiOutlineSearch, AiOutlineMinusCircle, AiOutlinePlusCircle } from 'solid-icons/ai';
+import { AiFillHeart, AiOutlineHeart, AiOutlineMinusCircle, AiOutlinePlusCircle } from 'solid-icons/ai';
 import { FaRegularTrashCan } from 'solid-icons/fa';
+import { BsSearch } from 'solid-icons/bs';
 
 import styles from './deckeditor.module.css';
 import cardDetailStyles from './carddetail.module.css'; 
@@ -575,7 +576,7 @@ function DeckEditor() {
                     disabled={isSaving()}
                   />
                   <button type="submit" class={styles.searchButton} disabled={isSaving()}>
-                    <AiOutlineSearch />
+                    <BsSearch />
                   </button>
                 </form>
                 

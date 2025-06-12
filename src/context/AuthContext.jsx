@@ -182,14 +182,6 @@ export function AuthProvider(props) {
       setLoading(false);
     }
   };
-  
-  // Update local profile state tanpa API call
-  const handleUpdateLocalProfile = (profileData) => {
-    if (profileData.username) setUsername(profileData.username);
-    if (profileData.profilePicture) setProfilePicture(profileData.profilePicture);
-    if (profileData.pronouns) setPronouns(profileData.pronouns);
-    if (profileData.description) setDescription(profileData.description);
-  };
 
   return (
     <AuthContext.Provider value={{
@@ -206,7 +198,6 @@ export function AuthProvider(props) {
       register: handleRegister,
       logout: handleLogout,
       updateProfile: handleUpdateProfile,
-      updateLocalProfile: handleUpdateLocalProfile,
       apiCall: (endpoint, method, data) => authService.apiCall(endpoint, method, data, token())
     }}>
       {props.children}

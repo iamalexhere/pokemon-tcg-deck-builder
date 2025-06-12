@@ -1,16 +1,13 @@
 import styles from './cardlists.module.css';
 import { A } from "@solidjs/router";
-import { createSignal, Switch, Match, For, createEffect, createResource, Show } from "solid-js";
+import { createSignal, Switch, Match, For, createEffect, createResource, Show, createMemo } from "solid-js";
 import Pagination from '../components/Pagination';
 import { useNavigate } from "@solidjs/router";
 import PLACEHOLDER_IMAGE from "../assets/images/placeholder.jpg";
 import { getCards } from '../services/cardService';
+import { BsSearch } from 'solid-icons/bs';
 
-const SearchIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-    <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
-  </svg>
-);
+const SearchIcon = BsSearch;
 
 // Komponen untuk menampilkan pesan error dari API.
 function ErrorDisplay({ error }) {
@@ -50,18 +47,22 @@ function Header() {
     )
 }
 
-function SearchBar({ searchTerm, setSearchTerm, handleSearch }) {
+function SearchBar({ searchTerm, setSearchTerm, handleSearch, isSearching }) {
     return (
         <form class={styles.searchContainer} onSubmit={handleSearch}>
             <input 
                 type="text" 
                 placeholder="Search pokemon cards..."
-                class={styles.searchInput}
+                class={`${styles.searchInput} ${isSearching() ? styles.searching : ''}`}
                 value={searchTerm()}
                 onInput={(e) => setSearchTerm(e.currentTarget.value)}
             />
             <button type="submit" class={styles.searchButton} aria-label="Search">
-                <SearchIcon />
+                {isSearching() ? (
+                    <div class={styles.smallSpinner}></div>
+                ) : (
+                    <SearchIcon />
+                )}
             </button>
         </form>
     );
@@ -106,40 +107,60 @@ function CardGrid({ cards }) {
 
 
 function ListCards() {
-    // State management untuk istilah pencarian dan halaman saat ini.
+    // State management untuk istilah pencarian dan halaman saat ini
     const [searchTerm, setSearchTerm] = createSignal('');
     const [currentPage, setCurrentPage] = createSignal(1);
+    const [debouncedSearchTerm, setDebouncedSearchTerm] = createSignal('');
+    const [isSearching, setIsSearching] = createSignal(false);
     const ITEMS_PER_PAGE = 50;
+    const DEBOUNCE_DELAY = 300; // milliseconds
+    
+    // Debounce istilah pencarian untuk menghindari pemfilteran yang berlebihan
+    createEffect(() => {
+        const searchValue = searchTerm();
+        
+        if (searchValue !== debouncedSearchTerm()) {
+            setIsSearching(true);
+        }
+        
+        const timeoutId = setTimeout(() => {
+            setDebouncedSearchTerm(searchValue);
+            setIsSearching(false);
+        }, DEBOUNCE_DELAY);
+        
+        // Cleanup timeout if searchTerm changes before timeout expires
+        return () => clearTimeout(timeoutId);
+    });
 
-    // `createResource` untuk fetch semua kartu sekali. Ini menangani state loading dan error secara otomatis.
+    // `createResource` untuk mengambil semua kartu sekali
     const [cardsData] = createResource(getCards);
 
     const allCards = () => cardsData()?.data || [];
 
-    // State turunan (derived state) untuk memfilter kartu berdasarkan `searchTerm`.
-    const filteredCards = () => {
-        const term = searchTerm().trim().toLowerCase();
+    // State turunan (derived state) untuk memfilter kartu berdasarkan `debouncedSearchTerm`
+    const filteredCards = createMemo(() => {
+        const term = debouncedSearchTerm().trim().toLowerCase();
         if (!term) {
             return allCards();
         }
         return allCards().filter(card =>
             card.name.toLowerCase().includes(term)
         );
-    };
+    });
 
-    // Efek untuk mereset ke halaman pertama setiap kali `searchTerm` berubah.
+    // Kembali ke halaman pertama ketika istilah pencarian berubah
     createEffect(() => {
-        searchTerm(); 
+        debouncedSearchTerm(); 
         setCurrentPage(1);
     });
 
-    const totalPages = () => Math.ceil(filteredCards().length / ITEMS_PER_PAGE);
+    const totalPages = createMemo(() => Math.ceil(filteredCards().length / ITEMS_PER_PAGE));
 
-    // State turunan untuk menampilkan kartu yang sesuai dengan halaman saat ini (paginasi).
-    const paginatedCards = () => {
+    // Kartu yang dipaginasi berdasarkan halaman saat ini
+    const paginatedCards = createMemo(() => {
         const startIndex = (currentPage() - 1) * ITEMS_PER_PAGE;
         return filteredCards().slice(startIndex, startIndex + ITEMS_PER_PAGE);
-    };
+    });
 
     // Handler untuk form pencarian.
     const handleSearch = (e) => {
@@ -153,7 +174,7 @@ function ListCards() {
 
     return (
         <div class={styles.listContainer}>
-            {/* Menampilkan komponen error jika ada masalah saat fetch data. */}
+            {/* Menampilkan komponen error jika ada masalah saat mengambil data. */}
             <Show when={cardsData.error}>
                 <ErrorDisplay error={cardsData.error} />
             </Show>
@@ -162,14 +183,15 @@ function ListCards() {
                 searchTerm={searchTerm} 
                 setSearchTerm={setSearchTerm} 
                 handleSearch={handleSearch} 
+                isSearching={isSearching}
             />
             
-            {/* Conditional rendering: tampilkan loading atau konten (daftar kartu). */}
+            {/* Rendering kondisional: tampilkan loading atau konten (daftar kartu). */}
             <Show when={!cardsData.loading} fallback={<LoadingDisplay />}>
                 <Show when={!cardsData.error}>
                     <div class={styles.resultsInfo}>
-                        {searchTerm()
-                            ? `Search results for "${searchTerm()}"` 
+                        {debouncedSearchTerm()
+                            ? `Search results for "${debouncedSearchTerm()}"` 
                             : 'All Pokémon Cards'}
                         <span class={styles.cardCount}>
                             {filteredCards().length} cards found

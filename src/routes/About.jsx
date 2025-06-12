@@ -10,7 +10,7 @@ const teamMembers = [
     id: 1,
     name: 'Imanuel Alexander Here',
     role: 'Devops',
-    description: 'placeholder',
+    description: 'Deploy Early, Verify Once, Pray Silently.',
     imageUrl: alexUserImage, 
     contactLink: 'https://github.com/iamalexhere'
   },
@@ -25,24 +25,24 @@ const teamMembers = [
   {
     id: 3,
     name: 'Syalom Elvin Pasau',
-    role: 'placeholder',
-    description: 'placeholder',
+    role: 'doom scroller',
+    description: 'bukan sulap bukan she/her.',
     imageUrl: elvinUserImage,
     contactLink: 'https://github.com/SyalomElvinPasau'
   },
   {
     id: 4,
     name: 'Alexander Vinchent',
-    role: 'placeholder',
-    description: 'placeholder',
+    role: 'engineer furry hunter',
+    description: 'You are not alone to be furry.',
     imageUrl: vinchentUserImage,
     contactLink: 'https://github.com/Basin312'
   },
   {
     id: 5,
     name: 'Gregorius Denmas Bagus Pradipto',
-    role: 'placeholder',
-    description: 'placeholder',
+    role: 'Profesional smoker',
+    description: 'El humo lo es todo.',
     imageUrl: uusUserImage,
     contactLink: 'https://github.com/Gregorius-Denmas'
   }

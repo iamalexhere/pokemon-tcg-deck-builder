@@ -1,5 +1,4 @@
 import { createSignal, createEffect, onMount, Show } from "solid-js";
-import styles from "./styleGuide.module.css";
 import cardStyles from "./carddetail.module.css";
 import PLACEHOLDER_IMAGE from "../assets/images/placeholder.jpg"; // Renamed from poke for clarity
 import { useNavigate, useParams } from "@solidjs/router";
@@ -54,7 +53,7 @@ function CardDetails() {
   };
 
   return (
-    <div class={styles.pageContainer}>
+    <div class={cardStyles.pageContainer}>
       {/* Back Button */}
       <button class={cardStyles.backButton} onClick={handleBackClick}>
         <svg
@@ -73,7 +72,7 @@ function CardDetails() {
         Back
       </button>
 
-      <div class={styles.showcaseSection}>
+      <div class={cardStyles.showcaseSection}>
         <h2>Card Details: {cardData()?.name || cardId}</h2>
 
         {/* Loading State */}
@@ -82,7 +81,7 @@ function CardDetails() {
           <Show when={error()} fallback={
             // Card Data
             <Show when={cardData()}>
-              <div class={styles.card}>
+              <div class={cardStyles.card}>
                 <div class={cardStyles.cardContainer}>
                   {/* Card Image Placeholder */}
                   <div class={cardStyles.imageContainer}>
@@ -99,7 +98,7 @@ function CardDetails() {
                   <div class={cardStyles.infoContainer}>
                     {/* Header */}
                     <div class={cardStyles.cardHeader}>
-                      <h3 class={`${styles.cardHeader} ${cardStyles.headerTitle}`}>
+                      <h3 class={cardStyles.headerTitle}>
                         {cardData().name}
                       </h3>
                     </div>
@@ -107,61 +106,33 @@ function CardDetails() {
                     {/* Type and HP Row */}
                     <div class={cardStyles.typeHpRow}>
                       <div class={cardStyles.typeCell}>
-                        <span class={styles.subtext1}>Type: {cardData().types?.join(', ') || 'N/A'}</span>
+                        <span class={cardStyles.subtext1}>Type: {cardData().types?.join(', ') || 'N/A'}</span>
                       </div>
                       <div class={cardStyles.hpCell}>
-                        <span class={styles.subtext1}>HP: {cardData().hp || 'N/A'}</span>
+                        <span class={cardStyles.subtext1}>HP: {cardData().hp || 'N/A'}</span>
                       </div>
                     </div>
 
-                    {/* Abilities */}
-                    {cardData().abilities && cardData().abilities.length > 0 && (
+                    {/* Abilities Section */}
+                    {(cardData().attacks || cardData().abilities) && (
                       <div class={cardStyles.abilitiesSection}>
-                        {cardData().abilities.map((ability, index) => (
+                        {(cardData().attacks || cardData().abilities).map((attack) => (
                           <div class={cardStyles.abilityItem}>
                             <div class={cardStyles.abilityContent}>
                               <div
-                                class={`${styles.textDefault} ${cardStyles.abilityName}`}
+                                class={cardStyles.abilityName}
                               >
-                                {ability.name}
+                                {attack.name}
                               </div>
                               <div
-                                class={`${styles.subtext0} ${cardStyles.abilityDescription}`}
-                              >
-                                {ability.text}
-                              </div>
-                            </div>
-                            {/* Assuming value is not always present or has different meaning */}
-                            {/* <div
-                              class={`${styles.textMauve} ${cardStyles.abilityValue}`}
-                            >
-                              {ability.value}
-                            </div> */}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* Attacks */}
-                    {cardData().attacks && cardData().attacks.length > 0 && (
-                      <div class={cardStyles.abilitiesSection}> {/* Reusing ability section styles for attacks */}
-                        {cardData().attacks.map((attack, index) => (
-                          <div class={cardStyles.abilityItem}>
-                            <div class={cardStyles.abilityContent}>
-                              <div
-                                class={`${styles.textDefault} ${cardStyles.abilityName}`}
-                              >
-                                {attack.name} ({attack.cost?.join(', ') || 'None'})
-                              </div>
-                              <div
-                                class={`${styles.subtext0} ${cardStyles.abilityDescription}`}
+                                class={`${cardStyles.subtext0} ${cardStyles.abilityDescription}`}
                               >
                                 {attack.text}
                               </div>
                             </div>
                             <Show when={attack.damage}>
                               <div
-                                class={`${styles.textMauve} ${cardStyles.abilityValue}`}
+                                class={`${cardStyles.textMauve} ${cardStyles.abilityValue}`}
                               >
                                 {attack.damage}
                               </div>
@@ -171,23 +142,22 @@ function CardDetails() {
                       </div>
                     )}
 
-
                     {/* Stats Section */}
                     <div class={cardStyles.statsSection}>
                       {/* Stats Header */}
                       <div class={cardStyles.statsHeader}>
                         <div class={cardStyles.statHeaderItem}>
-                          <span class={`${styles.subtext1} ${cardStyles.statLabel}`}>
+                          <span class={`${cardStyles.subtext1} ${cardStyles.statLabel}`}>
                             Weakness
                           </span>
                         </div>
                         <div class={cardStyles.statHeaderItem}>
-                          <span class={`${styles.subtext1} ${cardStyles.statLabel}`}>
+                          <span class={`${cardStyles.subtext1} ${cardStyles.statLabel}`}>
                             Resistance
                           </span>
                         </div>
                         <div class={cardStyles.statHeaderItem}>
-                          <span class={`${styles.subtext1} ${cardStyles.statLabel}`}>
+                          <span class={`${cardStyles.subtext1} ${cardStyles.statLabel}`}>
                             Retreat Cost
                           </span>
                         </div>
@@ -197,21 +167,21 @@ function CardDetails() {
                       <div class={cardStyles.statsValues}>
                         <div class={cardStyles.statValueItem}>
                           <span
-                            class={`${styles.textDefault} ${cardStyles.statValue}`}
+                            class={`${cardStyles.textDefault} ${cardStyles.statValue}`}
                           >
                             {cardData().weaknesses?.map(w => `${w.type} ${w.value}`).join(', ') || 'N/A'}
                           </span>
                         </div>
                         <div class={cardStyles.statValueItem}>
                           <span
-                            class={`${styles.textDefault} ${cardStyles.statValue}`}
+                            class={`${cardStyles.textDefault} ${cardStyles.statValue}`}
                           >
                             {cardData().resistances?.map(r => `${r.type} ${r.value}`).join(', ') || 'N/A'}
                           </span>
                         </div>
                         <div class={cardStyles.statValueItem}>
                           <span
-                            class={`${styles.textDefault} ${cardStyles.statValue}`}
+                            class={`${cardStyles.textDefault} ${cardStyles.statValue}`}
                           >
                             {cardData().retreatCost?.length || 0}
                           </span>
@@ -221,7 +191,7 @@ function CardDetails() {
                       {/* Illustrator */}
                       <div class={cardStyles.illustratorSection}>
                         <span
-                          class={`${styles.subtext0} ${cardStyles.illustratorText}`}
+                          class={`${cardStyles.subtext0} ${cardStyles.illustratorText}`}
                         >
                           Illustrator: {cardData().artist || 'N/A'}
                         </span>

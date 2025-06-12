@@ -4,7 +4,6 @@ import { Router, Route } from "@solidjs/router";
 import './index.css';
 import Home from './routes/Home';
 import DeckEditor from './routes/DeckEditor'
-import StyleGuide from './routes/StyleGuide';
 import Login from './routes/Login';
 import Register from './routes/Register';
 import About from './routes/About';
@@ -39,7 +38,6 @@ render(() => (
         <Profile />
       </ProtectedRoute>
     )} />
-    <Route path="/style-guide" component={StyleGuide} />
     <Route path="/login" component={Login} />
     <Route path="/register" component={Register} />
     <Route path="/about" component={About} />

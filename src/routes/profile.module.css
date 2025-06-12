@@ -103,7 +103,7 @@
 .profileEditForm {
   background-color: var(--ctp-surface0);
   border-radius: 8px;
-  padding: 1.5rem;
+  padding: 2rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
@@ -126,7 +126,7 @@
 
 .formGroup input,
 .formGroup textarea {
-  width: 100%;
+  width: 98%;
   padding: 0.75rem;
   border: 1px solid var(--ctp-surface1);
   border-radius: 6px;

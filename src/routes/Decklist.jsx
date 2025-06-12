@@ -4,50 +4,48 @@ import DeckCard from '../components/DeckCard';
 import Pagination from '../components/Pagination';
 import { useNavigate } from "@solidjs/router";
 import { useAuth } from '../context/AuthContext';
-import { getDecks, createDeck } from '../services/deckService'; // Import deck service functions
+import { getDecks, createDeck } from '../services/deckService'; 
+import { BsSearch } from 'solid-icons/bs';
 
-// Placeholder for Search Icon
-const SearchIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-    <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
-  </svg>
-);
-
-const ITEMS_PER_PAGE = 9; // Number of decks to display per page
+const ITEMS_PER_PAGE = 9; 
 
 function DeckList() {
+  // State management untuk pencarian, paginasi, dan daftar deck.
   const [searchTerm, setSearchTerm] = createSignal('');
   const [currentPage, setCurrentPage] = createSignal(1);
-  const [searchTrigger, setSearchTrigger] = createSignal(0); // Used to re-trigger resource
+  const [allDecks, setAllDecks] = createSignal([]);
   const navigate = useNavigate();
-  const { isLoggedIn, token } = useAuth(); // Get token from auth context
+  // Menggunakan hook `useAuth` untuk memeriksa status login pengguna.
+  const { isLoggedIn } = useAuth();
 
-  // Resource to fetch decks based on current page and search term
-  const [decksData] = createResource(() => {
-    // Depend on currentPage and searchTrigger to re-fetch
-    const page = currentPage();
-    const search = searchTerm();
-    return { page, search };
-  }, async ({ page, search }) => {
+  // `createResource` untuk mengambil data deck. Akan otomatis re-fetch jika `searchTerm` berubah.
+  const [decksData] = createResource(searchTerm, async (search) => {
     try {
-      const response = await getDecks(page, ITEMS_PER_PAGE, search);
-      // The API should return { decks: [...], totalPages: N }
-      return response;
-    } catch (error) {
+      const response = await getDecks(search);
+      setAllDecks(response.decks || []);
+      return response.decks || [];
+    } catch (error) { // Error handling saat fetch data deck.
       console.error('Error fetching decks:', error);
-      // Re-throw to be caught by Solid's error handling for resource
       throw new Error(error.message || 'Failed to load decks.');
     }
   });
 
-  // Handle pagination and filtering logic
-  const totalPages = () => decksData()?.totalPages || 1;
+  // State turunan untuk memfilter deck berdasarkan `searchTerm`.
+  const filteredDecks = () => {
+    const search = searchTerm().toLowerCase();
+    if (!search) return allDecks();
+    return allDecks().filter(deck => deck.name.toLowerCase().includes(search));
+  };
 
-  // Derive paginated decks from the resource data
-  const paginatedDecks = () => decksData()?.decks || [];
+  const totalPages = () => Math.ceil(filteredDecks().length / ITEMS_PER_PAGE);
 
-  // If not logged in, redirect to login page
-  // This check should happen before any authenticated API calls are attempted.
+  // State turunan untuk paginasi deck yang sudah difilter.
+  const paginatedDecks = () => {
+    const startIndex = (currentPage() - 1) * ITEMS_PER_PAGE;
+    return filteredDecks().slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  };
+  
+  // Proteksi rute: jika pengguna belum login, tampilkan pesan dan tombol untuk login.
   if (!isLoggedIn()) {
     return (
       <div class={styles.notLoggedInContainer}>
@@ -60,42 +58,38 @@ function DeckList() {
     );
   }
 
-  // Effect to reset current page to 1 whenever the search term changes significantly
+  // Efek untuk mereset halaman ke 1 setiap kali ada pencarian baru.
   createEffect(() => {
-    // Only reset if decksData has loaded and the search term isn't empty on initial load
-    // This prevents resetting page when component first mounts and search term is empty
-    if (searchTrigger() > 0 && currentPage() !== 1) {
-      setCurrentPage(1);
-    }
+    setCurrentPage(1);
   });
 
+  // Handler untuk submit form pencarian.
   const handleSearch = (e) => {
     e.preventDefault();
-    // Trigger a re-fetch of the resource with the new search term
-    setCurrentPage(1); // Always reset to page 1 on new search
-    setSearchTrigger(prev => prev + 1); // Increment to trigger resource re-fetch
+    setSearchTerm(e.currentTarget.querySelector('input').value);
   };
 
+  // Handler untuk mengubah halaman.
   const handlePageChange = (page) => {
     setCurrentPage(page);
   };
 
+  // Handler untuk mengarahkan ke editor deck saat sebuah deck di-klik.
   const handleDeckClick = (deck) => {
     navigate(`/deckeditor/${deck.id}`);
   };
 
+  // Handler untuk membuat deck baru.
   const handleCreateNewDeck = async () => {
     try {
-      // Create a new deck with a default name.
-      // The server will assign an ID and other defaults.
       const newDeckResponse = await createDeck("New Deck", "");
       if (newDeckResponse && newDeckResponse.deck && newDeckResponse.deck.id) {
-        // Navigate to the editor for the newly created deck
+        // Navigasi ke editor untuk deck yang baru dibuat.
         navigate(`/deckeditor/${newDeckResponse.deck.id}`);
       } else {
         alert('Failed to create new deck: Invalid response from server.');
       }
-    } catch (error) {
+    } catch (error) { // Error handling saat membuat deck baru.
       console.error('Error creating new deck:', error);
       alert(`Failed to create new deck: ${error.message || 'An unknown error occurred.'}`);
     }
@@ -119,7 +113,7 @@ function DeckList() {
             onInput={(e) => setSearchTerm(e.currentTarget.value)}
           />
           <button type="submit" class={styles.searchButton} aria-label="Search">
-            <SearchIcon />
+            <BsSearch />
           </button>
         </form>
         <button
@@ -129,7 +123,8 @@ function DeckList() {
           Create New Deck +
         </button>
       </div>
-
+      
+      {/* Conditional rendering: tampilkan loading, error, atau daftar deck. */}
       <Show when={!decksData.loading} fallback={
         <div class={styles.loadingContainer}>
           <div class={styles.spinner}></div>

@@ -7,8 +7,8 @@ import { FiEye, FiEyeOff } from "solid-icons/fi";
 import { useAuth } from '../context/AuthContext';
 
 function FormRegister(){
+    // State management untuk input form, visibilitas password, dan error.
     const [username, setUsername] = createSignal("");
-    const [name, setName] = createSignal("");
     const [password, setPassword] = createSignal("");
     const [confirmPassword, setConfirmPassword] = createSignal("");
     const [showPassword, setShowPassword] = createSignal(false);
@@ -16,46 +16,42 @@ function FormRegister(){
     const [formError, setFormError] = createSignal("");
     const [isSubmitting, setIsSubmitting] = createSignal(false);
     const navigate = useNavigate();
+    // Menggunakan hook `useAuth` untuk mengakses fungsi register dari context.
     const auth = useAuth();
     
+    // Handler untuk submit form registrasi.
     const handleSubmit = async (event) => {
         event.preventDefault();
         setFormError("");
 
-        // Validate all fields
+        // Validasi semua field sebelum submit.
         if(username().length < 3){
             setFormError('Username must be at least 3 characters.');
             return;
         }
-
-        if(!name()){
-            setFormError('Name is required.');
-            return;
-        }
-
         if(password().length < 5){
             setFormError('Password must be at least 5 characters.');
             return;
         }
-
         if(password() !== confirmPassword()){
             setFormError('Passwords do not match.');
             return;
         }
 
         setIsSubmitting(true);
-
+        
+        // Blok try-catch untuk menangani proses registrasi dan kemungkinan error.
         try {
-            // Register the user
             await auth.register({
                 username: username(),
-                name: name(),
+                name: username(),
                 password: password()
             });
 
-            // If registration is successful, navigate to login
+            // Jika registrasi berhasil, navigasi ke halaman login.
             navigate("/login", {replace: true});
         } catch (error) {
+            // State management untuk error handling: menampilkan pesan error.
             setFormError(error.message || 'Registration failed. Please try again.');
             console.error("Registration error:", error);
         } finally {
@@ -63,6 +59,7 @@ function FormRegister(){
         }
     }
 
+    // `createEffect` untuk validasi username secara real-time.
     const [usernameError, setUsernameError] = createSignal("");
     createEffect(() => {
         if(username().length>0 && username().length < 3) {
@@ -73,6 +70,7 @@ function FormRegister(){
         }
     })
 
+    // `createEffect` untuk validasi panjang password secara real-time.
     const [passwordError, setPasswordError] = createSignal("");
     createEffect(() => {
         if(password().length>0 && password().length < 5) {
@@ -83,6 +81,7 @@ function FormRegister(){
         }
     })
 
+    // `createEffect` untuk validasi konfirmasi password secara real-time.
     const [confirmPasswordError, setConfirmPasswordError] = createSignal("");
     createEffect(() => {
         if(confirmPassword().length>0 && password() !== confirmPassword()) {
@@ -95,9 +94,12 @@ function FormRegister(){
 
     return (
         <form method="post" class={styles.loginForm} onsubmit={handleSubmit}>
+            <Show when={formError()}>
+                <p class={styles.Error}>{formError()}</p>
+            </Show>
 
             <table class={styles.formTable}>
-                <thead>
+                <tbody>
                     <tr class={styles.UsernameCell}>
                         <td class={styles.Error}>
                             <p>{usernameError()}</p>
@@ -185,12 +187,13 @@ function FormRegister(){
                     </tr>
                     <tr>
                         <td>
-                            <button class={styles.loginButton} disabled={isSubmitting()}>
+                            <button type="submit" class={styles.loginButton} disabled={isSubmitting()}>
+                                {/* Menampilkan status loading pada tombol. */}
                                 {isSubmitting() ? 'Registering...' : 'Register'}
                             </button>
                         </td>
                     </tr>
-                </thead>
+                </tbody>
             </table>
 
             <p>Already have an account? <A href="/login">Login.</A></p>

@@ -1,193 +1,196 @@
 .deckListPageContainer {
-  max-width: 1200px; /* Adjust as needed */
-  margin: 0 auto;
-  padding: 20px;
+    max-width: 1200px; /* Adjust as needed */
+    margin: 0 auto;
+    padding: 20px;
 }
 
 .pageTitle {
-  font-size: 2.8rem;
-  color: #f5e0dc; /* Rosewater */
-  margin-bottom: 15px;
-  font-weight: 700;
+    font-size: 2.8rem;
+    color: #f5e0dc; /* Rosewater */
+    margin-bottom: 15px;
+    font-weight: 700;
 }
 
 .pageDescription {
-  font-size: 1rem;
-  color: #a6adc8; /* Subtext0 */
-  line-height: 1.6;
-  margin-bottom: 30px;
-  max-width: 800px; /* Limit width for readability */
+    font-size: 1rem;
+    color: #a6adc8; /* Subtext0 */
+    line-height: 1.6;
+    margin-bottom: 30px;
+    max-width: 800px; /* Limit width for readability */
 }
 
 .controlsContainer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 30px;
-  flex-wrap: wrap; /* Allow controls to wrap on smaller screens */
-  gap: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    flex-wrap: wrap; /* Allow controls to wrap on smaller screens */
+    gap: 20px;
 }
 
 .searchForm {
-  display: flex;
-  align-items: center;
-  background-color: #313244; /* Surface0 */
-  border-radius: 8px;
-  padding: 5px;
-  border: 1px solid #45475a; /* Surface1 */
-  flex-grow: 1; /* Allow search to take available space */
-  max-width: 400px; /* Max width for search */
+    display: flex;
+    align-items: center;
+    background-color: #313244; /* Surface0 */
+    border-radius: 8px;
+    padding: 5px;
+    border: 1px solid #45475a; /* Surface1 */
+    flex-grow: 1; /* Allow search to take available space */
+    max-width: 400px; /* Max width for search */
 }
 
 .searchInput {
-  flex-grow: 1;
-  background-color: transparent;
-  border: none;
-  padding: 10px 15px;
-  color: #cdd6f4; /* Text */
-  font-size: 0.95rem;
-  outline: none;
+    flex-grow: 1;
+    background-color: transparent;
+    border: none;
+    padding: 10px 15px;
+    color: #cdd6f4; /* Text */
+    font-size: 0.95rem;
+    outline: none;
 }
 
 .searchInput::placeholder {
-  color: #7f849c; /* Overlay1 */
+    color: #7f849c; /* Overlay1 */
 }
 
 .searchButton {
-  background-color: transparent;
-  border: none;
-  color: #74c7ec; /* Sapphire */
-  padding: 8px 12px;
-  cursor: pointer;
-  border-radius: 6px;
-  transition: color 0.2s ease;
+    background-color: transparent;
+    border: none;
+    color: #74c7ec; /* Sapphire */
+    padding: 8px 12px;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: color 0.2s ease;
 }
 
 .searchButton:hover {
-  color: #89dceb; /* Sky */
+    color: #89dceb; /* Sky */
 }
 
 .searchButton svg {
-  display: block; /* Prevents extra space below icon */
+    display: block; /* Prevents extra space below icon */
 }
 
 .createNewDeckButton {
-  background-color: #a6e3a1; /* Green */
-  color: #1e1e2e; /* Base */
-  padding: 12px 22px;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.95rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
+    background-color: #a6e3a1; /* Green */
+    color: #1e1e2e; /* Base */
+    padding: 12px 22px;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
 }
 
 .createNewDeckButton:hover {
-  background-color: #b1e9ad; /* Lighter Green */
+    background-color: #b1e9ad; /* Lighter Green */
 }
 
 .deckGrid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr); /* Exactly 3 columns */
-  gap: 25px;
-  margin-bottom: 40px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* Exactly 3 columns */
+    gap: 25px;
+    margin-bottom: 40px;
 }
 
 .deckCard {
-  background-color: #313244; /* Surface0 */
-  border-radius: 10px;
-  overflow: hidden;
-  box-shadow: 0 3px 10px rgba(17, 17, 27, 0.25); /* Crust with alpha */
-  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-  cursor: pointer; /* Indicate cards are clickable*/
-  width: 100%; /* Full width of grid cell */
-  min-width: 300px; /* Minimum width to ensure they're wider */
+    background-color: #313244; /* Surface0 */
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 3px 10px rgba(17, 17, 27, 0.25); /* Crust with alpha */
+    transition:
+        transform 0.2s ease-in-out,
+        box-shadow 0.2s ease-in-out;
+    cursor: pointer; /* Indicate cards are clickable*/
+    width: 100%; /* Full width of grid cell */
+    min-width: 300px; /* Minimum width to ensure they're wider */
 }
 
 .deckCard:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 6px 15px rgba(17, 17, 27, 0.35);
+    transform: translateY(-4px);
+    box-shadow: 0 6px 15px rgba(17, 17, 27, 0.35);
 }
 
 .deckImagePlaceholder {
-  width: 100%;
-  padding-top: 60%; /* Aspect ratio for deck image (e.g., 5:3) */
-  position: relative;
-  background-color: #45475a; /* Surface1 */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #7f849c; /* Overlay1 */
-  font-size: 0.9rem;
+    width: 100%;
+    padding-top: 60%; /* Aspect ratio for deck image (e.g., 5:3) */
+    position: relative;
+    background-color: #45475a; /* Surface1 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #7f849c; /* Overlay1 */
+    font-size: 0.9rem;
 }
 
 .deckImagePlaceholder span {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 }
 
 .deckImagePlaceholder img {
-  position: absolute;
-  top: 100;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top;
 }
 
 .deckName {
-  padding: 15px;
-  text-align: center;
-  font-size: 1.05rem;
-  color: #f9e2af; /* Yellow */
-  font-weight: 500;
-  border-top: 1px solid #45475a; /* Surface1 */
+    padding: 15px;
+    text-align: center;
+    font-size: 1.05rem;
+    color: #f9e2af; /* Yellow */
+    font-weight: 500;
+    border-top: 1px solid #45475a; /* Surface1 */
 }
 
 .noDecksMessage {
-  color: #a6adc8; /* Subtext0 */
-  grid-column: 1 / -1; /* Span all columns */
-  text-align: center;
-  padding: 40px 0;
+    color: #a6adc8; /* Subtext0 */
+    grid-column: 1 / -1; /* Span all columns */
+    text-align: center;
+    padding: 40px 0;
 }
 
 .notLoggedInContainer {
-  max-width: 600px;
-  margin: 100px auto;
-  text-align: center;
-  padding: 40px;
-  background-color: #313244; /* Surface0 */
-  border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(17, 17, 27, 0.3);
+    max-width: 600px;
+    margin: 100px auto;
+    text-align: center;
+    padding: 40px;
+    background-color: #313244; /* Surface0 */
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(17, 17, 27, 0.3);
 }
 
 .notLoggedInContainer h2 {
-  font-size: 2rem;
-  color: #f5e0dc; /* Rosewater */
-  margin-bottom: 20px;
+    font-size: 2rem;
+    color: #f5e0dc; /* Rosewater */
+    margin-bottom: 20px;
 }
 
 .notLoggedInContainer p {
-  color: #a6adc8; /* Subtext0 */
-  margin-bottom: 30px;
-  line-height: 1.6;
+    color: #a6adc8; /* Subtext0 */
+    margin-bottom: 30px;
+    line-height: 1.6;
 }
 
 .loginRedirectButton {
-  background-color: #74c7ec; /* Sapphire */
-  color: #1e1e2e; /* Base */
-  padding: 12px 24px;
-  border: none;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
+    background-color: #74c7ec; /* Sapphire */
+    color: #1e1e2e; /* Base */
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
 }
 
 .loginRedirectButton:hover {
-  background-color: #89dceb; /* Sky */
+    background-color: #89dceb; /* Sky */
 }

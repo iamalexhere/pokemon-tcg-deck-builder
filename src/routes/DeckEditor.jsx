@@ -1,10 +1,13 @@
-import { createSignal, createEffect, Switch, Match, For, onMount, createResource } from 'solid-js';
+import { createSignal, createEffect, Switch, Match, For, onMount, createResource, Show } from 'solid-js';
 import { useNavigate, useParams } from '@solidjs/router';
 import { RiArrowsArrowGoBackLine } from 'solid-icons/ri';
-import { AiFillHeart, AiOutlineHeart, AiOutlineSearch, AiOutlineMinusCircle, AiOutlinePlusCircle } from 'solid-icons/ai';
+import { AiFillHeart, AiOutlineHeart, AiOutlineMinusCircle, AiOutlinePlusCircle } from 'solid-icons/ai';
 import { FaRegularTrashCan } from 'solid-icons/fa';
+import { BsSearch } from 'solid-icons/bs';
 
 import styles from './deckeditor.module.css';
+import cardDetailStyles from './carddetail.module.css'; 
+import Pagination from '../components/Pagination';
 import PLACEHOLDER_IMAGE from "../assets/images/placeholder.jpg";
 
 import {
@@ -12,46 +15,50 @@ import {
   updateDeck,
   deleteDeck,
   addRemoveFavoriteDeck,
-  addCardToDeck as addCardToDeckApi, // Renamed to avoid conflict with local function
-  removeCardFromDeck as removeCardFromDeckApi, // Renamed
+  addCardToDeck as addCardToDeckApi,
+  removeCardFromDeck as removeCardFromDeckApi,
   updateCardCountInDeck
 } from '../services/deckService';
 
 import {
   getCards,
-  searchCards,
-  getCardById as getCardDetailsById // Renamed
+  getCardById as getCardDetailsById
 } from '../services/cardService';
 
 const MAX_DECK_CARDS = 60;
-const MAX_IDENTICAL_CARDS = 4; // Max 4 copies of a non-basic energy card
+const MAX_IDENTICAL_CARDS = 4;
 
 function DeckEditor() {
   const navigate = useNavigate();
+  // Mengambil `deckId` dari parameter URL.
   const params = useParams();
-  const deckId = () => parseInt(params.deckId); // Ensure deckId is always a number
+  const deckId = () => parseInt(params.deckId);
 
-  // Deck State
+  // State Management untuk Data Deck.
   const [deckName, setDeckName] = createSignal('');
   const [deckNameInput, setDeckNameInput] = createSignal('');
-  const [deckCards, setDeckCards] = createSignal([]); // Stores { id: 'card-id', count: N, details: { ...fullCardObject } }
+  const [deckCards, setDeckCards] = createSignal([]);
   const [favoriteDeck, setFavoriteDeck] = createSignal(false);
 
-  // UI State
-  const [selectedCardDetails, setSelectedCardDetails] = createSignal(null); // Full details of the card clicked in either deck or search results
+  // State Management untuk UI.
+  const [selectedCardDetails, setSelectedCardDetails] = createSignal(null);
   const [isLoadingDeck, setIsLoadingDeck] = createSignal(true);
   const [isSaving, setIsSaving] = createSignal(false);
   const [deckError, setDeckError] = createSignal(null);
-  const [message, setMessage] = createSignal(''); // For success/info/warning messages
-  const [messageType, setMessageType] = createSignal(''); // 'success', 'info', 'warning', 'error'
+  const [message, setMessage] = createSignal('');
+  const [messageType, setMessageType] = createSignal('');
 
-  // Card Search State
+  // State Management untuk Pencarian Kartu.
   const [searchQuery, setSearchQuery] = createSignal('');
   const [searchPage, setSearchPage] = createSignal(1);
-  const [searchTotalPages, setSearchTotalPages] = createSignal(1);
-  const CARDS_PER_SEARCH_PAGE = 12; // Number of cards to show in search results
+  const [totalSearchPages, setTotalSearchPages] = createSignal(1); // Add signal for total pages
+  const CARDS_PER_SEARCH_PAGE = 12;
 
-  // --- Utility Functions ---
+  // State Management untuk Drag and Drop.
+  const [draggedCard, setDraggedCard] = createSignal(null);
+  const [isDraggingOver, setIsDraggingOver] = createSignal(false);
+
+  // Fungsi utilitas untuk menampilkan notifikasi.
   const showMessage = (msg, type = 'info', duration = 3000) => {
     setMessage(msg);
     setMessageType(type);
@@ -63,66 +70,78 @@ function DeckEditor() {
     }
   };
 
-  // --- Data Fetching (Resources) ---
+  // `createResource` untuk mengambil semua kartu dari API untuk fitur pencarian.
+  const [allCardsData] = createResource(getCards);
 
-  // Resource for fetching search results
-  const [searchResultsData, { refetch: refetchSearchResults }] = createResource(
-    () => ({ query: searchQuery(), page: searchPage() }),
-    async ({ query, page }) => {
-      setIsSaving(true); // Use isSaving for any ongoing API activity
-      try {
-        let response;
-        if (query.trim()) {
-          response = await searchCards({ name: query.trim(), page, pageSize: CARDS_PER_SEARCH_PAGE });
-        } else {
-          response = await getCards(page, CARDS_PER_SEARCH_PAGE);
-        }
-        setSearchTotalPages(response.totalPages || 1);
-        return response.data || [];
-      } catch (err) {
-        console.error("Error fetching search results:", err);
-        showMessage(err.message || "Failed to fetch cards. Please try again.", 'error');
-        return [];
-      } finally {
-        setIsSaving(false);
-      }
+  // State turunan (derived state) untuk memfilter kartu berdasarkan `searchQuery`.
+  const filteredCards = () => {
+    const allCards = allCardsData()?.data || [];
+    const term = searchQuery().trim().toLowerCase();
+    if (!term) {
+        return allCards;
     }
-  );
+    return allCards.filter(card => 
+        card.name.toLowerCase().includes(term)
+    );
+  };
 
-  // --- Deck Data Loading ---
-  onMount(() => {
-    // Initial load of deck data
-    loadDeckData();
-    // Initial fetch for search cards
-    refetchSearchResults();
+  // Update totalSearchPages setiap kali filteredCards berubah.
+  createEffect(() => {
+    const cards = filteredCards();
+    const total = Math.ceil(cards.length / CARDS_PER_SEARCH_PAGE);
+    setTotalSearchPages(total > 0 ? total : 1);
   });
 
-  // Effect to re-load deck data if deckId changes (e.g., navigating from /deckeditor/1 to /deckeditor/2)
+  // State turunan untuk paginasi hasil pencarian kartu.
+  const paginatedSearchResults = () => {
+    const cards = filteredCards();
+    const startIndex = (searchPage() - 1) * CARDS_PER_SEARCH_PAGE;
+    return cards.slice(startIndex, startIndex + CARDS_PER_SEARCH_PAGE);
+  };
+  
+  // Efek untuk mereset halaman ke halaman pertama setiap kali searchQuery berubah
+  createEffect(() => {
+    searchQuery(); // Memicu efek ketika searchQuery berubah
+    setSearchPage(1);
+  });
+  
+  // Efek untuk memastikan halaman saat ini valid berdasarkan total halaman
+  createEffect(() => {
+    const total = totalSearchPages();
+    if (searchPage() > total && total > 0) {
+      setSearchPage(1); // Reset to first page if current page is beyond total
+    }
+  });
+
+  // Memuat data deck saat komponen pertama kali di-mount.
+  onMount(() => {
+    loadDeckData();
+  });
+
+  // Efek untuk memuat ulang data deck jika `deckId` di URL berubah.
   createEffect(() => {
     const currentRouteDeckId = parseInt(params.deckId);
     if (currentRouteDeckId && currentRouteDeckId !== deckId()) {
       loadDeckData();
-      // Reset search when navigating to a new deck
       setSearchQuery('');
       setSearchPage(1);
-      refetchSearchResults();
     }
   });
 
+  // Fungsi untuk memuat data deck dari API.
   const loadDeckData = async () => {
     setIsLoadingDeck(true);
     setDeckError(null);
     try {
-      const data = await getDeckById(deckId(), true); // Fetch with full card details
+      const data = await getDeckById(deckId(), true);
       setDeckName(data.name);
       setDeckNameInput(data.name);
       setDeckCards(data.cards || []);
       setFavoriteDeck(data.favorite);
       showMessage('Deck loaded successfully.', 'success');
-    } catch (err) {
+    } catch (err) { // Error handling jika deck tidak ditemukan (mode membuat deck baru).
       console.error("Error loading deck:", err);
       if (err.message.includes('Deck not found')) {
-        // If deck doesn't exist, assume it's a new deck
         setDeckName(`New Deck ${deckId()}`);
         setDeckNameInput(`New Deck ${deckId()}`);
         setDeckCards([]);
@@ -136,17 +155,21 @@ function DeckEditor() {
     }
   };
 
-  // --- Card Management Functions ---
+  // Handler untuk form pencarian.
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    // Memastikan halaman pencarian di-reset ke 1 saat melakukan pencarian baru.
+    setSearchPage(1);
+  };
 
-  // Handles displaying full details of a card
+  // Fungsi untuk menampilkan detail kartu yang dipilih.
   const displayCardDetails = async (card) => {
     if (!card.details) {
-      // If card doesn't have full details (e.g., from search results which are partial)
       setIsSaving(true);
       try {
         const fullDetails = await getCardDetailsById(card.id);
-        setSelectedCardDetails(fullDetails.data); // API wraps data in 'data' key
-      } catch (err) {
+        setSelectedCardDetails(fullDetails.data);
+      } catch (err) { // Error handling saat fetch detail kartu.
         console.error("Error fetching card details:", err);
         showMessage(err.message || "Failed to fetch card details.", 'error');
       } finally {
@@ -157,11 +180,12 @@ function DeckEditor() {
     }
   };
 
+  // Fungsi untuk menambahkan kartu ke dalam deck.
   const addCardToDeck = async (card) => {
-    // Check if card is already in the deck
     const existingCard = deckCards().find(dc => dc.id === card.id);
     const currentTotalCards = deckCards().reduce((sum, c) => sum + c.count, 0);
 
+    // Validasi jumlah total kartu dalam deck.
     if (currentTotalCards >= MAX_DECK_CARDS) {
       showMessage(`Deck is full! Maximum ${MAX_DECK_CARDS} cards allowed.`, 'warning');
       return;
@@ -170,6 +194,7 @@ function DeckEditor() {
     let newCount = 1;
     if (existingCard) {
       newCount = existingCard.count + 1;
+      // Validasi jumlah kartu identik.
       if (newCount > MAX_IDENTICAL_CARDS) {
         showMessage(`Cannot add more than ${MAX_IDENTICAL_CARDS} copies of a card to the deck.`, 'warning');
         return;
@@ -179,17 +204,16 @@ function DeckEditor() {
     setIsSaving(true);
     try {
       await addCardToDeckApi(deckId(), card.id, newCount);
-      // Update local state with the new card or updated count
+      // Memperbarui state `deckCards` secara lokal untuk responsivitas UI.
       setDeckCards(prev => {
         if (existingCard) {
           return prev.map(c => c.id === card.id ? { ...c, count: newCount } : c);
         } else {
-          // Add with full details for display
           return [...prev, { id: card.id, count: newCount, details: card }];
         }
       });
       showMessage(`Added ${card.name} to deck.`, 'success', 2000);
-    } catch (err) {
+    } catch (err) { // Error handling saat menambahkan kartu.
       console.error("Error adding card to deck:", err);
       showMessage(err.message || "Failed to add card to deck.", 'error');
     } finally {
@@ -197,17 +221,17 @@ function DeckEditor() {
     }
   };
 
+  // Fungsi untuk menghapus kartu dari deck.
   const removeCardFromDeck = async (cardIdToRemove) => {
     setIsSaving(true);
     try {
       await removeCardFromDeckApi(deckId(), cardIdToRemove);
       setDeckCards(prev => prev.filter(card => card.id !== cardIdToRemove));
-      // If the removed card was the one whose details are currently displayed, clear it
       if (selectedCardDetails()?.id === cardIdToRemove) {
         setSelectedCardDetails(null);
       }
       showMessage('Card removed from deck.', 'success', 2000);
-    } catch (err) {
+    } catch (err) { // Error handling saat menghapus kartu.
       console.error("Error removing card from deck:", err);
       showMessage(err.message || "Failed to remove card from deck.", 'error');
     } finally {
@@ -215,6 +239,7 @@ function DeckEditor() {
     }
   };
 
+  // Fungsi untuk mengubah jumlah kartu tertentu di dalam deck.
   const updateCardCount = async (cardIdToUpdate, newCount) => {
     if (newCount < 1 || newCount > MAX_IDENTICAL_CARDS) {
       showMessage(`Card count must be between 1 and ${MAX_IDENTICAL_CARDS}.`, 'warning');
@@ -228,7 +253,7 @@ function DeckEditor() {
         prev.map(c => (c.id === cardIdToUpdate ? { ...c, count: newCount } : c))
       );
       showMessage('Card count updated.', 'success', 2000);
-    } catch (err) {
+    } catch (err) { // Error handling saat mengubah jumlah kartu.
       console.error("Error updating card count:", err);
       showMessage(err.message || "Failed to update card count.", 'error');
     } finally {
@@ -236,8 +261,7 @@ function DeckEditor() {
     }
   };
 
-  // --- Deck Actions ---
-
+  // Handler untuk menyimpan perubahan pada deck.
   const handleSaveDeck = async () => {
     if (deckNameInput().trim() === '') {
       showMessage('Deck name cannot be empty.', 'warning');
@@ -245,17 +269,15 @@ function DeckEditor() {
     }
     setIsSaving(true);
     try {
-      // Prepare cards data for the API (only id and count needed)
       const cardsForApi = deckCards().map(card => ({ id: card.id, count: card.count }));
       await updateDeck(deckId(), {
         name: deckNameInput(),
-        imageUrl: '', // Assuming image is handled separately or not editable here
+        imageUrl: '',
         cards: cardsForApi
       });
-      setDeckName(deckNameInput()); // Update displayed name if save is successful
+      setDeckName(deckNameInput());
       showMessage('Deck saved successfully!', 'success');
-      // No navigation, stay on editor to allow more changes
-    } catch (err) {
+    } catch (err) { // Error handling saat menyimpan deck.
       console.error("Error saving deck:", err);
       showMessage(err.message || "Failed to save deck. Please try again.", 'error');
     } finally {
@@ -263,8 +285,8 @@ function DeckEditor() {
     }
   };
 
+  // Handler untuk menghapus deck.
   const handleDeleteDeck = async () => {
-    // Replace with a custom modal confirmation
     if (!window.confirm('Are you sure you want to delete this deck? This action cannot be undone.')) {
       return;
     }
@@ -273,7 +295,7 @@ function DeckEditor() {
       await deleteDeck(deckId());
       showMessage('Deck deleted successfully!', 'success');
       navigate('/decklist', { replace: true });
-    } catch (err) {
+    } catch (err) { // Error handling saat menghapus deck.
       console.error("Error deleting deck:", err);
       showMessage(err.message || "Failed to delete deck.", 'error');
     } finally {
@@ -281,6 +303,7 @@ function DeckEditor() {
     }
   };
 
+  // Handler untuk menambah/menghapus deck dari favorit.
   const handleToggleFavorite = async () => {
     setIsSaving(true);
     try {
@@ -288,38 +311,84 @@ function DeckEditor() {
       await addRemoveFavoriteDeck(deckId(), newFavoriteStatus);
       setFavoriteDeck(newFavoriteStatus);
       showMessage(`Deck ${newFavoriteStatus ? 'added to' : 'removed from'} favorites!`, 'success', 2000);
-    } catch (err) {
+    } catch (err) { // Error handling saat mengubah status favorit.
       console.error("Error toggling favorite status:", err);
       showMessage(err.message || "Failed to update favorite status.", 'error');
     } finally {
       setIsSaving(false);
     }
+    
   };
 
-  // --- Search Handlers ---
-  const handleSearchSubmit = (e) => {
-    e.preventDefault();
-    setSearchPage(1); // Reset to first page on new search
-    refetchSearchResults();
-  };
-
+  // Handler untuk paginasi hasil pencarian.
   const handleSearchPageChange = (page) => {
-    setSearchPage(page);
-    refetchSearchResults();
+    if (page > 0 && page <= totalSearchPages()) {
+      setSearchPage(page);
+    }
+  };
+
+  // Handler untuk memulai proses drag.
+  const handleDragStart = (e, card) => {
+    setDraggedCard(card);
+    e.dataTransfer.effectAllowed = 'copy';
+    e.target.style.opacity = '0.5';
+  };
+
+  // Handler untuk mengakhiri proses drag.
+  const handleDragEnd = (e) => {
+    e.target.style.opacity = '';
+    setDraggedCard(null);
+  };
+  
+  // Handler saat item yang di-drag berada di atas drop zone.
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'copy';
+  };
+
+  let dragCounter = 0;
+  
+  // Handler saat item yang di-drag memasuki drop zone.
+  const handleDragEnter = (e) => {
+      e.preventDefault();
+      dragCounter++;
+      if (dragCounter === 1) {
+          setIsDraggingOver(true);
+      }
+  };
+
+  // Handler saat item yang di-drag meninggalkan drop zone.
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    dragCounter--;
+    if (dragCounter === 0) {
+        setIsDraggingOver(false);
+    }
+  };
+
+  // Handler saat item di-drop ke drop zone.
+  const handleDrop = async (e) => {
+    e.preventDefault();
+    const card = draggedCard();
+    if (card) {
+        await addCardToDeck(card);
+    }
+    dragCounter = 0;
+    setIsDraggingOver(false);
   };
 
   const totalDeckCardCount = () => deckCards().reduce((sum, card) => sum + card.count, 0);
 
   return (
     <div class={styles.mainContainer}>
-      {/* Global Message Display */}
+      {/* Notifikasi akan muncul di sini. */}
       {message() && (
         <div class={`${styles.messageBox} ${styles[messageType()]}`}>
           {message()}
         </div>
       )}
 
-      {/* Loading State for initial deck load */}
+      {/* Conditional rendering: tampilkan loading, error, atau editor deck. */}
       <Show when={isLoadingDeck()} fallback={
         <Show when={!deckError()} fallback={
           <div class={styles.errorContainer}>
@@ -332,7 +401,6 @@ function DeckEditor() {
             </button>
           </div>
         }>
-          {/* Main Content - Only show when not loading and no errors */}
           <div class={styles.deckEditorContent}>
             <div class={styles.topBar}>
               <button
@@ -367,65 +435,123 @@ function DeckEditor() {
             </div>
 
             <div class={styles.subContainer}>
-              {/* Card Detail Container */}
+              {/* Kontainer untuk menampilkan detail kartu. */}
               <div class={styles.cardDetailContainer}>
                 <h2>Card's Details</h2>
-                <Switch fallback={
-                  <div class={styles.noCardSelected}>
-                    <p>Select a card to view details</p>
-                  </div>
-                }>
+                {/* Switch untuk menampilkan detail kartu atau pesan placeholder. */}
+                <Switch>
                   <Match when={selectedCardDetails()}>
-                    <div class={styles.cardImageContainer}>
-                      <img src={selectedCardDetails().images?.large || selectedCardDetails().images?.small || PLACEHOLDER_IMAGE} alt={selectedCardDetails().name} />
-                    </div>
-                    <div class={styles.cardInfo}>
-                      <h3>{selectedCardDetails().name}</h3>
-                      <p><b>HP:</b> {selectedCardDetails().hp || 'N/A'}</p>
-                      <p><b>Type:</b> {selectedCardDetails().types?.join(', ') || 'N/A'}</p>
-                      <p><b>Supertype:</b> {selectedCardDetails().supertype || 'N/A'}</p>
-                      <p><b>Subtype:</b> {selectedCardDetails().subtypes?.join(', ') || 'N/A'}</p>
-                      <p><b>Rarity:</b> {selectedCardDetails().rarity || 'N/A'}</p>
+                    <div class={cardDetailStyles.cardContainer} style={{ "flex-direction": "column", "align-items": "stretch" }}>
+                      <div class={cardDetailStyles.imageContainer} style={{ "padding-left": "0", "margin": "0 auto", "max-width": "300px" }}>
+                        <div class={styles.cardImageContainer} style={{ "width": "100%", "height": "auto" }}>
+                          <img 
+                            class={cardDetailStyles.placeholderSvg}
+                            src={selectedCardDetails().images?.large || selectedCardDetails().images?.small || PLACEHOLDER_IMAGE}
+                            alt={selectedCardDetails().name}
+                          />
+                        </div>
+                      </div>
 
-                      <For each={selectedCardDetails().abilities}>
-                        {(ability, index) => (
-                          <>
-                            <p class={styles.abilityName}>Ability {index() + 1}: {ability.name}</p>
-                            <div class={styles.abilityDescription}>
-                              {ability.text}
+                      <div class={cardDetailStyles.infoContainer} style={{"margin-top": "20px"}}>
+                        <div class={cardDetailStyles.cardHeader}>
+                          <h3 class={cardDetailStyles.headerTitle}>
+                            {selectedCardDetails().name}
+                          </h3>
+                        </div>
+
+                        <div class={cardDetailStyles.typeHpRow}>
+                          <div class={cardDetailStyles.typeCell}>
+                            <span>Type: {selectedCardDetails().types?.join(', ') || 'N/A'}</span>
+                          </div>
+                          <div class={cardDetailStyles.hpCell}>
+                            <span>HP: {selectedCardDetails().hp || 'N/A'}</span>
+                          </div>
+                        </div>
+                        
+                        <Show when={selectedCardDetails().abilities?.length > 0}>
+                            <div class={cardDetailStyles.abilitiesSection}>
+                                <For each={selectedCardDetails().abilities}>
+                                    {(ability) => (
+                                        <div class={cardDetailStyles.abilityItem}>
+                                            <div class={cardDetailStyles.abilityContent}>
+                                                <div class={cardDetailStyles.abilityName}>{ability.name}</div>
+                                                <div class={cardDetailStyles.abilityDescription}>{ability.text}</div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </For>
                             </div>
-                          </>
-                        )}
-                      </For>
-                      <For each={selectedCardDetails().attacks}>
-                        {(attack, index) => (
-                          <>
-                            <p class={styles.abilityName}>Attack {index() + 1}: {attack.name} ({attack.cost?.join(', ') || 'None'})</p>
-                            <div class={styles.abilityDescription}>
-                              {attack.text} {attack.damage && `Damage: ${attack.damage}`}
-                            </div>
-                          </>
-                        )}
-                      </For>
-                      <p><b>Weakness:</b> {selectedCardDetails().weaknesses?.map(w => `${w.type} ${w.value}`).join(', ') || 'N/A'}</p>
-                      <p><b>Resistance:</b> {selectedCardDetails().resistances?.map(r => `${r.type} ${r.value}`).join(', ') || 'N/A'}</p>
-                      <p><b>Retreat Cost:</b> {selectedCardDetails().retreatCost?.length || 0}</p>
-                      <p><b>Artist:</b> {selectedCardDetails().artist || 'N/A'}</p>
+                        </Show>
+
+                        <Show when={selectedCardDetails().attacks?.length > 0}>
+                          <div class={cardDetailStyles.abilitiesSection}>
+                            <For each={selectedCardDetails().attacks}>
+                              {(attack) => (
+                                <div class={cardDetailStyles.abilityItem}>
+                                  <div class={cardDetailStyles.abilityContent}>
+                                    <div class={cardDetailStyles.abilityName}>{attack.name} ({attack.cost?.join(', ') || 'None'})</div>
+                                    <div class={cardDetailStyles.abilityDescription}>{attack.text}</div>
+                                  </div>
+                                  <Show when={attack.damage}>
+                                    <div class={cardDetailStyles.abilityValue}>{attack.damage}</div>
+                                  </Show>
+                                </div>
+                              )}
+                            </For>
+                          </div>
+                        </Show>
+
+                        <div class={cardDetailStyles.statsSection}>
+                          <div class={cardDetailStyles.statsHeader}>
+                            <div class={cardDetailStyles.statHeaderItem}><span>Weakness</span></div>
+                            <div class={cardDetailStyles.statHeaderItem}><span>Resistance</span></div>
+                            <div class={cardDetailStyles.statHeaderItem}><span>Retreat Cost</span></div>
+                          </div>
+                          <div class={cardDetailStyles.statsValues}>
+                            <div class={cardDetailStyles.statValueItem}><span>{selectedCardDetails().weaknesses?.map(w => `${w.type} ${w.value}`).join(', ') || 'N/A'}</span></div>
+                            <div class={cardDetailStyles.statValueItem}><span>{selectedCardDetails().resistances?.map(r => `${r.type} ${r.value}`).join(', ') || 'N/A'}</span></div>
+                            <div class={cardDetailStyles.statValueItem}><span>{selectedCardDetails().retreatCost?.length || 0}</span></div>
+                          </div>
+                          <div class={cardDetailStyles.illustratorSection}>
+                            <span>Illustrator: {selectedCardDetails().artist || 'N/A'}</span>
+                          </div>
+                        </div>
+                      </div>
                     </div>
+                  </Match>
+                  <Match when={!selectedCardDetails()}>
+                     <div class={styles.noCardSelected}>
+                        <p>Select a card to view details</p>
+                     </div>
                   </Match>
                 </Switch>
               </div>
 
-              {/* Card Deck Container */}
-              <div class={styles.cardDeckContainer}>
+              {/* Kontainer untuk menampilkan kartu yang ada di deck (Drop Zone). */}
+              <div 
+                class={`${styles.cardDeckContainer} ${isDraggingOver() ? styles.draggingOver : ''}`}
+                onDragOver={handleDragOver}
+                onDragEnter={handleDragEnter}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+              >
                 <div class={styles.deckHeader}>
-                  <h2>Deck's Cards</h2>
+                  <div class={styles.deckHeaderTitle}>
+                    <h2>Deck's Cards</h2>
+                    <p class={styles.deckHeaderDescription}>
+                      Drag cards from the search results to add them here.
+                    </p>
+                    <p class={styles.deckHeaderDescription}>
+                      Double-Click cards to remove it from deck.
+                    </p>
+                  </div>
                   <span class={styles.cardCount}>
                     {totalDeckCardCount()}/{MAX_DECK_CARDS} Cards
                   </span>
                 </div>
 
                 <div class={styles.deckGrid}>
+                  {/* Iterasi untuk menampilkan setiap kartu di dalam deck. */}
                   <For each={deckCards()}>
                     {(card) => (
                       <div class={styles.deckCard}>
@@ -455,16 +581,10 @@ function DeckEditor() {
                       </div>
                     )}
                   </For>
-                  {/* Empty card placeholders if needed, but usually not visible with dynamic grid */}
-                  {/* {Array(MAX_DECK_CARDS - totalDeckCardCount()).fill().map(() => (
-                      <div class={`${styles.deckCard} ${styles.empty}`}>
-                          <div class={styles.cardPlaceholder}></div>
-                      </div>
-                  ))} */}
                 </div>
               </div>
 
-              {/* Card Search Container */}
+              {/* Kontainer untuk pencarian kartu. */}
               <div class={styles.cardSearchContainer}>
                 <h2>Search for Cards</h2>
                 <form onSubmit={handleSearchSubmit} class={styles.searchForm}>
@@ -472,72 +592,71 @@ function DeckEditor() {
                     type="text"
                     placeholder="Search Pokémon cards..."
                     value={searchQuery()}
-                    onInput={(e) => setSearchQuery(e.target.value)}
+                    onInput={(e) => {
+                      setSearchQuery(e.target.value);
+                      setSearchPage(1); // Reset page to 1 when search query changes
+                    }}
                     class={styles.searchInput}
                     disabled={isSaving()}
                   />
                   <button type="submit" class={styles.searchButton} disabled={isSaving()}>
-                    <AiOutlineSearch />
+                    <BsSearch />
                   </button>
                 </form>
-
-                <Show when={!searchResultsData.loading} fallback={
+                
+                {/* Menampilkan loading atau hasil pencarian. */}
+                <Show when={!allCardsData.loading} fallback={
                   <div class={styles.loadingContainer}>
                     <div class={styles.loadingSpinner}></div>
                     <p>Searching cards...</p>
                   </div>
                 }>
+                  <div class={styles.resultsInfo}>
+                    {searchQuery().trim()
+                      ? `Search results for "${searchQuery().trim()}"`
+                      : 'All Pokémon Cards'}
+                    <span class={styles.cardCount}>
+                      {filteredCards().length} cards found
+                    </span>
+                  </div>
+                  
                   <div class={styles.searchResults}>
-                    <For each={searchResultsData()} fallback={
+                    {/* Iterasi untuk menampilkan hasil pencarian. */}
+                    <For each={paginatedSearchResults()} fallback={
                       <p class={styles.noCardSelected}>No cards found.</p>
                     }>
                       {(card) => (
                         <div
-                          class={styles.searchCard}
+                          class={`${styles.searchCard} ${styles.draggable}`}
                           onClick={() => displayCardDetails(card)}
                           onDblClick={() => addCardToDeck(card)}
+                          draggable={true}
+                          onDragStart={(e) => handleDragStart(e, card)}
+                          onDragEnd={handleDragEnd}
                         >
-                          <img src={card.images?.small || PLACEHOLDER_IMAGE} alt={card.name} />
+                          <img 
+                            src={card.images?.small || PLACEHOLDER_IMAGE} 
+                            alt={card.name}
+                            draggable={false}
+                          />
+                          <div class={styles.dragHint}>Drag to deck</div>
                         </div>
                       )}
                     </For>
                   </div>
 
-                  {/* Search Pagination */}
-                  <div class={styles.pagination}>
-                    <button
-                      onClick={() => handleSearchPageChange(searchPage() - 1)}
-                      disabled={searchPage() === 1 || isSaving()}
-                      class={styles.paginationButton}
-                    >
-                      &lt;
-                    </button>
-                    <For each={Array(searchTotalPages()).fill()}>
-                      {(_, i) => (
-                        <button
-                          class={searchPage() === i + 1 ? `${styles.paginationButton} ${styles.active}` : styles.paginationButton}
-                          onClick={() => handleSearchPageChange(i + 1)}
-                          disabled={isSaving()}
-                        >
-                          {i + 1}
-                        </button>
-                      )}
-                    </For>
-                    <button
-                      onClick={() => handleSearchPageChange(searchPage() + 1)}
-                      disabled={searchPage() === searchTotalPages() || isSaving()}
-                      class={styles.paginationButton}
-                    >
-                      &gt;
-                    </button>
-                  </div>
+                  <Pagination
+                    currentPage={searchPage}
+                    totalPages={totalSearchPages()} 
+                    onPageChange={handleSearchPageChange}
+                    maxPagesToShow={5}
+                  />
                 </Show>
               </div>
             </div>
           </div>
         </Show>
       }>
-        {/* Initial loading spinner for the whole page */}
         <div class={styles.loadingContainer}>
           <div class={styles.loadingSpinner}></div>
           <p>Loading deck editor...</p>

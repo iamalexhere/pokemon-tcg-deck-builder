@@ -1,18 +1,15 @@
 import styles from './cardlists.module.css';
 import { A } from "@solidjs/router";
-import { createSignal, Switch, Match, For, createEffect, createResource, Show } from "solid-js";
+import { createSignal, Switch, Match, For, createEffect, createResource, Show, createMemo } from "solid-js";
+import Pagination from '../components/Pagination';
 import { useNavigate } from "@solidjs/router";
 import PLACEHOLDER_IMAGE from "../assets/images/placeholder.jpg";
-import { getCards, searchCards } from '../services/cardService';
+import { getCards } from '../services/cardService';
+import { BsSearch } from 'solid-icons/bs';
 
-// Search Icon component
-const SearchIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-    <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
-  </svg>
-);
+const SearchIcon = BsSearch;
 
-// Error component for displaying API errors
+// Komponen untuk menampilkan pesan error dari API.
 function ErrorDisplay({ error }) {
   return (
     <div class={styles.errorContainer}>
@@ -23,7 +20,7 @@ function ErrorDisplay({ error }) {
   );
 }
 
-// Loading component for displaying loading state
+// Komponen untuk menampilkan status loading.
 function LoadingDisplay() {
   return (
     <div class={styles.loadingContainer}>
@@ -37,25 +34,35 @@ function Header() {
     return (
         <div class={styles.header}>
             <h1 style={{color: "white"}}>Card List</h1>
-            <p style={{color: "white"}}>Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has 
-                been the industry's standard dummy text ever since the 1500s, when an unknown printer 
-                took a galley of type and scrambled it to make a type specimen book.</p>
+            <p style={{color: "white"}}>Explore and manage your Pokémon collection 
+                through a beautifully designed desktop experience. Navigate rich 
+                visuals and intuitive menus as you browse different regions, track 
+                your favorite Pokémon, and dive into detailed stats and evolutions. 
+                Discover type matchups, compare base stats, and build your ultimate 
+                dream team. Whether you're researching legendary Pokémon or exploring 
+                the full Pokédex, the site offers smooth interaction and immersive 
+                design built for fans. Jump into the world of Pokémon and start your 
+                journey today!</p>
         </div>
     )
 }
 
-function SearchBar({ searchTerm, setSearchTerm, handleSearch }) {
+function SearchBar({ searchTerm, setSearchTerm, handleSearch, isSearching }) {
     return (
         <form class={styles.searchContainer} onSubmit={handleSearch}>
             <input 
                 type="text" 
                 placeholder="Search pokemon cards..."
-                class={styles.searchInput}
+                class={`${styles.searchInput} ${isSearching() ? styles.searching : ''}`}
                 value={searchTerm()}
                 onInput={(e) => setSearchTerm(e.currentTarget.value)}
             />
             <button type="submit" class={styles.searchButton} aria-label="Search">
-                <SearchIcon />
+                {isSearching() ? (
+                    <div class={styles.smallSpinner}></div>
+                ) : (
+                    <SearchIcon />
+                )}
             </button>
         </form>
     );
@@ -64,6 +71,7 @@ function SearchBar({ searchTerm, setSearchTerm, handleSearch }) {
 function Card({ card }) {
     const navigate = useNavigate();
     
+    // Handler untuk navigasi ke halaman detail kartu saat kartu di-klik.
     const handleCardClick = () => {
         navigate(`/card-details/${card.id}`);
     };
@@ -96,176 +104,77 @@ function CardGrid({ cards }) {
     );
 }
 
-function Pagination({ currentPage, totalPages, onPageChange }) {
-    // Function to generate the page numbers to display (only 5 at a time)
-    const getPageNumbers = () => {
-        const current = currentPage();
-        const total = totalPages();
-        const pages = [];
-        
-        // Always show 5 pages or less if totalPages < 5
-        let startPage = Math.max(1, current - 2);
-        let endPage = Math.min(total, startPage + 4);
-        
-        // Adjust if we're near the end
-        if (endPage - startPage < 4 && total > 5) {
-            startPage = Math.max(1, endPage - 4);
-        }
-        
-        // Generate the array of page numbers
-        for (let i = startPage; i <= endPage; i++) {
-            pages.push(i);
-        }
-        
-        return pages;
-    };
-    
-    return (
-        <div class={styles.pagination}>
-            {/* First page button */}
-            <button 
-                class={styles.paginationBtn}
-                onClick={() => onPageChange(1)}
-                disabled={currentPage() === 1}
-                title="First Page"
-            >
-                &lt;&lt;
-            </button>
-            
-            {/* Previous page button */}
-            <button 
-                class={styles.paginationBtn}
-                onClick={() => onPageChange(currentPage() - 1)}
-                disabled={currentPage() === 1}
-                title="Previous Page"
-            >
-                &lt;
-            </button>
-            
-            {/* Page number buttons - only show 5 at a time */}
-            <For each={getPageNumbers()}>
-                {(page) => (
-                    <button 
-                        class={`${styles.paginationBtn} ${currentPage() === page ? styles.active : ''}`}
-                        onClick={() => onPageChange(page)}
-                    >
-                        {page}
-                    </button>
-                )}
-            </For>
-            
-            {/* Next page button */}
-            <button 
-                class={styles.paginationBtn}
-                onClick={() => onPageChange(currentPage() + 1)}
-                disabled={currentPage() === totalPages()}
-                title="Next Page"
-            >
-                &gt;
-            </button>
-            
-            {/* Last page button */}
-            <button 
-                class={styles.paginationBtn}
-                onClick={() => onPageChange(totalPages())}
-                disabled={currentPage() === totalPages()}
-                title="Last Page"
-            >
-                &gt;&gt;
-            </button>
-        </div>
-    );
-}
+
 
 function ListCards() {
+    // State management untuk istilah pencarian dan halaman saat ini
     const [searchTerm, setSearchTerm] = createSignal('');
     const [currentPage, setCurrentPage] = createSignal(1);
+    const [debouncedSearchTerm, setDebouncedSearchTerm] = createSignal('');
     const [isSearching, setIsSearching] = createSignal(false);
-    const [searchParams, setSearchParams] = createSignal({});
     const ITEMS_PER_PAGE = 50;
+    const DEBOUNCE_DELAY = 300; // milliseconds
     
-    // Fetch cards from API based on current page
-    const fetchCards = async ([page, isSearch, params]) => {
-        try {
-            let result;
-            if (isSearch) {
-                // If searching, use search endpoint
-                result = await searchCards({
-                    ...params,
-                    page,
-                    pageSize: ITEMS_PER_PAGE
-                });
-            } else {
-                // Otherwise get all cards with pagination
-                result = await getCards(page, ITEMS_PER_PAGE);
-            }
-            
-            // Debug server response structure
-            console.log('Server response:', result);
-            console.log('Page:', page);
-            console.log('Total pages:', result.totalPages);
-            console.log('Card count:', result.count);
-            
-            return result;
-        } catch (error) {
-            console.error('Error fetching cards:', error);
-            throw error;
+    // Debounce istilah pencarian untuk menghindari pemfilteran yang berlebihan
+    createEffect(() => {
+        const searchValue = searchTerm();
+        
+        if (searchValue !== debouncedSearchTerm()) {
+            setIsSearching(true);
         }
-    };
-    
-    // Create a resource for fetching cards
-    const [cardsData, { refetch, mutate }] = createResource(
-        () => [currentPage(), isSearching(), searchParams()],
-        fetchCards
-    );
-    
-    // Handle search form submission
+        
+        const timeoutId = setTimeout(() => {
+            setDebouncedSearchTerm(searchValue);
+            setIsSearching(false);
+        }, DEBOUNCE_DELAY);
+        
+        // Cleanup timeout if searchTerm changes before timeout expires
+        return () => clearTimeout(timeoutId);
+    });
+
+    // `createResource` untuk mengambil semua kartu sekali
+    const [cardsData] = createResource(getCards);
+
+    const allCards = () => cardsData()?.data || [];
+
+    // State turunan (derived state) untuk memfilter kartu berdasarkan `debouncedSearchTerm`
+    const filteredCards = createMemo(() => {
+        const term = debouncedSearchTerm().trim().toLowerCase();
+        if (!term) {
+            return allCards();
+        }
+        return allCards().filter(card =>
+            card.name.toLowerCase().includes(term)
+        );
+    });
+
+    // Kembali ke halaman pertama ketika istilah pencarian berubah
+    createEffect(() => {
+        debouncedSearchTerm(); 
+        setCurrentPage(1);
+    });
+
+    const totalPages = createMemo(() => Math.ceil(filteredCards().length / ITEMS_PER_PAGE));
+
+    // Kartu yang dipaginasi berdasarkan halaman saat ini
+    const paginatedCards = createMemo(() => {
+        const startIndex = (currentPage() - 1) * ITEMS_PER_PAGE;
+        return filteredCards().slice(startIndex, startIndex + ITEMS_PER_PAGE);
+    });
+
+    // Handler untuk form pencarian.
     const handleSearch = (e) => {
         e.preventDefault();
-        const term = searchTerm().trim();
-        
-        // Reset to page 1 when searching
-        setCurrentPage(1);
-        
-        if (term) {
-            // Set search parameters based on the search term
-            setSearchParams({ name: term });
-            setIsSearching(true);
-        } else {
-            // If search term is empty, show all cards
-            setIsSearching(false);
-            setSearchParams({});
-        }
-        
-        console.log("Searching for:", term);
     };
-    
-    // Handle page change
+
+    // Handler untuk mengubah halaman.
     const handlePageChange = (page) => {
-        console.log('Page changed to:', page);
         setCurrentPage(page);
     };
-    
-    // Calculate total pages based on API response
-    const totalPages = () => {
-        if (!cardsData()) {
-            return 1;
-        }
-        // Server returns totalPages directly in the response
-        return cardsData().totalPages || 1;
-    };
-    
-    // Get cards from the API response
-    const cards = () => {
-        if (!cardsData() || !cardsData().data) {
-            return [];
-        }
-        return cardsData().data;
-    };
-    
+
     return (
         <div class={styles.listContainer}>
-            {/* Display error at the top if present */}
+            {/* Menampilkan komponen error jika ada masalah saat mengambil data. */}
             <Show when={cardsData.error}>
                 <ErrorDisplay error={cardsData.error} />
             </Show>
@@ -274,29 +183,29 @@ function ListCards() {
                 searchTerm={searchTerm} 
                 setSearchTerm={setSearchTerm} 
                 handleSearch={handleSearch} 
+                isSearching={isSearching}
             />
             
+            {/* Rendering kondisional: tampilkan loading atau konten (daftar kartu). */}
             <Show when={!cardsData.loading} fallback={<LoadingDisplay />}>
                 <Show when={!cardsData.error}>
                     <div class={styles.resultsInfo}>
-                        {isSearching() && searchTerm() 
-                            ? `Search results for "${searchTerm()}"` 
+                        {debouncedSearchTerm()
+                            ? `Search results for "${debouncedSearchTerm()}"` 
                             : 'All Pokémon Cards'}
-                        {cardsData() && cardsData().count && (
-                            <span class={styles.cardCount}>
-                                {cardsData().count} cards found
-                            </span>
-                        )}
+                        <span class={styles.cardCount}>
+                            {filteredCards().length} cards found
+                        </span>
                     </div>
                     
                     <CardGrid 
-                        cards={cards}
+                        cards={paginatedCards}
                     />
                     
-                    <Pagination 
-                        currentPage={currentPage} 
-                        totalPages={totalPages} 
-                        onPageChange={handlePageChange} 
+                    <Pagination
+                        currentPage={currentPage}
+                        totalPages={totalPages()}
+                        onPageChange={handlePageChange}
                     />
                 </Show>
             </Show>

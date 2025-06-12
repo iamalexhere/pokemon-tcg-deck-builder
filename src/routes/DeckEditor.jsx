@@ -194,8 +194,9 @@ function DeckEditor() {
     let newCount = 1;
     if (existingCard) {
       newCount = existingCard.count + 1;
-      // Validasi jumlah kartu identik.
-      if (newCount > MAX_IDENTICAL_CARDS) {
+      // Skip identical cards validation for Energy cards, otherwise apply the limit
+      const isEnergyCard = card.details && card.details.supertype === 'Energy';
+      if (!isEnergyCard && newCount > MAX_IDENTICAL_CARDS) {
         showMessage(`Cannot add more than ${MAX_IDENTICAL_CARDS} copies of a card to the deck.`, 'warning');
         return;
       }
@@ -241,8 +242,15 @@ function DeckEditor() {
 
   // Fungsi untuk mengubah jumlah kartu tertentu di dalam deck.
   const updateCardCount = async (cardIdToUpdate, newCount) => {
-    if (newCount < 1 || newCount > MAX_IDENTICAL_CARDS) {
-      showMessage(`Card count must be between 1 and ${MAX_IDENTICAL_CARDS}.`, 'warning');
+    // Find the card in the deck
+    const cardToUpdate = deckCards().find(c => c.id === cardIdToUpdate);
+    
+    // Check if it's an Energy card (which has no limit) or a regular card (limited to MAX_IDENTICAL_CARDS)
+    const isEnergyCard = cardToUpdate && cardToUpdate.details && cardToUpdate.details.supertype === 'Energy';
+    
+    if (newCount < 1 || (!isEnergyCard && newCount > MAX_IDENTICAL_CARDS)) {
+      const maxMessage = isEnergyCard ? '' : ` and ${MAX_IDENTICAL_CARDS}`;
+      showMessage(`Card count must be between 1${maxMessage}.`, 'warning');
       return;
     }
 
@@ -573,7 +581,7 @@ function DeckEditor() {
                           <button
                             class={styles.quantityButton}
                             onClick={() => updateCardCount(card.id, card.count + 1)}
-                            disabled={card.count >= MAX_IDENTICAL_CARDS || isSaving()}
+                            disabled={(card.details?.supertype !== 'Energy' && card.count >= MAX_IDENTICAL_CARDS) || totalDeckCardCount() >= MAX_DECK_CARDS || isSaving()}
                           >
                             <AiOutlinePlusCircle />
                           </button>

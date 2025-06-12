@@ -51,6 +51,7 @@ function DeckEditor() {
   // State Management untuk Pencarian Kartu.
   const [searchQuery, setSearchQuery] = createSignal('');
   const [searchPage, setSearchPage] = createSignal(1);
+  const [totalSearchPages, setTotalSearchPages] = createSignal(1); // Add signal for total pages
   const CARDS_PER_SEARCH_PAGE = 12;
 
   // State Management untuk Drag and Drop.
@@ -84,7 +85,12 @@ function DeckEditor() {
     );
   };
 
-  const searchTotalPages = () => Math.ceil(filteredCards().length / CARDS_PER_SEARCH_PAGE);
+  // Update totalSearchPages setiap kali filteredCards berubah.
+  createEffect(() => {
+    const cards = filteredCards();
+    const total = Math.ceil(cards.length / CARDS_PER_SEARCH_PAGE);
+    setTotalSearchPages(total > 0 ? total : 1);
+  });
 
   // State turunan untuk paginasi hasil pencarian kartu.
   const paginatedSearchResults = () => {
@@ -92,6 +98,20 @@ function DeckEditor() {
     const startIndex = (searchPage() - 1) * CARDS_PER_SEARCH_PAGE;
     return cards.slice(startIndex, startIndex + CARDS_PER_SEARCH_PAGE);
   };
+  
+  // Efek untuk mereset halaman ke halaman pertama setiap kali searchQuery berubah
+  createEffect(() => {
+    searchQuery(); // Memicu efek ketika searchQuery berubah
+    setSearchPage(1);
+  });
+  
+  // Efek untuk memastikan halaman saat ini valid berdasarkan total halaman
+  createEffect(() => {
+    const total = totalSearchPages();
+    if (searchPage() > total && total > 0) {
+      setSearchPage(1); // Reset to first page if current page is beyond total
+    }
+  });
 
   // Memuat data deck saat komponen pertama kali di-mount.
   onMount(() => {
@@ -138,6 +158,7 @@ function DeckEditor() {
   // Handler untuk form pencarian.
   const handleSearchSubmit = (e) => {
     e.preventDefault();
+    // Memastikan halaman pencarian di-reset ke 1 saat melakukan pencarian baru.
     setSearchPage(1);
   };
 
@@ -301,7 +322,7 @@ function DeckEditor() {
 
   // Handler untuk paginasi hasil pencarian.
   const handleSearchPageChange = (page) => {
-    if (page > 0 && page <= searchTotalPages()) {
+    if (page > 0 && page <= totalSearchPages()) {
       setSearchPage(page);
     }
   };
@@ -571,7 +592,10 @@ function DeckEditor() {
                     type="text"
                     placeholder="Search Pokémon cards..."
                     value={searchQuery()}
-                    onInput={(e) => setSearchQuery(e.target.value)}
+                    onInput={(e) => {
+                      setSearchQuery(e.target.value);
+                      setSearchPage(1); // Reset page to 1 when search query changes
+                    }}
                     class={styles.searchInput}
                     disabled={isSaving()}
                   />
@@ -587,6 +611,15 @@ function DeckEditor() {
                     <p>Searching cards...</p>
                   </div>
                 }>
+                  <div class={styles.resultsInfo}>
+                    {searchQuery().trim()
+                      ? `Search results for "${searchQuery().trim()}"`
+                      : 'All Pokémon Cards'}
+                    <span class={styles.cardCount}>
+                      {filteredCards().length} cards found
+                    </span>
+                  </div>
+                  
                   <div class={styles.searchResults}>
                     {/* Iterasi untuk menampilkan hasil pencarian. */}
                     <For each={paginatedSearchResults()} fallback={
@@ -614,8 +647,9 @@ function DeckEditor() {
 
                   <Pagination
                     currentPage={searchPage}
-                    totalPages={searchTotalPages()}
+                    totalPages={totalSearchPages()} 
                     onPageChange={handleSearchPageChange}
+                    maxPagesToShow={5}
                   />
                 </Show>
               </div>

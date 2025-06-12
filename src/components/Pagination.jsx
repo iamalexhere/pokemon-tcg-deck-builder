@@ -23,18 +23,21 @@ import styles from './pagination.module.css';
  */
 function Pagination(props) {
   const currentPage = props.currentPage;
-  const totalPages = props.totalPages;
   const onPageChange = props.onPageChange;
   const maxPagesToShow = props.maxPagesToShow || 5;
+  
+  // Access totalPages as a reactive value
+  const totalPages = () => typeof props.totalPages === 'function' ? props.totalPages() : props.totalPages;
 
   const pageNumbers = () => {
     const pages = [];
+    const total = totalPages();
     // Logic untuk display page number (menggunakan ellipsis jika perlu)
     let startPage = Math.max(1, currentPage() - Math.floor(maxPagesToShow / 2));
-    let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+    let endPage = Math.min(total, startPage + maxPagesToShow - 1);
 
     // Menyesuaikan startPage jika endPage terlalu dekat dengan totalPages
-    if (endPage - startPage + 1 < maxPagesToShow && totalPages >= maxPagesToShow) {
+    if (endPage - startPage + 1 < maxPagesToShow && total >= maxPagesToShow) {
       startPage = Math.max(1, endPage - maxPagesToShow + 1);
     }
 
@@ -45,7 +48,7 @@ function Pagination(props) {
   };
 
   // Jangan tampilkan pagination jika hanya ada satu halaman
-  if (totalPages <= 1) {
+  if (totalPages() <= 1) {
     return null;
   }
 
@@ -79,16 +82,16 @@ function Pagination(props) {
         )}
       </For>
 
-      {pageNumbers()[pageNumbers().length - 1] < totalPages && (
+      {pageNumbers()[pageNumbers().length - 1] < totalPages() && (
         <>
-          {pageNumbers()[pageNumbers().length - 1] < totalPages - 1 && <span class={styles.ellipsis}>...</span>}
-          <button onClick={() => onPageChange(totalPages)} class={styles.pageButton}>{totalPages}</button>
+          {pageNumbers()[pageNumbers().length - 1] < totalPages() - 1 && <span class={styles.ellipsis}>...</span>}
+          <button onClick={() => onPageChange(totalPages())} class={styles.pageButton}>{totalPages()}</button>
         </>
       )}
 
       <button
-        onClick={() => onPageChange(Math.min(totalPages, currentPage() + 1))}
-        disabled={currentPage() === totalPages}
+        onClick={() => onPageChange(Math.min(totalPages(), currentPage() + 1))}
+        disabled={currentPage() === totalPages()}
         aria-label="Next Page"
         class={styles.pageButton}
       >

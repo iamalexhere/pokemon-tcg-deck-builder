@@ -5,7 +5,7 @@ import DeckCard from "../components/DeckCard";
 import defaultProfileImage from "../assets/images/icon/Profile.png";
 import { getRecentDecks, getFavoriteDecks } from "../services/deckService"; 
 import { useNavigate } from "@solidjs/router";
-import deckEditor from "./DeckEditor";
+
 
 function Profile() {
   // Menggunakan hook `useAuth` untuk mengakses data dan fungsi otentikasi.
@@ -34,10 +34,7 @@ function Profile() {
   const [isLoading, setIsLoading] = createSignal(false);
   const [recentDecks, setRecentDecks] = createSignal([]);
   const [favoriteDecks, setFavoriteDecks] = createSignal([]);
-  const [usernameError, setUsernameError] = createSignal("");
-  const [pronounsError, setPronounsError] = createSignal("");
   const [isUploading, setIsUploading] = createSignal(false);
-  const [uploadError, setUploadError] = createSignal("");
   const navigate = useNavigate();
 
   function handleEditDeck(deck) {
